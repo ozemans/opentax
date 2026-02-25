@@ -1,0 +1,315 @@
+{
+  "taxYear": 2025,
+  "standardDeduction": {
+    "single": 1500000,
+    "married_filing_jointly": 3000000,
+    "married_filing_separately": 1500000,
+    "head_of_household": 2250000,
+    "qualifying_surviving_spouse": 3000000
+  },
+  "additionalStandardDeduction": {
+    "married": 160000,
+    "single": 200000
+  },
+  "brackets": {
+    "single": [
+      { "min": 0, "max": 1192500, "rate": 0.10 },
+      { "min": 1192500, "max": 4847500, "rate": 0.12 },
+      { "min": 4847500, "max": 10335000, "rate": 0.22 },
+      { "min": 10335000, "max": 19730000, "rate": 0.24 },
+      { "min": 19730000, "max": 25052500, "rate": 0.32 },
+      { "min": 25052500, "max": 62635000, "rate": 0.35 },
+      { "min": 62635000, "max": null, "rate": 0.37 }
+    ],
+    "married_filing_jointly": [
+      { "min": 0, "max": 2385000, "rate": 0.10 },
+      { "min": 2385000, "max": 9695000, "rate": 0.12 },
+      { "min": 9695000, "max": 20670000, "rate": 0.22 },
+      { "min": 20670000, "max": 39460000, "rate": 0.24 },
+      { "min": 39460000, "max": 50105000, "rate": 0.32 },
+      { "min": 50105000, "max": 75160000, "rate": 0.35 },
+      { "min": 75160000, "max": null, "rate": 0.37 }
+    ],
+    "married_filing_separately": [
+      { "min": 0, "max": 1192500, "rate": 0.10 },
+      { "min": 1192500, "max": 4847500, "rate": 0.12 },
+      { "min": 4847500, "max": 10335000, "rate": 0.22 },
+      { "min": 10335000, "max": 19730000, "rate": 0.24 },
+      { "min": 19730000, "max": 25052500, "rate": 0.32 },
+      { "min": 25052500, "max": 37580000, "rate": 0.35 },
+      { "min": 37580000, "max": null, "rate": 0.37 }
+    ],
+    "head_of_household": [
+      { "min": 0, "max": 1700000, "rate": 0.10 },
+      { "min": 1700000, "max": 6485000, "rate": 0.12 },
+      { "min": 6485000, "max": 10335000, "rate": 0.22 },
+      { "min": 10335000, "max": 19730000, "rate": 0.24 },
+      { "min": 19730000, "max": 25050000, "rate": 0.32 },
+      { "min": 25050000, "max": 62635000, "rate": 0.35 },
+      { "min": 62635000, "max": null, "rate": 0.37 }
+    ],
+    "qualifying_surviving_spouse": [
+      { "min": 0, "max": 2385000, "rate": 0.10 },
+      { "min": 2385000, "max": 9695000, "rate": 0.12 },
+      { "min": 9695000, "max": 20670000, "rate": 0.22 },
+      { "min": 20670000, "max": 39460000, "rate": 0.24 },
+      { "min": 39460000, "max": 50105000, "rate": 0.32 },
+      { "min": 50105000, "max": 75160000, "rate": 0.35 },
+      { "min": 75160000, "max": null, "rate": 0.37 }
+    ]
+  },
+  "capitalGainsRates": {
+    "single": [
+      { "max": 4835000, "rate": 0.00 },
+      { "max": 53340000, "rate": 0.15 },
+      { "max": null, "rate": 0.20 }
+    ],
+    "married_filing_jointly": [
+      { "max": 9670000, "rate": 0.00 },
+      { "max": 60005000, "rate": 0.15 },
+      { "max": null, "rate": 0.20 }
+    ],
+    "married_filing_separately": [
+      { "max": 4835000, "rate": 0.00 },
+      { "max": 30000000, "rate": 0.15 },
+      { "max": null, "rate": 0.20 }
+    ],
+    "head_of_household": [
+      { "max": 6475000, "rate": 0.00 },
+      { "max": 56670000, "rate": 0.15 },
+      { "max": null, "rate": 0.20 }
+    ],
+    "qualifying_surviving_spouse": [
+      { "max": 9670000, "rate": 0.00 },
+      { "max": 60005000, "rate": 0.15 },
+      { "max": null, "rate": 0.20 }
+    ]
+  },
+  "collectiblesRate": 0.28,
+  "section1250Rate": 0.25,
+  "socialSecurity": {
+    "wageBase": 17610000,
+    "employeeRate": 0.062,
+    "selfEmployedRate": 0.124
+  },
+  "medicare": {
+    "rate": 0.0145,
+    "selfEmployedRate": 0.029,
+    "additionalRate": 0.009,
+    "additionalThreshold": {
+      "single": 20000000,
+      "married_filing_jointly": 25000000,
+      "married_filing_separately": 12500000,
+      "head_of_household": 20000000,
+      "qualifying_surviving_spouse": 20000000
+    }
+  },
+  "amt": {
+    "exemption": {
+      "single": 8810000,
+      "married_filing_jointly": 13700000,
+      "married_filing_separately": 6850000,
+      "head_of_household": 8810000,
+      "qualifying_surviving_spouse": 13700000
+    },
+    "phaseOutBegins": {
+      "single": 62635000,
+      "married_filing_jointly": 125270000,
+      "married_filing_separately": 62635000,
+      "head_of_household": 62635000,
+      "qualifying_surviving_spouse": 125270000
+    },
+    "rates": {
+      "low": 0.26,
+      "high": 0.28,
+      "breakpoint": {
+        "single": 23910000,
+        "married_filing_jointly": 23910000,
+        "married_filing_separately": 11955000,
+        "head_of_household": 23910000,
+        "qualifying_surviving_spouse": 23910000
+      }
+    }
+  },
+  "niit": {
+    "rate": 0.038,
+    "threshold": {
+      "single": 20000000,
+      "married_filing_jointly": 25000000,
+      "married_filing_separately": 12500000,
+      "head_of_household": 20000000,
+      "qualifying_surviving_spouse": 25000000
+    }
+  },
+  "ctc": {
+    "maxCreditPerChild": 220000,
+    "refundablePerChild": 170000,
+    "earnedIncomeThreshold": 250000,
+    "phaseInRate": 0.15,
+    "phaseOutThreshold": {
+      "single": 20000000,
+      "married_filing_jointly": 40000000,
+      "married_filing_separately": 20000000,
+      "head_of_household": 20000000,
+      "qualifying_surviving_spouse": 40000000
+    },
+    "phaseOutRate": 0.05
+  },
+  "odc": {
+    "creditPerDependent": 50000
+  },
+  "eitc": {
+    "0": {
+      "phaseInRate": 0.0765,
+      "phaseOutRate": 0.0765,
+      "maxCredit": 64900,
+      "completedPhaseIn": 849000,
+      "phaseOutBeginsSingle": 1062000,
+      "phaseOutBeginsMFJ": 1773000,
+      "phaseOutEndsSingle": 1910400,
+      "phaseOutEndsMFJ": 2621400
+    },
+    "1": {
+      "phaseInRate": 0.34,
+      "phaseOutRate": 0.1598,
+      "maxCredit": 432800,
+      "completedPhaseIn": 1273000,
+      "phaseOutBeginsSingle": 2335000,
+      "phaseOutBeginsMFJ": 3047000,
+      "phaseOutEndsSingle": 5043400,
+      "phaseOutEndsMFJ": 5755400
+    },
+    "2": {
+      "phaseInRate": 0.40,
+      "phaseOutRate": 0.2106,
+      "maxCredit": 715200,
+      "completedPhaseIn": 1788000,
+      "phaseOutBeginsSingle": 2335000,
+      "phaseOutBeginsMFJ": 3047000,
+      "phaseOutEndsSingle": 5731000,
+      "phaseOutEndsMFJ": 6443000
+    },
+    "3": {
+      "phaseInRate": 0.45,
+      "phaseOutRate": 0.2106,
+      "maxCredit": 804600,
+      "completedPhaseIn": 1788000,
+      "phaseOutBeginsSingle": 2335000,
+      "phaseOutBeginsMFJ": 3047000,
+      "phaseOutEndsSingle": 6155500,
+      "phaseOutEndsMFJ": 6867500
+    }
+  },
+  "eitcInvestmentIncomeLimit": 1195000,
+  "educationCredits": {
+    "aotc": {
+      "maxCredit": 250000,
+      "firstTierExpenses": 200000,
+      "secondTierExpenses": 200000,
+      "secondTierRate": 0.25,
+      "refundableRate": 0.40,
+      "phaseOut": {
+        "single": { "begin": 8000000, "end": 9000000 },
+        "mfj": { "begin": 16000000, "end": 18000000 }
+      }
+    },
+    "llc": {
+      "maxCredit": 200000,
+      "rate": 0.20,
+      "maxExpenses": 1000000,
+      "phaseOut": {
+        "single": { "begin": 8000000, "end": 9000000 },
+        "mfj": { "begin": 16000000, "end": 18000000 }
+      }
+    }
+  },
+  "saversCredit": {
+    "maxContribution": {
+      "single": 200000,
+      "married_filing_jointly": 400000,
+      "married_filing_separately": 200000,
+      "head_of_household": 200000,
+      "qualifying_surviving_spouse": 400000
+    },
+    "brackets": [
+      { "rate": 0.50, "mfj": 4750000, "hoh": 3562500, "single": 2375000 },
+      { "rate": 0.20, "mfj": 5100000, "hoh": 3825000, "single": 2550000 },
+      { "rate": 0.10, "mfj": 7900000, "hoh": 5925000, "single": 3950000 }
+    ]
+  },
+  "childCareCredit": {
+    "maxExpensesOneChild": 300000,
+    "maxExpensesTwoPlus": 600000,
+    "minRate": 0.20,
+    "maxRate": 0.35,
+    "rateReductionPerIncrement": 0.01,
+    "incomeIncrement": 200000,
+    "incomeThreshold": 1500000
+  },
+  "salt": {
+    "baseCap": {
+      "single": 4000000,
+      "married_filing_jointly": 4000000,
+      "married_filing_separately": 2000000,
+      "head_of_household": 4000000,
+      "qualifying_surviving_spouse": 4000000
+    },
+    "phaseOutBegins": {
+      "single": 50000000,
+      "married_filing_jointly": 50000000,
+      "married_filing_separately": 25000000,
+      "head_of_household": 50000000,
+      "qualifying_surviving_spouse": 50000000
+    },
+    "phaseOutRate": 0.30,
+    "floor": {
+      "single": 1000000,
+      "married_filing_jointly": 1000000,
+      "married_filing_separately": 500000,
+      "head_of_household": 1000000,
+      "qualifying_surviving_spouse": 1000000
+    }
+  },
+  "charitableLimits": {
+    "cashPercentAGI": 0.60,
+    "nonCashPercentAGI": 0.30
+  },
+  "medicalExpenseThreshold": 0.075,
+  "mortgageInterestDebtLimit": 75000000,
+  "capitalLossLimit": {
+    "single": 300000,
+    "married_filing_jointly": 300000,
+    "married_filing_separately": 150000,
+    "head_of_household": 300000,
+    "qualifying_surviving_spouse": 300000
+  },
+  "studentLoanInterest": {
+    "maxDeduction": 250000,
+    "phaseOut": {
+      "single": { "begin": 8500000, "end": 10000000 },
+      "mfj": { "begin": 17000000, "end": 20000000 }
+    }
+  },
+  "educatorExpensesMax": 30000,
+  "hsaLimits": {
+    "selfOnly": 430000,
+    "family": 860000,
+    "catchUp55": 100000
+  },
+  "selfEmployment": {
+    "seTaxableRate": 0.9235,
+    "socialSecurityRate": 0.124,
+    "medicareRate": 0.029,
+    "additionalMedicareRate": 0.009,
+    "wageBase": 17610000,
+    "homeOfficeSimplifiedRate": 500,
+    "homeOfficeMaxSqFt": 300
+  },
+  "qbi": {
+    "deductionRate": 0.20,
+    "phaseOut": {
+      "single": { "begin": 19730000, "end": 24730000 },
+      "mfj": { "begin": 39460000, "end": 49460000 }
+    }
+  }
+}
