@@ -1,0 +1,59 @@
+{
+  "stateCode": "OH",
+  "stateName": "Ohio",
+  "taxYear": 2025,
+  "hasIncomeTax": true,
+  "startingPoint": "federal_agi",
+  "brackets": {
+    "single": [
+      { "min": 0, "max": 2605000, "rate": 0 },
+      { "min": 2605000, "max": 4610000, "rate": 0.0275 },
+      { "min": 4610000, "max": 9215000, "rate": 0.035 },
+      { "min": 9215000, "max": 11530000, "rate": 0.0375 },
+      { "min": 11530000, "max": null, "rate": 0.0399 }
+    ],
+    "married_filing_jointly": [
+      { "min": 0, "max": 2605000, "rate": 0 },
+      { "min": 2605000, "max": 4610000, "rate": 0.0275 },
+      { "min": 4610000, "max": 9215000, "rate": 0.035 },
+      { "min": 9215000, "max": 11530000, "rate": 0.0375 },
+      { "min": 11530000, "max": null, "rate": 0.0399 }
+    ],
+    "married_filing_separately": [
+      { "min": 0, "max": 2605000, "rate": 0 },
+      { "min": 2605000, "max": 4610000, "rate": 0.0275 },
+      { "min": 4610000, "max": 9215000, "rate": 0.035 },
+      { "min": 9215000, "max": 11530000, "rate": 0.0375 },
+      { "min": 11530000, "max": null, "rate": 0.0399 }
+    ],
+    "head_of_household": [
+      { "min": 0, "max": 2605000, "rate": 0 },
+      { "min": 2605000, "max": 4610000, "rate": 0.0275 },
+      { "min": 4610000, "max": 9215000, "rate": 0.035 },
+      { "min": 9215000, "max": 11530000, "rate": 0.0375 },
+      { "min": 11530000, "max": null, "rate": 0.0399 }
+    ],
+    "qualifying_surviving_spouse": [
+      { "min": 0, "max": 2605000, "rate": 0 },
+      { "min": 2605000, "max": 4610000, "rate": 0.0275 },
+      { "min": 4610000, "max": 9215000, "rate": 0.035 },
+      { "min": 9215000, "max": 11530000, "rate": 0.0375 },
+      { "min": 11530000, "max": null, "rate": 0.0399 }
+    ]
+  },
+  "personalExemption": {
+    "taxpayer": {
+      "single": 240000,
+      "married_filing_jointly": 240000,
+      "married_filing_separately": 240000,
+      "head_of_household": 240000,
+      "qualifying_surviving_spouse": 240000
+    },
+    "spouse": 240000,
+    "dependent": 240000
+  },
+  "socialSecurityExempt": true,
+  "capitalGainsTreatment": "ordinary",
+  "formId": "IT-1040",
+  "formName": "Ohio Individual Income Tax Return"
+}

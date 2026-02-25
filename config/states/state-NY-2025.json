@@ -1,0 +1,102 @@
+{
+  "stateCode": "NY",
+  "stateName": "New York",
+  "taxYear": 2025,
+  "hasIncomeTax": true,
+  "startingPoint": "federal_agi",
+  "brackets": {
+    "single": [
+      { "min": 0, "max": 850000, "rate": 0.04 },
+      { "min": 850000, "max": 1170000, "rate": 0.045 },
+      { "min": 1170000, "max": 1390000, "rate": 0.0525 },
+      { "min": 1390000, "max": 8065000, "rate": 0.055 },
+      { "min": 8065000, "max": 21540000, "rate": 0.06 },
+      { "min": 21540000, "max": 107755000, "rate": 0.0685 },
+      { "min": 107755000, "max": 500000000, "rate": 0.0965 },
+      { "min": 500000000, "max": 2500000000, "rate": 0.103 },
+      { "min": 2500000000, "max": null, "rate": 0.109 }
+    ],
+    "married_filing_jointly": [
+      { "min": 0, "max": 850000, "rate": 0.04 },
+      { "min": 850000, "max": 1170000, "rate": 0.045 },
+      { "min": 1170000, "max": 1390000, "rate": 0.0525 },
+      { "min": 1390000, "max": 8065000, "rate": 0.055 },
+      { "min": 8065000, "max": 21540000, "rate": 0.06 },
+      { "min": 21540000, "max": 107755000, "rate": 0.0685 },
+      { "min": 107755000, "max": 500000000, "rate": 0.0965 },
+      { "min": 500000000, "max": 2500000000, "rate": 0.103 },
+      { "min": 2500000000, "max": null, "rate": 0.109 }
+    ],
+    "married_filing_separately": [
+      { "min": 0, "max": 850000, "rate": 0.04 },
+      { "min": 850000, "max": 1170000, "rate": 0.045 },
+      { "min": 1170000, "max": 1390000, "rate": 0.0525 },
+      { "min": 1390000, "max": 8065000, "rate": 0.055 },
+      { "min": 8065000, "max": 21540000, "rate": 0.06 },
+      { "min": 21540000, "max": 107755000, "rate": 0.0685 },
+      { "min": 107755000, "max": 500000000, "rate": 0.0965 },
+      { "min": 500000000, "max": 2500000000, "rate": 0.103 },
+      { "min": 2500000000, "max": null, "rate": 0.109 }
+    ],
+    "head_of_household": [
+      { "min": 0, "max": 850000, "rate": 0.04 },
+      { "min": 850000, "max": 1170000, "rate": 0.045 },
+      { "min": 1170000, "max": 1390000, "rate": 0.0525 },
+      { "min": 1390000, "max": 8065000, "rate": 0.055 },
+      { "min": 8065000, "max": 21540000, "rate": 0.06 },
+      { "min": 21540000, "max": 107755000, "rate": 0.0685 },
+      { "min": 107755000, "max": 500000000, "rate": 0.0965 },
+      { "min": 500000000, "max": 2500000000, "rate": 0.103 },
+      { "min": 2500000000, "max": null, "rate": 0.109 }
+    ],
+    "qualifying_surviving_spouse": [
+      { "min": 0, "max": 850000, "rate": 0.04 },
+      { "min": 850000, "max": 1170000, "rate": 0.045 },
+      { "min": 1170000, "max": 1390000, "rate": 0.0525 },
+      { "min": 1390000, "max": 8065000, "rate": 0.055 },
+      { "min": 8065000, "max": 21540000, "rate": 0.06 },
+      { "min": 21540000, "max": 107755000, "rate": 0.0685 },
+      { "min": 107755000, "max": 500000000, "rate": 0.0965 },
+      { "min": 500000000, "max": 2500000000, "rate": 0.103 },
+      { "min": 2500000000, "max": null, "rate": 0.109 }
+    ]
+  },
+  "standardDeduction": {
+    "single": 800000,
+    "married_filing_jointly": 1605000,
+    "married_filing_separately": 800000,
+    "head_of_household": 1100000,
+    "qualifying_surviving_spouse": 1605000
+  },
+  "socialSecurityExempt": true,
+  "capitalGainsTreatment": "ordinary",
+  "localTax": {
+    "NYC": {
+      "brackets": [
+        { "min": 0, "max": 1200000, "rate": 0.03078 },
+        { "min": 1200000, "max": 2550000, "rate": 0.03762 },
+        { "min": 2550000, "max": 5000000, "rate": 0.03819 },
+        { "min": 5000000, "max": null, "rate": 0.03876 }
+      ]
+    }
+  },
+  "credits": {
+    "eitc": {
+      "type": "percent_of_federal",
+      "percentOfFederal": 0.30,
+      "refundable": true
+    },
+    "childCredit": {
+      "amountPerChild": 33000,
+      "agiPhaseOut": {
+        "single": 7500000,
+        "married_filing_jointly": 11000000,
+        "married_filing_separately": 5500000,
+        "head_of_household": 7500000,
+        "qualifying_surviving_spouse": 11000000
+      }
+    }
+  },
+  "formId": "IT-201",
+  "formName": "New York State Resident Income Tax Return"
+}

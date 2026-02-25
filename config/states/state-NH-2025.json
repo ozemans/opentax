@@ -1,0 +1,12 @@
+{
+  "stateCode": "NH",
+  "stateName": "New Hampshire",
+  "taxYear": 2025,
+  "hasIncomeTax": true,
+  "startingPoint": "own_computation",
+  "flatRate": 0,
+  "socialSecurityExempt": true,
+  "capitalGainsTreatment": "exempt",
+  "formId": "DP-10",
+  "formName": "New Hampshire Interest and Dividends Tax Return"
+}

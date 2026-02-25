@@ -1,0 +1,12 @@
+{
+  "stateCode": "PA",
+  "stateName": "Pennsylvania",
+  "taxYear": 2025,
+  "hasIncomeTax": true,
+  "startingPoint": "own_computation",
+  "flatRate": 0.0307,
+  "socialSecurityExempt": true,
+  "capitalGainsTreatment": "ordinary",
+  "formId": "PA-40",
+  "formName": "Pennsylvania Income Tax Return"
+}

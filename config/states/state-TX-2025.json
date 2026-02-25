@@ -1,0 +1,11 @@
+{
+  "stateCode": "TX",
+  "stateName": "Texas",
+  "taxYear": 2025,
+  "hasIncomeTax": false,
+  "startingPoint": "federal_agi",
+  "socialSecurityExempt": true,
+  "capitalGainsTreatment": "exempt",
+  "formId": "none",
+  "formName": "None"
+}

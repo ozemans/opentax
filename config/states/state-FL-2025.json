@@ -1,0 +1,11 @@
+{
+  "stateCode": "FL",
+  "stateName": "Florida",
+  "taxYear": 2025,
+  "hasIncomeTax": false,
+  "startingPoint": "federal_agi",
+  "socialSecurityExempt": true,
+  "capitalGainsTreatment": "exempt",
+  "formId": "none",
+  "formName": "None"
+}

@@ -1,0 +1,30 @@
+{
+  "stateCode": "IL",
+  "stateName": "Illinois",
+  "taxYear": 2025,
+  "hasIncomeTax": true,
+  "startingPoint": "federal_agi",
+  "flatRate": 0.0495,
+  "socialSecurityExempt": true,
+  "capitalGainsTreatment": "ordinary",
+  "personalExemption": {
+    "taxpayer": {
+      "single": 262500,
+      "married_filing_jointly": 262500,
+      "married_filing_separately": 262500,
+      "head_of_household": 262500,
+      "qualifying_surviving_spouse": 262500
+    },
+    "spouse": 262500,
+    "dependent": 262500
+  },
+  "credits": {
+    "eitc": {
+      "type": "percent_of_federal",
+      "percentOfFederal": 0.20,
+      "refundable": true
+    }
+  },
+  "formId": "IL-1040",
+  "formName": "Illinois Individual Income Tax Return"
+}

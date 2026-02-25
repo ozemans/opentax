@@ -1,0 +1,42 @@
+{
+  "stateCode": "MA",
+  "stateName": "Massachusetts",
+  "taxYear": 2025,
+  "hasIncomeTax": true,
+  "startingPoint": "federal_agi",
+  "flatRate": 0.05,
+  "shortTermCapGainsRate": 0.12,
+  "surtax": {
+    "threshold": {
+      "single": 100000000,
+      "married_filing_jointly": 100000000,
+      "married_filing_separately": 100000000,
+      "head_of_household": 100000000,
+      "qualifying_surviving_spouse": 100000000
+    },
+    "rate": 0.04,
+    "description": "Massachusetts Millionaire Surtax"
+  },
+  "personalExemption": {
+    "taxpayer": {
+      "single": 440000,
+      "married_filing_jointly": 880000,
+      "married_filing_separately": 440000,
+      "head_of_household": 440000,
+      "qualifying_surviving_spouse": 880000
+    },
+    "spouse": 0,
+    "dependent": 100000
+  },
+  "socialSecurityExempt": true,
+  "capitalGainsTreatment": "ordinary",
+  "credits": {
+    "eitc": {
+      "type": "percent_of_federal",
+      "percentOfFederal": 0.40,
+      "refundable": true
+    }
+  },
+  "formId": "MA-1",
+  "formName": "Massachusetts Resident Income Tax Return"
+}

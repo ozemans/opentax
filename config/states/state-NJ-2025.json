@@ -1,0 +1,85 @@
+{
+  "stateCode": "NJ",
+  "stateName": "New Jersey",
+  "taxYear": 2025,
+  "hasIncomeTax": true,
+  "startingPoint": "own_computation",
+  "brackets": {
+    "single": [
+      { "min": 0, "max": 2000000, "rate": 0.014 },
+      { "min": 2000000, "max": 3500000, "rate": 0.0175 },
+      { "min": 3500000, "max": 4000000, "rate": 0.035 },
+      { "min": 4000000, "max": 7500000, "rate": 0.05525 },
+      { "min": 7500000, "max": 50000000, "rate": 0.0637 },
+      { "min": 50000000, "max": 100000000, "rate": 0.0897 },
+      { "min": 100000000, "max": null, "rate": 0.1075 }
+    ],
+    "married_filing_jointly": [
+      { "min": 0, "max": 2000000, "rate": 0.014 },
+      { "min": 2000000, "max": 3500000, "rate": 0.0175 },
+      { "min": 3500000, "max": 4000000, "rate": 0.035 },
+      { "min": 4000000, "max": 7500000, "rate": 0.05525 },
+      { "min": 7500000, "max": 50000000, "rate": 0.0637 },
+      { "min": 50000000, "max": 100000000, "rate": 0.0897 },
+      { "min": 100000000, "max": null, "rate": 0.1075 }
+    ],
+    "married_filing_separately": [
+      { "min": 0, "max": 2000000, "rate": 0.014 },
+      { "min": 2000000, "max": 3500000, "rate": 0.0175 },
+      { "min": 3500000, "max": 4000000, "rate": 0.035 },
+      { "min": 4000000, "max": 7500000, "rate": 0.05525 },
+      { "min": 7500000, "max": 50000000, "rate": 0.0637 },
+      { "min": 50000000, "max": 100000000, "rate": 0.0897 },
+      { "min": 100000000, "max": null, "rate": 0.1075 }
+    ],
+    "head_of_household": [
+      { "min": 0, "max": 2000000, "rate": 0.014 },
+      { "min": 2000000, "max": 3500000, "rate": 0.0175 },
+      { "min": 3500000, "max": 4000000, "rate": 0.035 },
+      { "min": 4000000, "max": 7500000, "rate": 0.05525 },
+      { "min": 7500000, "max": 50000000, "rate": 0.0637 },
+      { "min": 50000000, "max": 100000000, "rate": 0.0897 },
+      { "min": 100000000, "max": null, "rate": 0.1075 }
+    ],
+    "qualifying_surviving_spouse": [
+      { "min": 0, "max": 2000000, "rate": 0.014 },
+      { "min": 2000000, "max": 3500000, "rate": 0.0175 },
+      { "min": 3500000, "max": 4000000, "rate": 0.035 },
+      { "min": 4000000, "max": 7500000, "rate": 0.05525 },
+      { "min": 7500000, "max": 50000000, "rate": 0.0637 },
+      { "min": 50000000, "max": 100000000, "rate": 0.0897 },
+      { "min": 100000000, "max": null, "rate": 0.1075 }
+    ]
+  },
+  "personalExemption": {
+    "taxpayer": {
+      "single": 100000,
+      "married_filing_jointly": 100000,
+      "married_filing_separately": 100000,
+      "head_of_household": 100000,
+      "qualifying_surviving_spouse": 100000
+    },
+    "spouse": 100000,
+    "dependent": 150000
+  },
+  "socialSecurityExempt": true,
+  "capitalGainsTreatment": "ordinary",
+  "credits": {
+    "eitc": {
+      "type": "percent_of_federal",
+      "percentOfFederal": 0.40,
+      "refundable": true
+    },
+    "propertyTax": {
+      "maxCredit": {
+        "single": 5000,
+        "married_filing_jointly": 5000,
+        "married_filing_separately": 5000,
+        "head_of_household": 5000,
+        "qualifying_surviving_spouse": 5000
+      }
+    }
+  },
+  "formId": "NJ-1040",
+  "formName": "New Jersey Resident Income Tax Return"
+}

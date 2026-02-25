@@ -2,6 +2,8 @@
 // All monetary values are integers representing cents.
 // $50,000.00 = 5_000_000 cents. NEVER use floating point for money.
 
+import type { StateTaxResult } from './states/interface';
+
 export type FilingStatus =
   | 'single'
   | 'married_filing_jointly'
@@ -353,7 +355,7 @@ export interface TaxResult {
   needsForm8960: boolean;
 
   // State results (populated by state modules, not federal engine)
-  stateResults: Record<string, unknown>;
+  stateResults: Record<string, StateTaxResult>;
 }
 
 // ---------------------------------------------------------------------------
@@ -541,3 +543,6 @@ export interface FederalConfig {
     };
   };
 }
+
+// Re-export state types for convenience
+export type { StateTaxInput, StateTaxResult, StateConfig, StateModule } from './states/interface';

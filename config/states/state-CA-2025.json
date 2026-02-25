@@ -1,0 +1,125 @@
+{
+  "stateCode": "CA",
+  "stateName": "California",
+  "taxYear": 2025,
+  "hasIncomeTax": true,
+  "startingPoint": "federal_agi",
+  "brackets": {
+    "single": [
+      { "min": 0, "max": 1041200, "rate": 0.01 },
+      { "min": 1041200, "max": 2468400, "rate": 0.02 },
+      { "min": 2468400, "max": 3895900, "rate": 0.04 },
+      { "min": 3895900, "max": 5408100, "rate": 0.06 },
+      { "min": 5408100, "max": 6835000, "rate": 0.08 },
+      { "min": 6835000, "max": 34913700, "rate": 0.093 },
+      { "min": 34913700, "max": 41896100, "rate": 0.103 },
+      { "min": 41896100, "max": 69827100, "rate": 0.113 },
+      { "min": 69827100, "max": 100000000, "rate": 0.123 },
+      { "min": 100000000, "max": null, "rate": 0.133 }
+    ],
+    "married_filing_jointly": [
+      { "min": 0, "max": 2082400, "rate": 0.01 },
+      { "min": 2082400, "max": 4936800, "rate": 0.02 },
+      { "min": 4936800, "max": 7791800, "rate": 0.04 },
+      { "min": 7791800, "max": 10816200, "rate": 0.06 },
+      { "min": 10816200, "max": 13670000, "rate": 0.08 },
+      { "min": 13670000, "max": 69827400, "rate": 0.093 },
+      { "min": 69827400, "max": 83792200, "rate": 0.103 },
+      { "min": 83792200, "max": 100000000, "rate": 0.113 },
+      { "min": 100000000, "max": 139654200, "rate": 0.123 },
+      { "min": 139654200, "max": null, "rate": 0.133 }
+    ],
+    "married_filing_separately": [
+      { "min": 0, "max": 1041200, "rate": 0.01 },
+      { "min": 1041200, "max": 2468400, "rate": 0.02 },
+      { "min": 2468400, "max": 3895900, "rate": 0.04 },
+      { "min": 3895900, "max": 5408100, "rate": 0.06 },
+      { "min": 5408100, "max": 6835000, "rate": 0.08 },
+      { "min": 6835000, "max": 34913700, "rate": 0.093 },
+      { "min": 34913700, "max": 41896100, "rate": 0.103 },
+      { "min": 41896100, "max": 69827100, "rate": 0.113 },
+      { "min": 69827100, "max": 100000000, "rate": 0.123 },
+      { "min": 100000000, "max": null, "rate": 0.133 }
+    ],
+    "head_of_household": [
+      { "min": 0, "max": 2082400, "rate": 0.01 },
+      { "min": 2082400, "max": 4936800, "rate": 0.02 },
+      { "min": 4936800, "max": 6364300, "rate": 0.04 },
+      { "min": 6364300, "max": 7876500, "rate": 0.06 },
+      { "min": 7876500, "max": 9303400, "rate": 0.08 },
+      { "min": 9303400, "max": 47382100, "rate": 0.093 },
+      { "min": 47382100, "max": 56858500, "rate": 0.103 },
+      { "min": 56858500, "max": 94764000, "rate": 0.113 },
+      { "min": 94764000, "max": 100000000, "rate": 0.123 },
+      { "min": 100000000, "max": null, "rate": 0.133 }
+    ],
+    "qualifying_surviving_spouse": [
+      { "min": 0, "max": 2082400, "rate": 0.01 },
+      { "min": 2082400, "max": 4936800, "rate": 0.02 },
+      { "min": 4936800, "max": 7791800, "rate": 0.04 },
+      { "min": 7791800, "max": 10816200, "rate": 0.06 },
+      { "min": 10816200, "max": 13670000, "rate": 0.08 },
+      { "min": 13670000, "max": 69827400, "rate": 0.093 },
+      { "min": 69827400, "max": 83792200, "rate": 0.103 },
+      { "min": 83792200, "max": 100000000, "rate": 0.113 },
+      { "min": 100000000, "max": 139654200, "rate": 0.123 },
+      { "min": 139654200, "max": null, "rate": 0.133 }
+    ]
+  },
+  "standardDeduction": {
+    "single": 554000,
+    "married_filing_jointly": 1108000,
+    "married_filing_separately": 554000,
+    "head_of_household": 1108000,
+    "qualifying_surviving_spouse": 1108000
+  },
+  "personalExemption": {
+    "taxpayer": {
+      "single": 14400,
+      "married_filing_jointly": 14400,
+      "married_filing_separately": 14400,
+      "head_of_household": 14400,
+      "qualifying_surviving_spouse": 14400
+    },
+    "spouse": 14400,
+    "dependent": 44600
+  },
+  "surtax": {
+    "threshold": {
+      "single": 100000000,
+      "married_filing_jointly": 100000000,
+      "married_filing_separately": 50000000,
+      "head_of_household": 100000000,
+      "qualifying_surviving_spouse": 100000000
+    },
+    "rate": 0.01,
+    "description": "Mental Health Services Tax"
+  },
+  "socialSecurityExempt": true,
+  "capitalGainsTreatment": "ordinary",
+  "credits": {
+    "eitc": {
+      "type": "percent_of_federal",
+      "percentOfFederal": 0.45,
+      "refundable": true
+    },
+    "rentersCredit": {
+      "amount": {
+        "single": 6000,
+        "married_filing_jointly": 12000,
+        "married_filing_separately": 6000,
+        "head_of_household": 12000,
+        "qualifying_surviving_spouse": 12000
+      },
+      "agiLimit": {
+        "single": 5284000,
+        "married_filing_jointly": 10568000,
+        "married_filing_separately": 5284000,
+        "head_of_household": 10568000,
+        "qualifying_surviving_spouse": 10568000
+      }
+    }
+  },
+  "formId": "CA-540",
+  "formName": "California Resident Income Tax Return"
+}

@@ -1,0 +1,70 @@
+{
+  "stateCode": "VA",
+  "stateName": "Virginia",
+  "taxYear": 2025,
+  "hasIncomeTax": true,
+  "startingPoint": "federal_agi",
+  "brackets": {
+    "single": [
+      { "min": 0, "max": 300000, "rate": 0.02 },
+      { "min": 300000, "max": 500000, "rate": 0.03 },
+      { "min": 500000, "max": 1700000, "rate": 0.05 },
+      { "min": 1700000, "max": null, "rate": 0.0575 }
+    ],
+    "married_filing_jointly": [
+      { "min": 0, "max": 300000, "rate": 0.02 },
+      { "min": 300000, "max": 500000, "rate": 0.03 },
+      { "min": 500000, "max": 1700000, "rate": 0.05 },
+      { "min": 1700000, "max": null, "rate": 0.0575 }
+    ],
+    "married_filing_separately": [
+      { "min": 0, "max": 300000, "rate": 0.02 },
+      { "min": 300000, "max": 500000, "rate": 0.03 },
+      { "min": 500000, "max": 1700000, "rate": 0.05 },
+      { "min": 1700000, "max": null, "rate": 0.0575 }
+    ],
+    "head_of_household": [
+      { "min": 0, "max": 300000, "rate": 0.02 },
+      { "min": 300000, "max": 500000, "rate": 0.03 },
+      { "min": 500000, "max": 1700000, "rate": 0.05 },
+      { "min": 1700000, "max": null, "rate": 0.0575 }
+    ],
+    "qualifying_surviving_spouse": [
+      { "min": 0, "max": 300000, "rate": 0.02 },
+      { "min": 300000, "max": 500000, "rate": 0.03 },
+      { "min": 500000, "max": 1700000, "rate": 0.05 },
+      { "min": 1700000, "max": null, "rate": 0.0575 }
+    ]
+  },
+  "standardDeduction": {
+    "single": 800000,
+    "married_filing_jointly": 1600000,
+    "married_filing_separately": 800000,
+    "head_of_household": 800000,
+    "qualifying_surviving_spouse": 1600000
+  },
+  "personalExemption": {
+    "taxpayer": {
+      "single": 93000,
+      "married_filing_jointly": 93000,
+      "married_filing_separately": 93000,
+      "head_of_household": 93000,
+      "qualifying_surviving_spouse": 93000
+    },
+    "spouse": 93000,
+    "dependent": 93000,
+    "age65Additional": 80000,
+    "blindAdditional": 80000
+  },
+  "socialSecurityExempt": true,
+  "capitalGainsTreatment": "ordinary",
+  "credits": {
+    "eitc": {
+      "type": "percent_of_federal",
+      "percentOfFederal": 0.20,
+      "refundable": true
+    }
+  },
+  "formId": "VA-760",
+  "formName": "Virginia Resident Individual Income Tax Return"
+}
