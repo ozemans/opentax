@@ -1,6 +1,6 @@
 // Federal Form Field Mapping
 // Maps computed TaxResult values to IRS form field names/numbers for PDF generation.
-// References: IRS Form 1040 (2025), Schedule 1, 2, 3
+// References: IRS Form 1040 (2025), Schedules 1–SE, Forms 8949/8959/8960
 
 import type { TaxResult, TaxInput } from '../types';
 
@@ -198,6 +198,211 @@ function mapSchedule1(input: TaxInput, result: TaxResult): Record<string, string
 }
 
 /**
+ * Generate Schedule B field mappings (Interest and Ordinary Dividends).
+ * Part I: Interest payer names and amounts.
+ * Part II: Dividend payer names and amounts.
+ * Ref: IRS Schedule B (Form 1040)
+ */
+function mapScheduleB(input: TaxInput, result: TaxResult): Record<string, string | number> {
+  const fields: Record<string, string | number> = {};
+
+  // Part I: Interest
+  input.form1099INTs.forEach((f, i) => {
+    fields[`interest_payer_${i + 1}`] = f.payerName;
+    fields[`interest_amount_${i + 1}`] = toDollars(f.interest);
+  });
+  fields['totalInterest'] = toDollars(result.incomeBreakdown.interest);
+
+  // Part II: Dividends
+  input.form1099DIVs.forEach((f, i) => {
+    fields[`dividend_payer_${i + 1}`] = f.payerName;
+    fields[`dividend_amount_${i + 1}`] = toDollars(f.ordinaryDividends);
+  });
+  fields['totalDividends'] = toDollars(result.incomeBreakdown.ordinaryDividends);
+
+  return fields;
+}
+
+/**
+ * Generate Schedule C field mappings (Profit or Loss From Business).
+ * Should only be called when scheduleCData exists.
+ * Ref: IRS Schedule C (Form 1040)
+ */
+function mapScheduleC(input: TaxInput, result: TaxResult): Record<string, string | number> {
+  const fields: Record<string, string | number> = {};
+  const data = input.scheduleCData!;
+  const seResult = result.selfEmploymentResult!;
+
+  // Header
+  fields['businessName'] = data.businessName;
+  fields['businessCode'] = data.businessCode;
+
+  // Income
+  fields['grossReceipts'] = toDollars(data.grossReceipts);
+  if (data.costOfGoodsSold) {
+    fields['costOfGoodsSold'] = toDollars(data.costOfGoodsSold);
+  }
+  fields['grossIncome'] = toDollars(
+    data.grossReceipts - (data.costOfGoodsSold ?? 0),
+  );
+  if (data.otherIncome) {
+    fields['otherIncome'] = toDollars(data.otherIncome);
+  }
+
+  // Expenses
+  const expenses = data.expenses;
+  if (expenses.advertising) fields['advertising'] = toDollars(expenses.advertising);
+  if (expenses.carAndTruck) fields['carAndTruck'] = toDollars(expenses.carAndTruck);
+  if (expenses.commissions) fields['commissions'] = toDollars(expenses.commissions);
+  if (expenses.insurance) fields['insurance'] = toDollars(expenses.insurance);
+  if (expenses.legalAndProfessional) fields['legalAndProfessional'] = toDollars(expenses.legalAndProfessional);
+  if (expenses.officeExpenses) fields['officeExpenses'] = toDollars(expenses.officeExpenses);
+  if (expenses.supplies) fields['supplies'] = toDollars(expenses.supplies);
+  if (expenses.utilities) fields['utilities'] = toDollars(expenses.utilities);
+  if (expenses.otherExpenses) fields['otherExpenses'] = toDollars(expenses.otherExpenses);
+
+  const totalExpenses =
+    (expenses.advertising ?? 0) + (expenses.carAndTruck ?? 0) +
+    (expenses.commissions ?? 0) + (expenses.insurance ?? 0) +
+    (expenses.legalAndProfessional ?? 0) + (expenses.officeExpenses ?? 0) +
+    (expenses.supplies ?? 0) + (expenses.utilities ?? 0) +
+    (expenses.otherExpenses ?? 0);
+  fields['totalExpenses'] = toDollars(totalExpenses);
+
+  // Net profit
+  fields['netProfit'] = toDollars(seResult.scheduleCNetProfit);
+
+  // Home office
+  if (seResult.homeOfficeDeduction > 0) {
+    fields['homeOfficeDeduction'] = toDollars(seResult.homeOfficeDeduction);
+  }
+
+  return fields;
+}
+
+/**
+ * Generate Schedule D field mappings (Capital Gains and Losses).
+ * Ref: IRS Schedule D (Form 1040)
+ */
+function mapScheduleD(_input: TaxInput, result: TaxResult): Record<string, string | number> {
+  const fields: Record<string, string | number> = {};
+  const cg = result.capitalGainsResult;
+
+  // Part I: Short-Term
+  fields['shortTermGainLoss'] = toDollars(cg.netShortTerm);
+
+  // Part II: Long-Term
+  fields['longTermGainLoss'] = toDollars(cg.netLongTerm);
+
+  // Part III: Summary
+  fields['netGainLoss'] = toDollars(cg.netCapitalGainLoss);
+
+  if (cg.deductibleLoss !== 0) {
+    fields['deductibleLoss'] = toDollars(cg.deductibleLoss);
+  }
+  if (cg.carryforwardLoss > 0) {
+    fields['carryforward'] = toDollars(cg.carryforwardLoss);
+  }
+
+  return fields;
+}
+
+/**
+ * Generate Schedule SE field mappings (Self-Employment Tax).
+ * Ref: IRS Schedule SE (Form 1040)
+ */
+function mapScheduleSE(_input: TaxInput, result: TaxResult): Record<string, string | number> {
+  const fields: Record<string, string | number> = {};
+  const se = result.selfEmploymentResult!;
+
+  fields['netEarnings'] = toDollars(se.seTaxableIncome);
+  fields['socialSecurityTax'] = toDollars(se.socialSecurityTax);
+  fields['medicareTax'] = toDollars(se.medicareTax);
+  fields['totalSETax'] = toDollars(se.totalSETax);
+  fields['deductibleHalf'] = toDollars(se.halfSETaxDeduction);
+
+  return fields;
+}
+
+/**
+ * Generate Form 8949 field mappings (Sales and Other Dispositions of Capital Assets).
+ * Returns an ARRAY of records (one per transaction).
+ * Ref: IRS Form 8949
+ */
+function mapForm8949(input: TaxInput, _result: TaxResult): Record<string, string | number>[] {
+  return input.form1099Bs.map((tx) => ({
+    description: tx.description,
+    dateAcquired: tx.dateAcquired,
+    dateSold: tx.dateSold,
+    proceeds: toDollars(tx.proceeds),
+    basis: toDollars(tx.costBasis),
+    gainLoss: toDollars(tx.gainLoss),
+    category: tx.category,
+  }));
+}
+
+/**
+ * Generate Form 8959 field mappings (Additional Medicare Tax).
+ * Ref: IRS Form 8959
+ */
+function mapForm8959(input: TaxInput, result: TaxResult): Record<string, string | number> {
+  const fields: Record<string, string | number> = {};
+
+  // Medicare wages from all W-2s (Box 5)
+  const medicareWages = input.w2s.reduce((sum, w2) => sum + w2.medicareWages, 0);
+  fields['medicareWages'] = toDollars(medicareWages);
+
+  // Threshold (filing-status dependent — stored in config, but we get from breakdown)
+  // The threshold is implied by the additional medicare tax amount.
+  // We derive: excess = wages - threshold, tax = excess * 0.009
+  // For display: show the tax amount
+  fields['additionalMedicareTax'] = toDollars(result.taxBreakdown.additionalMedicareTax);
+
+  // Self-employment Medicare wages if applicable
+  if (result.selfEmploymentResult) {
+    fields['selfEmploymentMedicareWages'] = toDollars(result.selfEmploymentResult.seTaxableIncome);
+  }
+
+  // Combined wages for threshold computation
+  const combinedWages = medicareWages + (result.selfEmploymentResult?.seTaxableIncome ?? 0);
+  fields['combinedMedicareWages'] = toDollars(combinedWages);
+
+  // Withholding from W-2 (Medicare withholding already paid)
+  const w2MedicareWithheld = input.w2s.reduce((sum, w2) => sum + w2.medicareWithheld, 0);
+  fields['w2MedicareWithheld'] = toDollars(w2MedicareWithheld);
+
+  return fields;
+}
+
+/**
+ * Generate Form 8960 field mappings (Net Investment Income Tax).
+ * Ref: IRS Form 8960
+ */
+function mapForm8960(input: TaxInput, result: TaxResult): Record<string, string | number> {
+  const fields: Record<string, string | number> = {};
+
+  // Investment income components
+  const interestIncome = input.form1099INTs.reduce((sum, f) => sum + f.interest, 0);
+  const dividendIncome = input.form1099DIVs.reduce((sum, f) => sum + f.ordinaryDividends, 0);
+  const capitalGains = Math.max(0, result.capitalGainsResult.netCapitalGainLoss);
+
+  fields['interestIncome'] = toDollars(interestIncome);
+  fields['dividendIncome'] = toDollars(dividendIncome);
+  fields['capitalGainsIncome'] = toDollars(capitalGains);
+
+  const totalInvestmentIncome = interestIncome + dividendIncome + capitalGains + (input.otherIncome ?? 0);
+  fields['totalInvestmentIncome'] = toDollars(totalInvestmentIncome);
+
+  // MAGI (same as AGI for most filers)
+  fields['magi'] = toDollars(result.adjustedGrossIncome);
+
+  // NIIT amount
+  fields['niitAmount'] = toDollars(result.taxBreakdown.netInvestmentIncomeTax);
+
+  return fields;
+}
+
+/**
  * Generate all form field mappings from a TaxResult.
  * Returns the forms object ready for PDF generation.
  */
@@ -254,6 +459,41 @@ export function generateFormMappings(
     if (result.creditBreakdown.saversCredit > 0) {
       forms.schedule3['line4'] = toDollars(result.creditBreakdown.saversCredit);
     }
+  }
+
+  // Schedule B (Interest and Dividends)
+  if (result.needsScheduleB) {
+    forms.scheduleB = mapScheduleB(input, result);
+  }
+
+  // Schedule C (Business Income / Self-Employment)
+  if (result.needsScheduleC && input.scheduleCData && result.selfEmploymentResult) {
+    forms.scheduleC = mapScheduleC(input, result);
+  }
+
+  // Schedule D (Capital Gains and Losses)
+  if (result.needsScheduleD) {
+    forms.scheduleD = mapScheduleD(input, result);
+  }
+
+  // Schedule SE (Self-Employment Tax)
+  if (result.needsScheduleSE && result.selfEmploymentResult) {
+    forms.scheduleSE = mapScheduleSE(input, result);
+  }
+
+  // Form 8949 (Sales of Capital Assets)
+  if (result.needsForm8949) {
+    forms.f8949 = mapForm8949(input, result);
+  }
+
+  // Form 8959 (Additional Medicare Tax)
+  if (result.needsForm8959) {
+    forms.f8959 = mapForm8959(input, result);
+  }
+
+  // Form 8960 (Net Investment Income Tax)
+  if (result.needsForm8960) {
+    forms.f8960 = mapForm8960(input, result);
   }
 
   return forms;

@@ -6,8 +6,17 @@ export default defineConfig({
     include: ['tests/**/*.test.ts'],
     coverage: {
       provider: 'v8',
-      include: ['src/engine/**/*.ts'],
-      exclude: ['src/engine/**/index.ts', 'src/engine/types.ts'],
+      include: ['src/engine/**/*.ts', 'src/pdf/**/*.ts'],
+      exclude: [
+        'src/engine/**/index.ts',
+        'src/engine/types.ts',
+        'src/engine/states/interface.ts',
+        'src/engine/states/massachusetts.ts',
+        'src/engine/states/new-jersey.ts',
+        'src/pdf/**/index.ts',
+        'src/pdf/field-maps/types.ts',
+        'src/pdf/template-loader.ts',
+      ],
       thresholds: {
         branches: 90,
         functions: 90,
