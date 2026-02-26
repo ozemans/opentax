@@ -220,8 +220,8 @@ export function Document1099Upload({ onImport }: Document1099UploadProps) {
               transition-colors duration-200
               ${
                 isDragging
-                  ? 'border-teal bg-teal/5'
-                  : 'border-slate-light hover:border-lavender hover:bg-lavender-light/30'
+                  ? 'border-primary bg-primary/5'
+                  : 'border-slate-light hover:border-highlight hover:bg-highlight-light/30'
               }
             `}
             role="button"
@@ -267,9 +267,9 @@ export function Document1099Upload({ onImport }: Document1099UploadProps) {
           {state.step === 'error' && (
             <div
               role="alert"
-              className="rounded-xl bg-coral/10 border border-coral/20 px-4 py-3"
+              className="rounded-xl bg-accent/10 border border-accent/20 px-4 py-3"
             >
-              <p className="text-sm font-body text-coral">{state.message}</p>
+              <p className="text-sm font-body text-accent">{state.message}</p>
             </div>
           )}
         </>
@@ -289,14 +289,14 @@ export function Document1099Upload({ onImport }: Document1099UploadProps) {
               placeholder="Enter PDF password"
               className="flex-1 rounded-xl border border-slate-light px-4 py-2
                          text-sm font-body text-slate-dark
-                         focus:outline-none focus:ring-2 focus:ring-teal focus:border-teal"
+                         focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
               autoFocus
             />
             <button
               type="submit"
-              className="rounded-xl bg-teal px-6 py-2 text-sm font-display font-medium
-                         text-white hover:bg-teal-dark transition-colors
-                         focus:outline-none focus:ring-2 focus:ring-teal focus:ring-offset-1"
+              className="rounded-xl bg-primary px-6 py-2 text-sm font-display font-medium
+                         text-white hover:bg-primary-dark transition-colors
+                         focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
             >
               Unlock
             </button>
@@ -306,7 +306,7 @@ export function Document1099Upload({ onImport }: Document1099UploadProps) {
               className="rounded-xl border border-slate-light px-4 py-2 text-sm
                          font-display font-medium text-slate-dark hover:bg-surface
                          transition-colors focus:outline-none focus:ring-2
-                         focus:ring-lavender focus:ring-offset-1"
+                         focus:ring-highlight focus:ring-offset-1"
             >
               Cancel
             </button>
@@ -413,7 +413,7 @@ export function Document1099Upload({ onImport }: Document1099UploadProps) {
                       return (
                         <span
                           className={
-                            netGainLoss >= 0 ? 'text-success' : 'text-coral'
+                            netGainLoss >= 0 ? 'text-success' : 'text-accent'
                           }
                         >
                           Net: {netGainLoss >= 0 ? '+' : ''}$
@@ -469,9 +469,9 @@ export function Document1099Upload({ onImport }: Document1099UploadProps) {
               type="button"
               onClick={handleImport}
               disabled={!hasAnySelected}
-              className="rounded-xl bg-teal px-6 py-3 text-sm font-display font-medium
-                         text-white hover:bg-teal-dark transition-colors
-                         focus:outline-none focus:ring-2 focus:ring-teal focus:ring-offset-1
+              className="rounded-xl bg-primary px-6 py-3 text-sm font-display font-medium
+                         text-white hover:bg-primary-dark transition-colors
+                         focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1
                          disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Import Selected
@@ -482,7 +482,7 @@ export function Document1099Upload({ onImport }: Document1099UploadProps) {
               className="rounded-xl border border-slate-light px-6 py-3 text-sm
                          font-display font-medium text-slate-dark hover:bg-surface
                          transition-colors focus:outline-none focus:ring-2
-                         focus:ring-lavender focus:ring-offset-1"
+                         focus:ring-highlight focus:ring-offset-1"
             >
               Cancel
             </button>
@@ -509,7 +509,7 @@ function SectionPreview({ label, checked, onToggle, children }: SectionPreviewPr
     <div
       className={`rounded-xl border p-4 transition-colors ${
         checked
-          ? 'border-teal/30 bg-teal/5'
+          ? 'border-primary/30 bg-primary/5'
           : 'border-slate-light/30 bg-surface opacity-60'
       }`}
     >
@@ -518,8 +518,8 @@ function SectionPreview({ label, checked, onToggle, children }: SectionPreviewPr
           type="checkbox"
           checked={checked}
           onChange={onToggle}
-          className="h-4 w-4 rounded border-slate-light text-teal
-                     focus:ring-2 focus:ring-teal focus:ring-offset-1"
+          className="h-4 w-4 rounded border-slate-light text-primary
+                     focus:ring-2 focus:ring-primary focus:ring-offset-1"
         />
         <span className="text-sm font-display font-semibold text-slate-dark">
           {label}
