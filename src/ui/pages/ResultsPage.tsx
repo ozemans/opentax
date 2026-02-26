@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { motion, animate } from 'motion/react';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { ConfirmDialog } from '@/ui/components/ConfirmDialog';
 import { PasswordDialog } from '@/ui/components/PasswordDialog';
 import { PageContainer } from '@/ui/layouts/PageContainer';
@@ -115,14 +115,10 @@ export function ResultsPage() {
   const totalStateRefundOrOwed = stateEntries.reduce((s, r) => s + r.stateRefundOrOwed, 0);
   const combinedRefundOrOwed = refundOrOwed + totalStateRefundOrOwed;
 
-  // Animated number
+  // Animated number — re-animates whenever refundOrOwed changes (e.g. when result loads)
   const [displayAmount, setDisplayAmount] = useState('0');
-  const animationRan = useRef(false);
 
   useEffect(() => {
-    if (animationRan.current) return;
-    animationRan.current = true;
-
     const target = Math.abs(refundOrOwed) / 100;
     const controls = animate(0, target, {
       duration: 1.0,

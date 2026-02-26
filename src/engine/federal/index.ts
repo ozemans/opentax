@@ -67,6 +67,12 @@ function computeTotalWithholding(input: TaxInput): number {
  * Takes a TaxInput with all income documents and returns a fully populated TaxResult.
  */
 export function computeFederalTax(input: TaxInput, config: FederalConfig): TaxResult {
+  // Filter out blank dependents (no name and no SSN) — guards against UI
+  // allowing "Add Dependent" without filling any required fields.
+  const dependents = input.dependents.filter(
+    d => d.firstName.trim() || d.lastName.trim() || d.ssn.trim(),
+  );
+
   // ══════════════════════════════════════════════════════════════════════════
   // Phase 1: Self-Employment (needed early for halfSETaxDeduction adjustment)
   // ══════════════════════════════════════════════════════════════════════════
@@ -123,9 +129,15 @@ export function computeFederalTax(input: TaxInput, config: FederalConfig): TaxRe
     capGainsTransactions = synth;
   }
 
+  // Support new separate ST/LT carryforwards; fall back to legacy single field (applied to ST)
+  const stCF = input.priorYearSTCapitalLossCarryforward
+    ?? (input.priorYearCapitalLossCarryforward ?? 0);
+  const ltCF = input.priorYearLTCapitalLossCarryforward ?? 0;
+
   const rawCapGains = computeCapitalGains(
     capGainsTransactions,
-    input.priorYearCapitalLossCarryforward ?? 0,
+    stCF,
+    ltCF,
     input.filingStatus,
     config,
   );
@@ -302,12 +314,12 @@ export function computeFederalTax(input: TaxInput, config: FederalConfig): TaxRe
 
   // Simplification: use CTC-qualifying children count for EITC
   // (EITC qualifying extends to under 19, or under 24 if student)
-  const numQualifyingChildrenForEITC = input.dependents.filter(
+  const numQualifyingChildrenForEITC = dependents.filter(
     d => d.qualifiesForCTC,
   ).length;
 
   const credits = computeAllCredits({
-    dependents: input.dependents,
+    dependents,
     agi,
     filingStatus: input.filingStatus,
     taxLiability: taxLiabilityForCredits,
@@ -315,7 +327,7 @@ export function computeFederalTax(input: TaxInput, config: FederalConfig): TaxRe
     investmentIncome,
     numQualifyingChildrenForEITC,
     childCareExpenses: input.childCareCreditExpenses ?? 0,
-    numChildCareQualifying: input.dependents.filter(
+    numChildCareQualifying: dependents.filter(
       d => d.qualifiesForCTC || d.qualifiesForODC,
     ).length,
     educationExpenses: input.educationExpenses,

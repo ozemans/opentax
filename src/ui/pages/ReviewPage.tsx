@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { FormField } from '@/ui/components/FormField';
+import { CurrencyInput } from '@/ui/components/CurrencyInput';
 import { TaxSummaryCard } from '@/ui/components/TaxSummaryCard';
 import { ConfirmDialog } from '@/ui/components/ConfirmDialog';
 import { PasswordDialog } from '@/ui/components/PasswordDialog';
@@ -92,7 +93,7 @@ export function ReviewPage() {
           editPath="/personal-info"
           items={[
             { label: 'Filing Status', value: filingStatusLabels[input.filingStatus] ?? input.filingStatus },
-            { label: 'Dependents', value: input.dependents.length },
+            { label: 'Dependents', value: input.dependents.filter(d => d.firstName.trim() || d.lastName.trim() || d.ssn.trim()).length },
           ]}
         />
 
@@ -153,6 +154,24 @@ export function ReviewPage() {
             { label: 'Effective Tax Rate', value: effectiveTaxRate, isPercentage: true },
           ]}
         />
+
+        {/* Tax Payments */}
+        <section aria-labelledby="tax-payments-heading" className="space-y-4">
+          <h2 id="tax-payments-heading" className="text-lg font-display font-semibold text-slate-dark">
+            Tax Payments
+          </h2>
+          <p className="text-sm font-body text-slate">
+            Enter any estimated tax payments you made during the year (Form 1040-ES). These are payments against your tax liability, separate from withholding.
+          </p>
+          <div className="rounded-2xl border border-slate-light/30 bg-white p-5 shadow-card">
+            <CurrencyInput
+              label="Estimated Tax Payments (Form 1040-ES)"
+              name="estimated-tax-payments"
+              value={input.estimatedTaxPayments}
+              onChange={(v) => dispatch({ type: 'SET_FIELD', path: 'estimatedTaxPayments', value: v })}
+            />
+          </div>
+        </section>
 
         {/* Direct Deposit */}
         <section aria-labelledby="direct-deposit-heading" className="space-y-4">

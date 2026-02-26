@@ -258,7 +258,7 @@ export function IncomePage() {
             <IncomeDocumentCard
               key={i}
               title={f.payerName || `1099-INT #${i + 1}`}
-              subtitle={f.interest > 0 ? `$${(f.interest / 100).toLocaleString()}` : undefined}
+              subtitle={f.payerName ? `$${(f.interest / 100).toLocaleString()} interest` : undefined}
               isExpanded={expandedINT.has(i)}
               onToggle={() => toggleExpanded(expandedINT, setExpandedINT, i)}
               onRemove={() => dispatch({ type: 'REMOVE_1099_INT', index: i })}
@@ -455,7 +455,14 @@ export function IncomePage() {
             name="other-income"
             value={otherIncome}
             onChange={(v) => dispatch({ type: 'SET_FIELD', path: 'otherIncome', value: v })}
-            helpText="Any other taxable income not reported on W-2 or 1099 forms."
+            helpText="Any other taxable income not reported on W-2 or 1099 forms (e.g., gambling winnings, prizes, jury duty pay)."
+          />
+          <FormField
+            label="Description (required for Schedule 1 Line 8)"
+            name="other-income-description"
+            value={input.otherIncomeDescription ?? ''}
+            onChange={(v) => dispatch({ type: 'SET_FIELD', path: 'otherIncomeDescription', value: v })}
+            placeholder="e.g., Gambling winnings, Prize, Jury duty"
           />
         </div>
       )}

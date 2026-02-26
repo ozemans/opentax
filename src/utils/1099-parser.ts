@@ -15,6 +15,7 @@ import type {
   Form1099DIV,
   Form1099B,
   Form1099NEC,
+  Form8949Category,
 } from '@/engine/types';
 import type { ExtractedTextItem } from '@/utils/pdf-extract';
 import {
@@ -690,6 +691,7 @@ const B_COLUMN_LABELS: Record<string, string[]> = {
   dateSold: ['date sold', 'sold', 'sale date', 'date of sale', 'disposition', '(c)'],
   proceeds: ['proceeds', 'sales price', 'gross proceeds', '(d)'],
   costBasis: ['cost basis', 'basis', 'cost or other basis', 'cost', '(e)'],
+  washSale: ['wash sale', 'wash-sale', 'disallowed', '(1g)', 'box 1g'],
   gainLoss: ['gain/loss', 'gain or loss', 'gain(loss)', 'profit/loss', 'gain', '(h)'],
 };
 
@@ -824,9 +826,6 @@ function parse1099BSection(
     const proceeds = parsePdfDollarAmount(proceedsStr);
     const costBasis = parsePdfDollarAmount(costBasisStr);
 
-    // Skip rows where neither proceeds nor cost is a real dollar amount
-    if (proceeds === 0 && costBasis === 0) continue;
-
     const description = fieldValues['description'] ?? '';
     const dateAcquired = parseDate(fieldValues['dateAcquired'] ?? '');
     const dateSold = parseDate(fieldValues['dateSold'] ?? '');
@@ -834,6 +833,9 @@ function parse1099BSection(
     const gainLoss = gainLossStr
       ? parsePdfDollarAmount(gainLossStr)
       : proceeds - costBasis;
+
+    // Skip rows with no meaningful data (all zeroes and no explicit gain/loss)
+    if (proceeds === 0 && costBasis === 0 && gainLoss === 0) continue;
 
     // Use section header to determine holding period if available,
     // otherwise fall back to date comparison
@@ -843,7 +845,18 @@ function parse1099BSection(
         ? false
         : isLongTermHolding(dateAcquired, dateSold);
     const basisReportedToIRS = !sectionIsNoncovered;
-    const category = determineCategory(isLongTerm, basisReportedToIRS);
+
+    // Bug 14: check for explicit Form 8949 box code label in the first items
+    let category = determineCategory(isLongTerm, basisReportedToIRS);
+    const boxMatch = sectionItems.slice(0, 15)
+      .map((item) => item.text.match(/\bbox\s*([A-F])\b/i))
+      .find(Boolean);
+    if (boxMatch) {
+      category = `8949_${boxMatch[1].toUpperCase()}` as Form8949Category;
+    }
+
+    const washSaleStr = fieldValues['washSale'] ?? '';
+    const washSaleDisallowed = washSaleStr ? parsePdfDollarAmount(washSaleStr) : undefined;
 
     results.push({
       description,
@@ -855,6 +868,7 @@ function parse1099BSection(
       isLongTerm,
       basisReportedToIRS,
       category,
+      washSaleDisallowed: washSaleDisallowed || undefined,
     });
   }
 
@@ -1162,24 +1176,23 @@ export function parse1099Pdf(items: ExtractedTextItem[]): Parsed1099Result {
 
     switch (section.type) {
       case 'INT': {
-        const result = parse1099INTSection(sectionItems, brokerName, []);
-        // Suppress warnings for all-zero sections — return null silently
+        const result = parse1099INTSection(sectionItems, brokerName, warnings);
         if (result) form1099INTs.push(result);
         break;
       }
       case 'DIV': {
-        const result = parse1099DIVSection(sectionItems, brokerName, []);
+        const result = parse1099DIVSection(sectionItems, brokerName, warnings);
         if (result) form1099DIVs.push(result);
         break;
       }
       case 'NEC': {
-        const result = parse1099NECSection(sectionItems, brokerName, []);
+        const result = parse1099NECSection(sectionItems, brokerName, warnings);
         if (result) form1099NECs.push(result);
         break;
       }
       case 'MISC': {
         // IB uses 1099-MISC instead of 1099-NEC — map to NEC for the engine
-        const result = parse1099MISCSection(sectionItems, brokerName, []);
+        const result = parse1099MISCSection(sectionItems, brokerName, warnings);
         if (result) form1099NECs.push(result);
         break;
       }

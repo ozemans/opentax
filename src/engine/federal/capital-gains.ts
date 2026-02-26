@@ -70,14 +70,16 @@ export function categorizeTransactions(
  *   7. Track collectibles gains and section 1250 gains (section 1250 comes
  *      from 1099-DIV, not 1099-B, so it will be 0 here unless extended).
  *
- * @param transactions   - Array of Form 1099-B transactions
- * @param priorYearCarryforward - Prior year capital loss carryforward (positive number in cents)
- * @param filingStatus   - Filing status (affects the loss limitation amount)
- * @param config         - Federal tax config with capitalLossLimit values
+ * @param transactions           - Array of Form 1099-B transactions
+ * @param priorYearSTCarryforward - Prior year ST capital loss carryforward (positive cents)
+ * @param priorYearLTCarryforward - Prior year LT capital loss carryforward (positive cents)
+ * @param filingStatus            - Filing status (affects the loss limitation amount)
+ * @param config                  - Federal tax config with capitalLossLimit values
  */
 export function computeCapitalGains(
   transactions: Form1099B[],
-  priorYearCarryforward: number,
+  priorYearSTCarryforward: number,
+  priorYearLTCarryforward: number,
   filingStatus: FilingStatus,
   config: FederalConfig,
 ): CapitalGainsResult {
@@ -118,27 +120,13 @@ export function computeCapitalGains(
   let netLongTerm = longTermGains - longTermLosses;
 
   // --- Step 2: Apply prior-year carryforward -----------------------------------
-  // Per IRS Capital Loss Carryover Worksheet, the carryforward is applied
-  // to short-term first, then any remainder to long-term.
+  // Per IRS Capital Loss Carryover Worksheet (Schedule D Instructions):
+  //   - Short-term carryforward reduces the net short-term column (Part I)
+  //   - Long-term carryforward reduces the net long-term column (Part II)
+  // Each component is applied independently to its respective column.
 
-  if (priorYearCarryforward > 0) {
-    // Apply entire carryforward to short-term column first.
-    netShortTerm -= priorYearCarryforward;
-
-    // If short-term absorbed it all (netShortTerm went further negative),
-    // we might still have carryforward that could reduce long-term.
-    // However, per the IRS worksheet, the carryforward is split:
-    //   - Short-term carryforward reduces net short-term
-    //   - Long-term carryforward reduces net long-term
-    // But since we receive a single carryforward number, we follow the
-    // simplified approach: apply to short-term first, then if netShortTerm
-    // would have been positive before carryforward and carryforward exceeds
-    // the original netShortTerm, the remainder goes to long-term.
-    //
-    // Actually, the correct IRS approach for a single carryforward:
-    //   Apply all to ST first. The netting of ST and LT happens after.
-    // This is the standard approach used by tax software.
-  }
+  if (priorYearSTCarryforward > 0) netShortTerm -= priorYearSTCarryforward;
+  if (priorYearLTCarryforward > 0) netLongTerm -= priorYearLTCarryforward;
 
   // --- Step 3: Combine net short-term and long-term ---------------------------
 

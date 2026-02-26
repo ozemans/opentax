@@ -23,7 +23,8 @@ export function InvestmentsPage() {
   );
 
   const transactions = input.form1099Bs;
-  const priorYearLossCarryforward = input.priorYearCapitalLossCarryforward ?? 0;
+  const priorYearSTCarryforward = input.priorYearSTCapitalLossCarryforward ?? 0;
+  const priorYearLTCarryforward = input.priorYearLTCapitalLossCarryforward ?? 0;
   const summary = input.capitalGainsSummary ?? { shortTermGainLoss: 0, longTermGainLoss: 0 };
 
   const handleModeChange = useCallback(
@@ -215,17 +216,28 @@ export function InvestmentsPage() {
 
         {/* Prior year carryforward */}
         <section aria-labelledby="carryforward-heading">
-          <h2 id="carryforward-heading" className="text-lg font-display font-semibold text-slate-dark mb-4">
+          <h2 id="carryforward-heading" className="text-lg font-display font-semibold text-slate-dark mb-2">
             Prior Year Loss Carryforward
           </h2>
-          <CurrencyInput
-            label="Capital Loss Carryforward from Prior Year"
-            name="prior-year-loss"
-            value={priorYearLossCarryforward}
-            onChange={(v) => dispatch({ type: 'SET_FIELD', path: 'priorYearCapitalLossCarryforward', value: v })}
-            helpText={HELP_TEXTS['priorYearCapitalLossCarryforward']?.content}
-            irsReference={HELP_TEXTS['priorYearCapitalLossCarryforward']?.irsReference}
-          />
+          <p className="text-sm font-body text-slate mb-4">
+            From last year's Schedule D — see "Capital Loss Carryover Worksheet." Enter as positive numbers.
+          </p>
+          <div className="space-y-4">
+            <CurrencyInput
+              label="Short-Term Capital Loss Carryforward (Prior Year)"
+              name="prior-year-st-loss"
+              value={priorYearSTCarryforward}
+              onChange={(v) => dispatch({ type: 'SET_FIELD', path: 'priorYearSTCapitalLossCarryforward', value: v })}
+              helpText={HELP_TEXTS['priorYearCapitalLossCarryforward']?.content}
+              irsReference={HELP_TEXTS['priorYearCapitalLossCarryforward']?.irsReference}
+            />
+            <CurrencyInput
+              label="Long-Term Capital Loss Carryforward (Prior Year)"
+              name="prior-year-lt-loss"
+              value={priorYearLTCarryforward}
+              onChange={(v) => dispatch({ type: 'SET_FIELD', path: 'priorYearLTCapitalLossCarryforward', value: v })}
+            />
+          </div>
         </section>
 
         {/* Summary */}

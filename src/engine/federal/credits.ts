@@ -14,6 +14,7 @@ export function computeChildTaxCredit(
   agi: number,
   filingStatus: FilingStatus,
   taxLiability: number,
+  earnedIncome: number,
   config: FederalConfig,
 ): { nonrefundable: number; refundable: number } {
   const qualifyingChildren = dependents.filter(d => d.qualifiesForCTC);
@@ -37,9 +38,13 @@ export function computeChildTaxCredit(
   const nonrefundable = Math.min(credit, taxLiability);
 
   // Refundable portion (Additional CTC): remaining credit, capped at $1,700 per child
+  // and further capped at 15% of (earnedIncome - $2,500) per IRC §24(i)(3)
   const maxRefundable = numChildren * config.ctc.refundablePerChild;
   const remaining = credit - nonrefundable;
-  const refundable = Math.min(remaining, maxRefundable);
+  const actcByEarnings = Math.round(
+    Math.max(0, earnedIncome - config.ctc.earnedIncomeThreshold) * 0.15,
+  );
+  const refundable = Math.min(remaining, maxRefundable, actcByEarnings);
 
   return { nonrefundable, refundable };
 }
@@ -125,6 +130,9 @@ export function computeEITC(
   const childKey = String(Math.min(numQualifyingChildren, 3));
   const params = config.eitc[childKey];
   if (!params) return 0;
+
+  // EITC requires positive earned income (IRS Pub 596)
+  if (earnedIncome <= 0) return 0;
 
   const isMFJ = filingStatus === 'married_filing_jointly' ||
                 filingStatus === 'qualifying_surviving_spouse';
@@ -285,7 +293,7 @@ export function computeAllCredits(params: {
     numChildCareQualifying, educationExpenses, saversContributions, config,
   } = params;
 
-  const ctc = computeChildTaxCredit(dependents, agi, filingStatus, taxLiability, config);
+  const ctc = computeChildTaxCredit(dependents, agi, filingStatus, taxLiability, earnedIncome, config);
   const odc = computeOtherDependentCredit(dependents, agi, filingStatus, config);
   const childCare = computeChildCareCredit(childCareExpenses, numChildCareQualifying, agi, config);
   const education = computeEducationCredits(educationExpenses, agi, filingStatus, config);

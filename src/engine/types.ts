@@ -198,6 +198,7 @@ export interface TaxInput {
   form1099Ks: Form1099K[];
   scheduleCData?: ScheduleCData;
   otherIncome?: number;
+  otherIncomeDescription?: string;  // Description for Schedule 1 Line 8 (gambling, prizes, etc.)
 
   // Adjustments
   studentLoanInterest?: number;     // Max $2,500, phases out
@@ -232,8 +233,12 @@ export interface TaxInput {
     accountType: 'checking' | 'savings';
   };
 
-  // Prior year carryforward
+  // Prior year carryforward (IRS Capital Loss Carryover Worksheet)
+  // Legacy single-field kept for backward compatibility (applied to ST column)
   priorYearCapitalLossCarryforward?: number;
+  // Preferred: separate ST and LT components per Schedule D worksheet
+  priorYearSTCapitalLossCarryforward?: number;
+  priorYearLTCapitalLossCarryforward?: number;
 
   // Age flags (derived from dateOfBirth at runtime, but useful for tests)
   taxpayerAge65OrOlder?: boolean;

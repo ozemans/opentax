@@ -13,13 +13,20 @@ function formatDollars(cents: number): string {
 export function RefundTracker() {
   const { result, isComputing } = useTaxState();
 
-  const refundOrOwed = result?.refundOrOwed ?? 0;
-  const isRefund = refundOrOwed >= 0;
-  const [displayAmount, setDisplayAmount] = useState(formatDollars(refundOrOwed));
+  const federalRefundOrOwed = result?.refundOrOwed ?? 0;
+  const totalStateRefundOrOwed = Object.values(result?.stateResults ?? {}).reduce(
+    (sum, sr) => sum + sr.stateRefundOrOwed,
+    0,
+  );
+  const combinedRefundOrOwed = federalRefundOrOwed + totalStateRefundOrOwed;
+  const hasStateResults = Object.keys(result?.stateResults ?? {}).length > 0;
+
+  const isRefund = combinedRefundOrOwed >= 0;
+  const [displayAmount, setDisplayAmount] = useState(formatDollars(combinedRefundOrOwed));
 
   // Animate number changes
   useEffect(() => {
-    const target = Math.abs(refundOrOwed) / 100;
+    const target = Math.abs(combinedRefundOrOwed) / 100;
     const controls = animate(0, target, {
       duration: 0.6,
       ease: [0.4, 0, 0.2, 1],
@@ -34,7 +41,11 @@ export function RefundTracker() {
     });
 
     return () => controls.stop();
-  }, [refundOrOwed]);
+  }, [combinedRefundOrOwed]);
+
+  const label = hasStateResults
+    ? (isRefund ? 'Est. Combined Refund' : 'Est. Combined Owed')
+    : (isRefund ? 'Est. Refund' : 'Est. Owed');
 
   return (
     <div
@@ -43,7 +54,7 @@ export function RefundTracker() {
       aria-atomic="true"
     >
       <span className="text-xs font-body text-slate hidden sm:inline">
-        {isRefund ? 'Est. Refund' : 'Est. Owed'}
+        {label}
       </span>
       <span
         className={`text-sm font-display font-bold tabular-nums ${

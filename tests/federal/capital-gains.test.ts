@@ -204,7 +204,7 @@ describe('computeCapitalGains', () => {
   // No transactions
   // -----------------------------------------------------------------------
   it('returns all zeros when no transactions are provided', () => {
-    const result = computeCapitalGains([], 0, 'single', config);
+    const result = computeCapitalGains([], 0, 0, 'single', config);
     expect(result.shortTermGains).toBe(0);
     expect(result.shortTermLosses).toBe(0);
     expect(result.netShortTerm).toBe(0);
@@ -223,7 +223,7 @@ describe('computeCapitalGains', () => {
   // -----------------------------------------------------------------------
   it('computes a single short-term gain correctly', () => {
     const tx = makeShortTermGain(500_000); // $5,000 gain
-    const result = computeCapitalGains([tx], 0, 'single', config);
+    const result = computeCapitalGains([tx], 0, 0, 'single', config);
 
     expect(result.shortTermGains).toBe(500_000);
     expect(result.shortTermLosses).toBe(0);
@@ -241,7 +241,7 @@ describe('computeCapitalGains', () => {
   // -----------------------------------------------------------------------
   it('computes a single long-term gain correctly', () => {
     const tx = makeLongTermGain(1_000_000); // $10,000 gain
-    const result = computeCapitalGains([tx], 0, 'single', config);
+    const result = computeCapitalGains([tx], 0, 0, 'single', config);
 
     expect(result.shortTermGains).toBe(0);
     expect(result.longTermGains).toBe(1_000_000);
@@ -259,7 +259,7 @@ describe('computeCapitalGains', () => {
       makeShortTermGain(200_000),  // $2,000 ST gain
       makeLongTermGain(300_000),   // $3,000 LT gain
     ];
-    const result = computeCapitalGains(transactions, 0, 'single', config);
+    const result = computeCapitalGains(transactions, 0, 0, 'single', config);
 
     expect(result.shortTermGains).toBe(200_000);
     expect(result.netShortTerm).toBe(200_000);
@@ -278,7 +278,7 @@ describe('computeCapitalGains', () => {
       makeShortTermLoss(500_000),   // -$5,000 ST loss
       makeLongTermGain(800_000),    // $8,000 LT gain
     ];
-    const result = computeCapitalGains(transactions, 0, 'single', config);
+    const result = computeCapitalGains(transactions, 0, 0, 'single', config);
 
     expect(result.shortTermGains).toBe(0);
     expect(result.shortTermLosses).toBe(500_000);
@@ -301,7 +301,7 @@ describe('computeCapitalGains', () => {
       makeShortTermLoss(400_000),   // -$4,000
       makeLongTermLoss(600_000),    // -$6,000
     ];
-    const result = computeCapitalGains(transactions, 0, 'single', config);
+    const result = computeCapitalGains(transactions, 0, 0, 'single', config);
 
     expect(result.netShortTerm).toBe(-400_000);
     expect(result.netLongTerm).toBe(-600_000);
@@ -319,7 +319,7 @@ describe('computeCapitalGains', () => {
     const transactions = [
       makeShortTermLoss(300_000),   // -$3,000 exactly
     ];
-    const result = computeCapitalGains(transactions, 0, 'single', config);
+    const result = computeCapitalGains(transactions, 0, 0, 'single', config);
 
     expect(result.netCapitalGainLoss).toBe(-300_000);
     expect(result.deductibleLoss).toBe(-300_000);
@@ -334,7 +334,7 @@ describe('computeCapitalGains', () => {
       makeLongTermLoss(500_000),    // -$5,000
     ];
     const result = computeCapitalGains(
-      transactions, 0, 'married_filing_separately', config,
+      transactions, 0, 0, 'married_filing_separately', config,
     );
 
     expect(result.netCapitalGainLoss).toBe(-500_000);
@@ -353,7 +353,7 @@ describe('computeCapitalGains', () => {
       makeLongTermGain(300_000),    // $3,000 LT gain
     ];
     // Prior year carryforward of $4,000 = 400_000 cents
-    const result = computeCapitalGains(transactions, 400_000, 'single', config);
+    const result = computeCapitalGains(transactions, 400_000, 0, 'single', config);
 
     // Carryforward applied to short-term first:
     // ST: $5,000 - $4,000 = $1,000
@@ -372,7 +372,7 @@ describe('computeCapitalGains', () => {
     ];
     // Prior year carryforward of $3,000 = 300_000 cents
     // Exceeds ST gains, so remainder goes to LT
-    const result = computeCapitalGains(transactions, 300_000, 'single', config);
+    const result = computeCapitalGains(transactions, 300_000, 0, 'single', config);
 
     // ST: $2,000 - $2,000 (portion of carryforward) = $0
     // Actually, carryforward of $3,000 applied to ST $2,000 → ST becomes -$1,000
@@ -391,7 +391,7 @@ describe('computeCapitalGains', () => {
       makeLongTermGain(100_000),    // $1,000 LT gain
     ];
     // Prior year carryforward of $10,000 = 1_000_000 cents
-    const result = computeCapitalGains(transactions, 1_000_000, 'single', config);
+    const result = computeCapitalGains(transactions, 1_000_000, 0, 'single', config);
 
     // Carryforward applied: ST $1,000 - $1,000 = $0, then LT: $1,000 - remaining $9,000
     // Net ST = -$9,000 (remaining carryforward applied to ST first, which becomes -$9,000)
@@ -437,7 +437,7 @@ describe('computeCapitalGains', () => {
       basisReportedToIRS: true,
       category: '8949_A',
     });
-    const result = computeCapitalGains([tx], 0, 'single', config);
+    const result = computeCapitalGains([tx], 0, 0, 'single', config);
 
     // gainLoss is -$1,500 (already adjusted for wash sale)
     expect(result.shortTermLosses).toBe(150_000);
@@ -459,7 +459,7 @@ describe('computeCapitalGains', () => {
       basisReportedToIRS: true,
       category: '8949_D',
     });
-    const result = computeCapitalGains([tx], 0, 'single', config);
+    const result = computeCapitalGains([tx], 0, 0, 'single', config);
 
     expect(result.longTermGains).toBe(550_000);
     expect(result.netLongTerm).toBe(550_000);
@@ -474,7 +474,7 @@ describe('computeCapitalGains', () => {
       makeShortTermGain(1_000_000),  // $10,000
       makeLongTermGain(2_000_000),   // $20,000
     ];
-    const result = computeCapitalGains(transactions, 0, 'single', config);
+    const result = computeCapitalGains(transactions, 0, 0, 'single', config);
 
     expect(result.netCapitalGainLoss).toBe(3_000_000);
     expect(result.deductibleLoss).toBe(0);
@@ -504,7 +504,7 @@ describe('computeCapitalGains', () => {
       transactions.push(makeLongTermLoss(10_000));
     }
 
-    const result = computeCapitalGains(transactions, 0, 'single', config);
+    const result = computeCapitalGains(transactions, 0, 0, 'single', config);
 
     // ST: $5,000 - $6,000 = -$1,000
     expect(result.shortTermGains).toBe(500_000);
@@ -536,7 +536,7 @@ describe('computeCapitalGains', () => {
       basisReportedToIRS: true,
       category: '8949_D',
     });
-    const result = computeCapitalGains([tx], 0, 'single', config);
+    const result = computeCapitalGains([tx], 0, 0, 'single', config);
 
     expect(result.collectiblesGain).toBe(500_000);
     expect(result.longTermGains).toBe(500_000);
@@ -550,7 +550,7 @@ describe('computeCapitalGains', () => {
     const transactions = [
       makeShortTermLoss(200_000),   // -$2,000
     ];
-    const result = computeCapitalGains(transactions, 0, 'single', config);
+    const result = computeCapitalGains(transactions, 0, 0, 'single', config);
 
     expect(result.netCapitalGainLoss).toBe(-200_000);
     expect(result.deductibleLoss).toBe(-200_000);
@@ -562,7 +562,7 @@ describe('computeCapitalGains', () => {
       makeShortTermGain(500_000),
       makeShortTermLoss(500_000),
     ];
-    const result = computeCapitalGains(transactions, 0, 'single', config);
+    const result = computeCapitalGains(transactions, 0, 0, 'single', config);
 
     expect(result.netCapitalGainLoss).toBe(0);
     expect(result.deductibleLoss).toBe(0);
@@ -575,7 +575,7 @@ describe('computeCapitalGains', () => {
   it('uses $3,000 limit for married_filing_jointly', () => {
     const transactions = [makeLongTermLoss(1_000_000)]; // -$10,000
     const result = computeCapitalGains(
-      transactions, 0, 'married_filing_jointly', config,
+      transactions, 0, 0, 'married_filing_jointly', config,
     );
 
     expect(result.deductibleLoss).toBe(-300_000);
@@ -585,7 +585,7 @@ describe('computeCapitalGains', () => {
   it('uses $3,000 limit for head_of_household', () => {
     const transactions = [makeLongTermLoss(1_000_000)];
     const result = computeCapitalGains(
-      transactions, 0, 'head_of_household', config,
+      transactions, 0, 0, 'head_of_household', config,
     );
 
     expect(result.deductibleLoss).toBe(-300_000);
@@ -596,7 +596,7 @@ describe('computeCapitalGains', () => {
   // Prior year carryforward with no current transactions
   // -----------------------------------------------------------------------
   it('handles prior year carryforward with no current transactions', () => {
-    const result = computeCapitalGains([], 500_000, 'single', config);
+    const result = computeCapitalGains([], 500_000, 0, 'single', config);
 
     // Carryforward applied to ST first: 0 - $5,000 = -$5,000
     expect(result.netShortTerm).toBe(-500_000);
@@ -613,7 +613,7 @@ describe('computeCapitalGains', () => {
     const transactions = [
       makeShortTermGain(500_000),   // $5,000
     ];
-    const result = computeCapitalGains(transactions, 500_000, 'single', config);
+    const result = computeCapitalGains(transactions, 500_000, 0, 'single', config);
 
     expect(result.netShortTerm).toBe(0);
     expect(result.netCapitalGainLoss).toBe(0);
@@ -628,7 +628,7 @@ describe('computeCapitalGains', () => {
     const txA = makeTx({ proceeds: 100_00, costBasis: 50_00, gainLoss: 50_00, isLongTerm: false, basisReportedToIRS: true, category: '8949_A' });
     const txD = makeTx({ proceeds: 200_00, costBasis: 100_00, gainLoss: 100_00, isLongTerm: true, basisReportedToIRS: true, category: '8949_D' });
 
-    const result = computeCapitalGains([txA, txD], 0, 'single', config);
+    const result = computeCapitalGains([txA, txD], 0, 0, 'single', config);
 
     expect(result.categorized['8949_A']).toHaveLength(1);
     expect(result.categorized['8949_D']).toHaveLength(1);
@@ -652,7 +652,7 @@ describe('computeCapitalGains', () => {
       basisReportedToIRS: true,
       category: '8949_D',
     });
-    const result = computeCapitalGains([tx], 0, 'single', config);
+    const result = computeCapitalGains([tx], 0, 0, 'single', config);
 
     // Collectibles gain should be 0 (or not negative) when there's a loss
     expect(result.collectiblesGain).toBe(0);
@@ -664,7 +664,7 @@ describe('computeCapitalGains', () => {
   // -----------------------------------------------------------------------
   it('section1250Gain is 0 when no 1099-DIV data is present', () => {
     const tx = makeLongTermGain(1_000_000);
-    const result = computeCapitalGains([tx], 0, 'single', config);
+    const result = computeCapitalGains([tx], 0, 0, 'single', config);
 
     expect(result.section1250Gain).toBe(0);
   });
@@ -679,7 +679,7 @@ describe('computeCapitalGains', () => {
       makeShortTermGain(200_000),   // $2,000
       makeShortTermLoss(100_000),   // -$1,000
     ];
-    const result = computeCapitalGains(transactions, 0, 'single', config);
+    const result = computeCapitalGains(transactions, 0, 0, 'single', config);
 
     expect(result.shortTermGains).toBe(1_000_000);  // $10,000
     expect(result.shortTermLosses).toBe(400_000);    // $4,000
@@ -695,7 +695,7 @@ describe('computeCapitalGains', () => {
       makeLongTermLoss(500_000),    // -$5,000
     ];
     const result = computeCapitalGains(
-      transactions, 0, 'married_filing_separately', config,
+      transactions, 0, 0, 'married_filing_separately', config,
     );
 
     expect(result.netCapitalGainLoss).toBe(-1_000_000);
@@ -711,7 +711,7 @@ describe('computeCapitalGains', () => {
       makeShortTermLoss(200_000),   // -$2,000 current year ST loss
     ];
     // Prior year carryforward of $5,000
-    const result = computeCapitalGains(transactions, 500_000, 'single', config);
+    const result = computeCapitalGains(transactions, 500_000, 0, 'single', config);
 
     // ST: -$2,000 - $5,000 (carryforward to ST) = -$7,000
     expect(result.netShortTerm).toBe(-700_000);
@@ -728,7 +728,7 @@ describe('computeCapitalGains', () => {
       makeShortTermLoss(250_000),
       makeLongTermLoss(750_000),
     ];
-    const result = computeCapitalGains(transactions, 0, 'single', config);
+    const result = computeCapitalGains(transactions, 0, 0, 'single', config);
 
     // Losses are stored as positive magnitudes
     expect(result.shortTermLosses).toBe(250_000);

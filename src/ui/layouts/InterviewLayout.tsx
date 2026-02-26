@@ -143,7 +143,7 @@ export function InterviewLayout() {
 
       {/* Mobile fixed bottom bar: Back/Next */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-t border-slate-light/20 shadow-card">
-        <div className="flex gap-3 max-w-lg mx-auto px-4 py-2.5">
+        <div className="flex gap-3 max-w-lg mx-auto px-4 pt-2.5 pb-3" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
           <button
             type="button"
             onClick={handleBack}

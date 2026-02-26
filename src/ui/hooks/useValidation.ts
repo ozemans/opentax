@@ -153,6 +153,16 @@ function validateIncome(input: TaxInput): ValidationError[] {
     if (!isNonNegativeCents(w2.federalWithheld)) {
       errors.push({ fieldPath: `w2s.${i}.federalWithheld`, message: 'Withholding must be non-negative' });
     }
+    // Warn when withholding is entered without corresponding wages (data entry error)
+    if (w2.socialSecurityWithheld > 0 && w2.socialSecurityWages === 0) {
+      errors.push({ fieldPath: `w2s.${i}.socialSecurityWages`, message: 'SS withholding entered but SS wages (Box 3) are $0 — please verify' });
+    }
+    if (w2.medicareWithheld > 0 && w2.medicareWages === 0) {
+      errors.push({ fieldPath: `w2s.${i}.medicareWages`, message: 'Medicare withholding entered but Medicare wages (Box 5) are $0 — please verify' });
+    }
+    if (w2.stateWithheld > 0 && !w2.stateCode) {
+      errors.push({ fieldPath: `w2s.${i}.stateCode`, message: 'State withholding entered but no state selected (Box 15)' });
+    }
   }
 
   // 1099-INT validation

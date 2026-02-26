@@ -13,9 +13,10 @@ const FEATURES = [
     title: '100% Private',
     description: 'Your data never leaves your device. No servers, no tracking, no third parties.',
     icon: (
+      // Lock icon — distinct from the IRS-accurate checkmark
       <svg className="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-        <path d="M9 12l2 2 4-4" />
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
       </svg>
     ),
   },
@@ -23,9 +24,16 @@ const FEATURES = [
     title: 'IRS-Accurate',
     description: 'Built from IRS publications and form instructions. Every calculation is tested and verifiable.',
     icon: (
+      // Calculator icon — distinct from the privacy lock
       <svg className="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
-        <circle cx="12" cy="12" r="10" />
-        <path d="M9 12l2 2 4-4" />
+        <rect x="4" y="2" width="16" height="20" rx="2" />
+        <line x1="8" y1="6" x2="16" y2="6" />
+        <line x1="8" y1="10" x2="10" y2="10" />
+        <line x1="14" y1="10" x2="16" y2="10" />
+        <line x1="8" y1="14" x2="10" y2="14" />
+        <line x1="14" y1="14" x2="16" y2="14" />
+        <line x1="8" y1="18" x2="10" y2="18" />
+        <line x1="14" y1="18" x2="16" y2="18" />
       </svg>
     ),
   },

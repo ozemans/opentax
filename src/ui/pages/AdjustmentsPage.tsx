@@ -12,11 +12,10 @@ export function AdjustmentsPage() {
   const educatorExpenses = input.educatorExpenses ?? 0;
   const hsaDeduction = input.hsaDeduction ?? 0;
   const iraDeduction = input.iraDeduction ?? 0;
-  const estimatedTaxPayments = input.estimatedTaxPayments;
 
   return (
     <PageContainer
-      title="Adjustments"
+      title="Adjustments to Income"
       description="Above-the-line deductions reduce your adjusted gross income (AGI) before the standard or itemized deduction."
     >
       <h1 ref={headingRef} tabIndex={-1} className="sr-only">
@@ -70,14 +69,6 @@ export function AdjustmentsPage() {
           irsReference={HELP_TEXTS['iraDeduction']?.irsReference}
         />
 
-        <CurrencyInput
-          label="Estimated Tax Payments (Form 1040-ES)"
-          name="estimated-tax-payments"
-          value={estimatedTaxPayments}
-          onChange={(v) => dispatch({ type: 'SET_FIELD', path: 'estimatedTaxPayments', value: v })}
-          helpText={HELP_TEXTS['estimatedTaxPayments']?.content}
-          irsReference={HELP_TEXTS['estimatedTaxPayments']?.irsReference}
-        />
       </div>
     </PageContainer>
   );

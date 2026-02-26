@@ -171,12 +171,12 @@ export const HELP_TEXTS: Record<string, { content: string; irsReference?: string
   },
   'itemized.stateLocalTaxes': {
     content:
-      'State and local income taxes or sales taxes paid. Subject to $10,000 SALT cap ($5,000 if MFS).',
+      'State and local income taxes or sales taxes paid. Your state/local taxes and real estate taxes are combined under the SALT cap: $10,000 maximum ($5,000 if MFS). Under the One Big Beautiful Bill Act (2025), the cap may be higher ($40,000) for incomes under the phase-down threshold.',
     irsReference: 'Schedule A, Line 5a',
   },
   'itemized.realEstateTaxes': {
     content:
-      'Real estate taxes paid on property you own. Combined with state/local taxes under the SALT cap.',
+      'Real estate taxes paid on property you own. Combined with state/local income or sales taxes under the SALT cap ($10,000 combined max, $5,000 if MFS). Enter the full amount — the cap is applied automatically.',
     irsReference: 'Schedule A, Line 5b',
   },
   'itemized.mortgageInterest': {

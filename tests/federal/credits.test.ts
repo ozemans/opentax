@@ -39,12 +39,13 @@ function makeDependentODC(): Dependent {
 describe('computeChildTaxCredit', () => {
   it('should give $2,200 per qualifying child (2025 OBBBA)', () => {
     const deps = [makeDependentCTC(), makeDependentCTC()];
-    const result = computeChildTaxCredit(deps, 8000000, 'single', 500000, cfg);
+    // earnedIncome $50,000 — sufficient that ACTC earned-income cap is not binding
+    const result = computeChildTaxCredit(deps, 8000000, 'single', 500000, 5000000, cfg);
     expect(result.nonrefundable).toBe(440000); // $4,400
   });
 
   it('should return 0 with no qualifying children', () => {
-    const result = computeChildTaxCredit([], 5000000, 'single', 500000, cfg);
+    const result = computeChildTaxCredit([], 5000000, 'single', 500000, 5000000, cfg);
     expect(result.nonrefundable).toBe(0);
     expect(result.refundable).toBe(0);
   });
@@ -54,7 +55,7 @@ describe('computeChildTaxCredit', () => {
     // Reduction: Math.ceil(10000 / 1000) * $50 = 10 * $50 = $500
     // CTC: $2,200 - $500 = $1,700
     const deps = [makeDependentCTC()];
-    const result = computeChildTaxCredit(deps, 21000000, 'single', 400000, cfg);
+    const result = computeChildTaxCredit(deps, 21000000, 'single', 400000, 5000000, cfg);
     expect(result.nonrefundable + result.refundable).toBe(170000);
   });
 
@@ -63,7 +64,7 @@ describe('computeChildTaxCredit', () => {
     // Reduction: 20 * $50 = $1,000
     // CTC: $4,400 - $1,000 = $3,400
     const deps = [makeDependentCTC(), makeDependentCTC()];
-    const result = computeChildTaxCredit(deps, 42000000, 'married_filing_jointly', 800000, cfg);
+    const result = computeChildTaxCredit(deps, 42000000, 'married_filing_jointly', 800000, 5000000, cfg);
     expect(result.nonrefundable + result.refundable).toBe(340000);
   });
 
@@ -71,14 +72,14 @@ describe('computeChildTaxCredit', () => {
     // 1 child ($2,200), AGI $244,000 → excess $44,000
     // Reduction: 44 * $50 = $2,200 → credit zeroed
     const deps = [makeDependentCTC()];
-    const result = computeChildTaxCredit(deps, 24400000, 'single', 400000, cfg);
+    const result = computeChildTaxCredit(deps, 24400000, 'single', 400000, 5000000, cfg);
     expect(result.nonrefundable + result.refundable).toBe(0);
   });
 
   it('should cap nonrefundable at tax liability', () => {
-    // 1 child, low tax liability $1,000
+    // 1 child, low tax liability $1,000, earned income $30,000
     const deps = [makeDependentCTC()];
-    const result = computeChildTaxCredit(deps, 3000000, 'single', 100000, cfg);
+    const result = computeChildTaxCredit(deps, 3000000, 'single', 100000, 3000000, cfg);
     expect(result.nonrefundable).toBe(100000); // Capped at tax
     // Refundable (Additional CTC): limited to $1,700 per child
     expect(result.refundable).toBeLessThanOrEqual(170000);
@@ -86,11 +87,32 @@ describe('computeChildTaxCredit', () => {
 
   it('should compute refundable Additional CTC up to $1,700 per child', () => {
     // Tax = $0, so all CTC goes to ACTC
-    // 1 child, earned income = $20,000
-    // ACTC = min($1,700, 15% * ($20,000 - $2,500)) = min($1,700, $2,625) = $1,700
+    // 1 child, earned income = $20,000 (2000000 cents)
+    // ACTC = min($2,200, $1,700, 15% * ($20,000 - $2,500)) = min($2,200, $1,700, $2,625) = $1,700
     const deps = [makeDependentCTC()];
-    const result = computeChildTaxCredit(deps, 2000000, 'single', 0, cfg);
+    const result = computeChildTaxCredit(deps, 2000000, 'single', 0, 2000000, cfg);
     expect(result.refundable).toBe(170000);
+  });
+
+  it('should limit ACTC to 0 when earned income is zero (IRC §24(i)(3))', () => {
+    const deps = [makeDependentCTC()];
+    const result = computeChildTaxCredit(deps, 2000000, 'single', 0, 0, cfg);
+    expect(result.refundable).toBe(0);
+  });
+
+  it('should limit ACTC to 0 when earned income is below $2,500 threshold', () => {
+    // earnedIncome $2,000 < $2,500 threshold → ACTC earnings cap = 0
+    const deps = [makeDependentCTC()];
+    const result = computeChildTaxCredit(deps, 2000000, 'single', 0, 200000, cfg);
+    expect(result.refundable).toBe(0);
+  });
+
+  it('should cap ACTC at 15% of earned income over $2,500', () => {
+    // earnedIncome $5,000 → actcByEarnings = 15% * ($5,000 - $2,500) = $375
+    // min($2,200, $1,700, $375) = $375
+    const deps = [makeDependentCTC()];
+    const result = computeChildTaxCredit(deps, 2000000, 'single', 0, 500000, cfg);
+    expect(result.refundable).toBe(37500); // $375 in cents
   });
 });
 

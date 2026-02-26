@@ -8,6 +8,17 @@ import { useFocusOnPageChange } from '@/ui/hooks/useFocusOnPageChange';
 import { STATE_OPTIONS } from '@/ui/data/stateOptions';
 import { useTaxState } from '@/ui/hooks/useTaxState';
 
+/**
+ * Per IRS Pub 554: you are considered age 65 the day before your 65th birthday.
+ * Returns true if the person is 65+ at any point during the tax year.
+ */
+function isAge65ByEndOfTaxYear(dob: string, taxYear: number): boolean {
+  if (!dob) return false;
+  // The 65th birthday must fall on or before Jan 1 of the year after taxYear.
+  // (IRS treats you as 65 on Dec 31 if born Jan 1 of the following year.)
+  return new Date(dob) <= new Date(`${taxYear - 64}-01-01`);
+}
+
 export function PersonalInfoPage() {
   const { input, dispatch } = useTaxState();
   const headingRef = useFocusOnPageChange('personal-info');
@@ -83,7 +94,10 @@ export function PersonalInfoPage() {
               name="taxpayer-dob"
               type="date"
               value={input.taxpayer.dateOfBirth}
-              onChange={(v) => dispatch({ type: 'SET_FIELD', path: 'taxpayer.dateOfBirth', value: v })}
+              onChange={(v) => {
+                dispatch({ type: 'SET_FIELD', path: 'taxpayer.dateOfBirth', value: v });
+                dispatch({ type: 'SET_FIELD', path: 'taxpayerAge65OrOlder', value: isAge65ByEndOfTaxYear(v, input.taxYear) });
+              }}
               required
             />
 
@@ -145,7 +159,10 @@ export function PersonalInfoPage() {
                 name="spouse-dob"
                 type="date"
                 value={input.spouse?.dateOfBirth ?? ''}
-                onChange={(v) => dispatch({ type: 'SET_FIELD', path: 'spouse.dateOfBirth', value: v })}
+                onChange={(v) => {
+                  dispatch({ type: 'SET_FIELD', path: 'spouse.dateOfBirth', value: v });
+                  dispatch({ type: 'SET_FIELD', path: 'spouseAge65OrOlder', value: isAge65ByEndOfTaxYear(v, input.taxYear) });
+                }}
                 required
               />
 
