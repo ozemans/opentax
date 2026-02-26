@@ -8,11 +8,21 @@ import { RefundTracker } from '@/ui/components/RefundTracker';
 import { PrivacyBadge } from '@/ui/components/PrivacyBadge';
 import { INTERVIEW_PAGES } from '@/ui/data/interviewPages';
 import { useInterviewProgress } from '@/ui/hooks/useInterviewProgress';
+import { useTaxState } from '@/ui/hooks/useTaxState';
+
+function formatDollars(cents: number): string {
+  const dollars = Math.abs(cents) / 100;
+  return dollars.toLocaleString('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
+}
 
 export function InterviewLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { completedSteps, markComplete, setCurrentStep } = useInterviewProgress();
+  const { result, isComputing } = useTaxState();
 
   // Derive current step from pathname
   const currentStep = useMemo(() => {
@@ -70,29 +80,37 @@ export function InterviewLayout() {
     }
   }, [canGoNext, currentStep, navigate, markComplete]);
 
+  // Mobile refund display
+  const refundOrOwed = result?.refundOrOwed ?? 0;
+  const isRefund = refundOrOwed >= 0;
+
   return (
     <div className="min-h-screen bg-surface">
       <SkipLink />
 
-      {/* Navigation */}
+      {/* Header — slim: logo + mobile progress */}
       <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b border-slate-light/20 shadow-card">
         <div className="max-w-7xl mx-auto">
-          {/* Brand */}
-          <div className="flex items-center gap-2.5 px-4 pt-3 lg:px-6 lg:pt-4">
+          {/* Brand row */}
+          <div className="flex items-center gap-2.5 px-4 py-3 lg:px-6 lg:py-4">
             <AmericanFlagLogo className="h-6" />
             <span className="text-lg font-display font-bold text-navy">OpenTax</span>
           </div>
-          <InterviewNav
-            currentStep={currentStep}
-            totalSteps={totalSteps}
-            steps={steps}
-            completedSteps={completedSteps}
-            onStepClick={handleStepClick}
-            onBack={handleBack}
-            onNext={handleNext}
-            canGoBack={canGoBack}
-            canGoNext={canGoNext}
-          />
+
+          {/* Mobile-only: compact progress bar (hide entire nav on desktop) */}
+          <div className="lg:hidden">
+            <InterviewNav
+              currentStep={currentStep}
+              totalSteps={totalSteps}
+              steps={steps}
+              completedSteps={completedSteps}
+              onStepClick={handleStepClick}
+              onBack={handleBack}
+              onNext={handleNext}
+              canGoBack={canGoBack}
+              canGoNext={canGoNext}
+            />
+          </div>
         </div>
       </header>
 
@@ -100,7 +118,7 @@ export function InterviewLayout() {
       <div className="max-w-7xl mx-auto px-4 py-6 lg:px-8 lg:py-8">
         <div className="flex gap-8 items-start">
           {/* Page content */}
-          <main id="main-content" className="flex-1 min-w-0 pb-20 lg:pb-0">
+          <main id="main-content" className="flex-1 min-w-0 pb-24 lg:pb-0">
             <AnimatePresence mode="wait">
               <motion.div
                 key={location.pathname}
@@ -114,16 +132,78 @@ export function InterviewLayout() {
             </AnimatePresence>
           </main>
 
-          {/* Desktop sidebar — RefundTracker */}
-          <aside className="hidden lg:block" aria-label="Refund estimate">
+          {/* Desktop right sidebar: progress steps + refund tracker */}
+          <aside
+            className="hidden lg:flex lg:flex-col lg:gap-6 sticky top-24 w-56 flex-shrink-0"
+            aria-label="Progress and refund estimate"
+          >
+            {/* Vertical step navigator */}
+            <InterviewNav
+              currentStep={currentStep}
+              totalSteps={totalSteps}
+              steps={steps}
+              completedSteps={completedSteps}
+              onStepClick={handleStepClick}
+              onBack={handleBack}
+              onNext={handleNext}
+              canGoBack={canGoBack}
+              canGoNext={canGoNext}
+            />
+            {/* Refund tracker card */}
             <RefundTracker />
           </aside>
         </div>
       </div>
 
-      {/* Mobile bottom bar — RefundTracker */}
-      <div className="lg:hidden">
-        <RefundTracker />
+      {/* Mobile fixed bottom bar: Back/Next + refund estimate */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-t border-slate-light/20 shadow-card">
+        <div className="max-w-lg mx-auto px-4 py-2">
+          {/* Refund line */}
+          <div className="flex items-center justify-between mb-2" aria-live="polite" aria-atomic="true">
+            <span className="text-xs font-body text-slate">
+              {isRefund ? 'Est. Refund' : 'Est. Owed'}
+            </span>
+            <span
+              className={`text-base font-display font-bold tabular-nums ${
+                isRefund ? 'text-success' : 'text-accent'
+              }`}
+            >
+              {isComputing ? (
+                <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-highlight border-t-primary" />
+              ) : (
+                <>
+                  {isRefund ? '' : '-'}${formatDollars(refundOrOwed)}
+                </>
+              )}
+            </span>
+          </div>
+          {/* Back / Next buttons */}
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={handleBack}
+              disabled={!canGoBack}
+              className="flex-1 rounded-xl border border-slate-light px-4 py-2.5 text-sm
+                         font-display font-medium text-slate-dark
+                         hover:bg-surface transition-colors
+                         focus:outline-none focus:ring-2 focus:ring-highlight focus:ring-offset-1
+                         disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              Back
+            </button>
+            <button
+              type="button"
+              onClick={handleNext}
+              disabled={!canGoNext}
+              className="flex-1 rounded-xl bg-primary px-4 py-2.5 text-sm font-display font-medium
+                         text-white hover:bg-primary-dark transition-colors
+                         focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1
+                         disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Floating privacy badge (desktop only) */}
