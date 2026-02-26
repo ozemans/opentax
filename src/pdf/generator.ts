@@ -1,6 +1,6 @@
 // PDF Generator — Return Package Orchestrator
 // Determines which forms are needed, fills them in parallel, and merges
-// into a single PDF in IRS filing order.
+// into a single PDF in IRS filing order. Includes state form generation.
 
 import type { TaxInput, TaxResult } from '../engine/types';
 import type { FormId, TemplateLoader } from './types';
@@ -46,6 +46,18 @@ const FLAG_TO_FORM: { flag: keyof TaxResult; formId: FormId }[] = [
 ];
 
 /**
+ * Map state-level formId strings (from StateConfig.formId) to the PDF FormId type.
+ * Each state module returns a formId string in its StateTaxResult (e.g., 'IT-201').
+ * This maps those strings to the FormId union member used by the PDF module.
+ */
+function mapStateFormId(formId: string): FormId | undefined {
+  const map: Record<string, FormId> = {
+    'IT-201': 'it201',
+  };
+  return map[formId];
+}
+
+/**
  * Determine which forms are required based on TaxResult flags.
  * Always includes f1040. Form 8949 is handled separately.
  */
@@ -68,6 +80,7 @@ function getRequiredForms(result: TaxResult): FormId[] {
  * 2. Fills all standard forms in parallel via Promise.all.
  * 3. Handles Form 8949 separately (multi-page).
  * 4. Merges all filled PDFs into a single document in IRS filing order.
+ * 5. Fills and appends state forms after federal forms.
  *
  * @param input - The taxpayer's input data
  * @param result - The computed tax result with form mappings
@@ -131,6 +144,34 @@ export async function generateReturnPackage(
     allPdfs.push(...f8949Pages);
   }
 
+  // ── State Form Generation ──
+  // Iterate over state results and fill any state forms that have valid formIds.
+  // State forms are appended after all federal forms.
+  if (result.stateResults) {
+    const stateFormPromises: Promise<Uint8Array>[] = [];
+
+    for (const [, stateResult] of Object.entries(result.stateResults)) {
+      if (!stateResult.formId || stateResult.formId === 'none') {
+        continue;
+      }
+
+      const formId = mapStateFormId(stateResult.formId);
+      if (!formId) {
+        console.warn(`No PDF FormId mapping for state form: ${stateResult.formId}`);
+        continue;
+      }
+
+      stateFormPromises.push(
+        fillForm(formId, stateResult.formData, templateLoader),
+      );
+    }
+
+    if (stateFormPromises.length > 0) {
+      const stateFormBytes = await Promise.all(stateFormPromises);
+      allPdfs.push(...stateFormBytes);
+    }
+  }
+
   return mergePdfs(allPdfs);
 }
 
@@ -151,6 +192,7 @@ function getFormData(result: TaxResult, formId: FormId): Record<string, string |
     case 'f8959': return result.forms.f8959;
     case 'f8960': return result.forms.f8960;
     // f8949 is handled separately via fillForm8949
+    // State forms get their data from stateResults.formData (handled in the state loop)
     default: return undefined;
   }
 }

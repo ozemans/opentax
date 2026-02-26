@@ -4,7 +4,8 @@
 export type FormId =
   | 'f1040' | 'scheduleA' | 'scheduleB' | 'scheduleC' | 'scheduleD'
   | 'scheduleSE' | 'schedule1' | 'schedule2' | 'schedule3'
-  | 'f8949' | 'f8959' | 'f8960';
+  | 'f8949' | 'f8959' | 'f8960'
+  | 'it201';
 
 export type TemplateLoader = (formId: FormId) => Promise<Uint8Array>;
 

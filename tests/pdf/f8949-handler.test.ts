@@ -3,23 +3,24 @@ import { fillForm8949 } from '../../src/pdf/f8949-handler';
 import { createSyntheticTemplate, createMockTemplateLoader, getPageCount } from './helpers';
 
 // Create a synthetic template with row fields for Form 8949
+// The actual IRS Form 8949 has 11 rows per page (per part).
 async function create8949Template(): Promise<Uint8Array> {
   const textFields: string[] = [];
 
-  // Create row-specific fields for 14 rows
-  for (let row = 1; row <= 14; row++) {
-    textFields.push(`f8949_row${row}_description`);
-    textFields.push(`f8949_row${row}_dateAcquired`);
-    textFields.push(`f8949_row${row}_dateSold`);
-    textFields.push(`f8949_row${row}_proceeds`);
-    textFields.push(`f8949_row${row}_basis`);
-    textFields.push(`f8949_row${row}_gainLoss`);
+  // Create row-specific fields for 11 rows (matching real IRS form layout)
+  for (let row = 1; row <= 11; row++) {
+    const rowStartField = 3 + (row - 1) * 8;
+    const tableRow = `Table_Line1_Part1[0].Row${row}[0]`;
+    for (let col = 0; col < 8; col++) {
+      const fieldNum = String(rowStartField + col).padStart(2, '0');
+      textFields.push(`topmostSubform[0].Page1[0].${tableRow}.f1_${fieldNum}[0]`);
+    }
   }
 
   // Total fields
-  textFields.push('f8949_totalProceeds');
-  textFields.push('f8949_totalBasis');
-  textFields.push('f8949_totalGainLoss');
+  textFields.push('topmostSubform[0].Page1[0].f1_91[0]');
+  textFields.push('topmostSubform[0].Page1[0].f1_92[0]');
+  textFields.push('topmostSubform[0].Page1[0].f1_94[0]');
 
   return createSyntheticTemplate(textFields);
 }
@@ -46,7 +47,7 @@ describe('fillForm8949', () => {
     expect(result).toHaveLength(0);
   });
 
-  it('should produce 1 page for less than 14 transactions', async () => {
+  it('should produce 1 page for less than 11 transactions', async () => {
     const template = await create8949Template();
     const loader = createMockTemplateLoader({ f8949: template });
 
@@ -58,34 +59,34 @@ describe('fillForm8949', () => {
     expect(pageCount).toBe(1);
   });
 
-  it('should produce 1 page for exactly 14 transactions', async () => {
+  it('should produce 1 page for exactly 11 transactions', async () => {
     const template = await create8949Template();
     const loader = createMockTemplateLoader({ f8949: template });
 
-    const transactions = Array.from({ length: 14 }, (_, i) => makeTransaction(i + 1));
+    const transactions = Array.from({ length: 11 }, (_, i) => makeTransaction(i + 1));
     const result = await fillForm8949(transactions, loader);
 
     expect(result).toHaveLength(1);
   });
 
-  it('should produce 2 pages for 15 transactions', async () => {
+  it('should produce 2 pages for 12 transactions', async () => {
     const template = await create8949Template();
     const loader = createMockTemplateLoader({ f8949: template });
 
-    const transactions = Array.from({ length: 15 }, (_, i) => makeTransaction(i + 1));
+    const transactions = Array.from({ length: 12 }, (_, i) => makeTransaction(i + 1));
     const result = await fillForm8949(transactions, loader);
 
     expect(result).toHaveLength(2);
   });
 
-  it('should produce 3 pages for 30 transactions', async () => {
+  it('should produce 3 pages for 23 transactions', async () => {
     const template = await create8949Template();
     const loader = createMockTemplateLoader({ f8949: template });
 
-    const transactions = Array.from({ length: 30 }, (_, i) => makeTransaction(i + 1));
+    const transactions = Array.from({ length: 23 }, (_, i) => makeTransaction(i + 1));
     const result = await fillForm8949(transactions, loader);
 
-    expect(result).toHaveLength(3); // ceil(30/14) = 3
+    expect(result).toHaveLength(3); // ceil(23/11) = 3
   });
 
   it('should compute page totals correctly', async () => {
@@ -143,7 +144,7 @@ describe('fillForm8949', () => {
     const transactions = Array.from({ length: 20 }, (_, i) => makeTransaction(i + 1));
     const result = await fillForm8949(transactions, loader);
 
-    expect(result).toHaveLength(2);
+    expect(result).toHaveLength(2); // ceil(20/11) = 2
     for (const page of result) {
       expect(page).toBeInstanceOf(Uint8Array);
       const pageCount = await getPageCount(page);

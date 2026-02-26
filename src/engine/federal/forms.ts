@@ -36,8 +36,12 @@ function mapForm1040(input: TaxInput, result: TaxResult): Record<string, string 
   fields['state'] = input.address.state;
   fields['zip'] = input.address.zip;
 
-  // Filing status (Line 1-5 checkboxes)
-  fields['filingStatus'] = input.filingStatus;
+  // Filing status — IRS Form 1040 uses separate checkboxes per status
+  fields['filingStatusSingle'] = input.filingStatus === 'single' ? 'X' : '';
+  fields['filingStatusMFJ'] = input.filingStatus === 'married_filing_jointly' ? 'X' : '';
+  fields['filingStatusMFS'] = input.filingStatus === 'married_filing_separately' ? 'X' : '';
+  fields['filingStatusHoH'] = input.filingStatus === 'head_of_household' ? 'X' : '';
+  fields['filingStatusQSS'] = input.filingStatus === 'qualifying_surviving_spouse' ? 'X' : '';
 
   // Spouse info
   if (input.spouse) {

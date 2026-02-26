@@ -7,8 +7,8 @@ import type { TemplateLoader } from './types';
 import { PdfTemplateError } from './types';
 import { getFieldMap } from './field-maps/index';
 
-/** Maximum transaction rows per Form 8949 page. */
-const ROWS_PER_PAGE = 14;
+/** Maximum transaction rows per Form 8949 page (actual IRS form has 11 rows per part). */
+const ROWS_PER_PAGE = 11;
 
 /**
  * Split an array into chunks of the given size.
