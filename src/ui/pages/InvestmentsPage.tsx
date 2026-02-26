@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import type { Form1099B } from '@/engine/types';
 import { CurrencyInput } from '@/ui/components/CurrencyInput';
 import { CapitalGainsImport } from '@/ui/components/CapitalGainsImport';
@@ -9,12 +9,45 @@ import { HELP_TEXTS } from '@/ui/data/helpTexts';
 import { useTaxState } from '@/ui/hooks/useTaxState';
 import type { Parsed1099Result } from '@/utils/1099-parser';
 
+type EntryMode = 'transactions' | 'summary';
+
 export function InvestmentsPage() {
   const { input, dispatch } = useTaxState();
   const headingRef = useFocusOnPageChange('investments');
 
+  // Determine initial mode based on existing data
+  const hasSummary = input.capitalGainsSummary != null;
+  const hasTransactions = input.form1099Bs.length > 0;
+  const [mode, setMode] = useState<EntryMode>(
+    hasSummary && !hasTransactions ? 'summary' : 'transactions',
+  );
+
   const transactions = input.form1099Bs;
   const priorYearLossCarryforward = input.priorYearCapitalLossCarryforward ?? 0;
+  const summary = input.capitalGainsSummary ?? { shortTermGainLoss: 0, longTermGainLoss: 0 };
+
+  const handleModeChange = useCallback(
+    (newMode: EntryMode) => {
+      if (newMode === 'summary') {
+        // Pre-populate summary from current transactions
+        const stTotal = transactions
+          .filter((t) => !t.isLongTerm)
+          .reduce((sum, t) => sum + t.gainLoss, 0);
+        const ltTotal = transactions
+          .filter((t) => t.isLongTerm)
+          .reduce((sum, t) => sum + t.gainLoss, 0);
+        dispatch({
+          type: 'SET_CAPITAL_GAINS_SUMMARY',
+          payload: { shortTermGainLoss: stTotal, longTermGainLoss: ltTotal },
+        });
+      } else {
+        // Clear summary when switching back to transactions
+        dispatch({ type: 'SET_CAPITAL_GAINS_SUMMARY', payload: undefined });
+      }
+      setMode(newMode);
+    },
+    [dispatch, transactions],
+  );
 
   const handleAdd = useCallback(() => {
     dispatch({ type: 'ADD_1099_B' });
@@ -52,14 +85,18 @@ export function InvestmentsPage() {
     [dispatch, input.form1099Bs],
   );
 
-  // Compute summary
+  // Compute summary for transaction mode display
   const totalST = transactions
     .filter((t) => !t.isLongTerm)
     .reduce((sum, t) => sum + t.gainLoss, 0);
   const totalLT = transactions
     .filter((t) => t.isLongTerm)
     .reduce((sum, t) => sum + t.gainLoss, 0);
-  const net = totalST + totalLT;
+
+  // For the summary section, use either transaction totals or summary input
+  const displayST = mode === 'summary' ? summary.shortTermGainLoss : totalST;
+  const displayLT = mode === 'summary' ? summary.longTermGainLoss : totalLT;
+  const net = displayST + displayLT;
 
   function formatCents(cents: number): string {
     const dollars = Math.abs(cents) / 100;
@@ -77,30 +114,104 @@ export function InvestmentsPage() {
       </h1>
 
       <div className="space-y-8">
-        {/* 1099 PDF upload for capital gains */}
-        <section aria-labelledby="pdf-upload-heading">
-          <h2 id="pdf-upload-heading" className="text-lg font-display font-semibold text-slate-dark mb-4">
-            Upload 1099 PDF
-          </h2>
-          <p className="text-sm font-body text-slate mb-3">
-            Upload a consolidated 1099 PDF from your broker to automatically import capital gains transactions.
-          </p>
-          <Document1099Upload onImport={handlePdfImport} />
-        </section>
+        {/* Entry mode toggle */}
+        <div
+          className="flex rounded-lg border border-slate-light p-0.5 bg-white"
+          role="radiogroup"
+          aria-label="Capital gains entry method"
+        >
+          <button
+            type="button"
+            role="radio"
+            aria-checked={mode === 'transactions'}
+            onClick={() => handleModeChange('transactions')}
+            className={`flex-1 rounded-md px-4 py-2 text-sm font-body font-medium transition-colors duration-150
+              ${mode === 'transactions'
+                ? 'bg-highlight text-white shadow-sm'
+                : 'text-slate hover:text-slate-dark'
+              }`}
+          >
+            Individual Transactions
+          </button>
+          <button
+            type="button"
+            role="radio"
+            aria-checked={mode === 'summary'}
+            onClick={() => handleModeChange('summary')}
+            className={`flex-1 rounded-md px-4 py-2 text-sm font-body font-medium transition-colors duration-150
+              ${mode === 'summary'
+                ? 'bg-highlight text-white shadow-sm'
+                : 'text-slate hover:text-slate-dark'
+              }`}
+          >
+            Just Totals
+          </button>
+        </div>
 
-        {/* Capital gains import/entry */}
-        <section aria-labelledby="cap-gains-heading">
-          <h2 id="cap-gains-heading" className="text-lg font-display font-semibold text-slate-dark mb-4">
-            Capital Gains & Losses
-          </h2>
-          <CapitalGainsImport
-            transactions={transactions}
-            onAdd={handleAdd}
-            onUpdate={handleUpdate}
-            onRemove={handleRemove}
-            onBulkImport={handleBulkImport}
-          />
-        </section>
+        {mode === 'transactions' ? (
+          <>
+            {/* 1099 PDF upload for capital gains */}
+            <section aria-labelledby="pdf-upload-heading">
+              <h2 id="pdf-upload-heading" className="text-lg font-display font-semibold text-slate-dark mb-4">
+                Upload 1099 PDF
+              </h2>
+              <p className="text-sm font-body text-slate mb-3">
+                Upload a consolidated 1099 PDF from your broker to automatically import capital gains transactions.
+              </p>
+              <Document1099Upload onImport={handlePdfImport} />
+            </section>
+
+            {/* Capital gains import/entry */}
+            <section aria-labelledby="cap-gains-heading">
+              <h2 id="cap-gains-heading" className="text-lg font-display font-semibold text-slate-dark mb-4">
+                Capital Gains & Losses
+              </h2>
+              <CapitalGainsImport
+                transactions={transactions}
+                onAdd={handleAdd}
+                onUpdate={handleUpdate}
+                onRemove={handleRemove}
+                onBulkImport={handleBulkImport}
+              />
+            </section>
+          </>
+        ) : (
+          /* Summary entry mode */
+          <section aria-labelledby="summary-entry-heading">
+            <h2 id="summary-entry-heading" className="text-lg font-display font-semibold text-slate-dark mb-2">
+              Capital Gains & Losses — Totals
+            </h2>
+            <p className="text-sm font-body text-slate mb-5">
+              Enter your net short-term and long-term gain or loss. Use a negative number for losses (e.g. -5000).
+            </p>
+            <div className="space-y-4">
+              <CurrencyInput
+                label="Net Short-Term Capital Gain/Loss"
+                name="st-gain-loss"
+                value={summary.shortTermGainLoss}
+                allowNegative
+                onChange={(v) =>
+                  dispatch({
+                    type: 'SET_CAPITAL_GAINS_SUMMARY',
+                    payload: { ...summary, shortTermGainLoss: v },
+                  })
+                }
+              />
+              <CurrencyInput
+                label="Net Long-Term Capital Gain/Loss"
+                name="lt-gain-loss"
+                value={summary.longTermGainLoss}
+                allowNegative
+                onChange={(v) =>
+                  dispatch({
+                    type: 'SET_CAPITAL_GAINS_SUMMARY',
+                    payload: { ...summary, longTermGainLoss: v },
+                  })
+                }
+              />
+            </div>
+          </section>
+        )}
 
         {/* Prior year carryforward */}
         <section aria-labelledby="carryforward-heading">
@@ -118,7 +229,7 @@ export function InvestmentsPage() {
         </section>
 
         {/* Summary */}
-        {transactions.length > 0 && (
+        {(mode === 'summary' || transactions.length > 0) && (
           <section
             aria-labelledby="invest-summary-heading"
             className="rounded-2xl bg-highlight-light/50 p-5"
@@ -129,14 +240,14 @@ export function InvestmentsPage() {
             <div className="space-y-2 text-sm font-body">
               <div className="flex justify-between">
                 <span className="text-slate">Net Short-Term</span>
-                <span className={`font-medium tabular-nums ${totalST >= 0 ? 'text-success' : 'text-accent'}`}>
-                  {formatCents(totalST)}
+                <span className={`font-medium tabular-nums ${displayST >= 0 ? 'text-success' : 'text-accent'}`}>
+                  {formatCents(displayST)}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate">Net Long-Term</span>
-                <span className={`font-medium tabular-nums ${totalLT >= 0 ? 'text-success' : 'text-accent'}`}>
-                  {formatCents(totalLT)}
+                <span className={`font-medium tabular-nums ${displayLT >= 0 ? 'text-success' : 'text-accent'}`}>
+                  {formatCents(displayLT)}
                 </span>
               </div>
               <div className="border-t border-highlight pt-2 flex justify-between">

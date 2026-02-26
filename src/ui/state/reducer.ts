@@ -202,6 +202,10 @@ export function taxReducer(state: TaxInput, action: TaxAction): TaxInput {
       };
     }
 
+    // --- Capital gains summary ---
+    case 'SET_CAPITAL_GAINS_SUMMARY':
+      return { ...state, capitalGainsSummary: action.payload };
+
     // --- Structured setters ---
     case 'SET_SELF_EMPLOYMENT':
       return { ...state, scheduleCData: action.payload };

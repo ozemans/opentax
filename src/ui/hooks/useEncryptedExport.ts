@@ -35,7 +35,7 @@ export function useEncryptedExport(
 
       try {
         const encrypted = await encryptTaxInput(input, password);
-        const blob = new Blob([encrypted.buffer], { type: 'application/octet-stream' });
+        const blob = new Blob([encrypted.buffer.slice(encrypted.byteOffset, encrypted.byteOffset + encrypted.byteLength) as ArrayBuffer], { type: 'application/octet-stream' });
 
         const filename = `opentax-${input.taxYear}-return.opentax`;
         const url = URL.createObjectURL(blob);

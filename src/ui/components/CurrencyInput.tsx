@@ -11,6 +11,7 @@ interface CurrencyInputProps {
   error?: string;
   required?: boolean;
   name: string;
+  allowNegative?: boolean;
 }
 
 function formatDollars(cents: number): string {
@@ -21,7 +22,9 @@ function formatDollars(cents: number): string {
   });
 }
 
-function parseDollarString(raw: string): number {
+function parseDollarString(raw: string, allowNegative = false): number {
+  // Detect leading minus
+  const isNeg = allowNegative && raw.trimStart().startsWith('-');
   // Remove everything except digits and decimal point
   const cleaned = raw.replace(/[^0-9.]/g, '');
   if (!cleaned) return 0;
@@ -36,7 +39,8 @@ function parseDollarString(raw: string): number {
   if (isNaN(dollars)) return 0;
 
   // Convert to cents, rounding to avoid floating-point issues
-  return Math.round(dollars * 100);
+  const cents = Math.round(dollars * 100);
+  return isNeg ? -cents : cents;
 }
 
 export function CurrencyInput({
@@ -49,6 +53,7 @@ export function CurrencyInput({
   error,
   required = false,
   name,
+  allowNegative = false,
 }: CurrencyInputProps) {
   const fieldId = useId();
   const errorId = useId();
@@ -62,21 +67,24 @@ export function CurrencyInput({
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const raw = e.target.value;
-      // Allow only digits, commas, and one decimal point while typing
-      if (/^[0-9,]*\.?[0-9]{0,2}$/.test(raw) || raw === '') {
+      // Allow only digits, commas, one decimal point, and optionally leading minus
+      const pattern = allowNegative
+        ? /^-?[0-9,]*\.?[0-9]{0,2}$/
+        : /^[0-9,]*\.?[0-9]{0,2}$/;
+      if (pattern.test(raw) || raw === '' || (allowNegative && raw === '-')) {
         setDisplayValue(raw);
-        onChange(parseDollarString(raw));
+        onChange(parseDollarString(raw, allowNegative));
       }
     },
-    [onChange]
+    [onChange, allowNegative]
   );
 
   const handleFocus = useCallback(() => {
     setIsFocused(true);
     // Show raw number for editing (no commas)
     if (value !== 0) {
-      const dollars = (value / 100).toFixed(2);
-      setDisplayValue(dollars);
+      const dollars = (Math.abs(value) / 100).toFixed(2);
+      setDisplayValue(value < 0 ? `-${dollars}` : dollars);
     } else {
       setDisplayValue('');
     }
@@ -85,14 +93,15 @@ export function CurrencyInput({
   const handleBlur = useCallback(() => {
     setIsFocused(false);
     // Format on blur
-    const cents = parseDollarString(displayValue);
+    const cents = parseDollarString(displayValue, allowNegative);
     if (cents === 0 && displayValue === '') {
       setDisplayValue('');
     } else {
-      setDisplayValue(formatDollars(cents));
+      const formatted = formatDollars(Math.abs(cents));
+      setDisplayValue(cents < 0 ? `-${formatted}` : formatted);
     }
     onBlur?.();
-  }, [displayValue, onBlur]);
+  }, [displayValue, onBlur, allowNegative]);
 
   return (
     <div className="space-y-1.5">

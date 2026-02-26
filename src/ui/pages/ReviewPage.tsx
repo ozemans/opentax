@@ -48,7 +48,7 @@ export function ReviewPage() {
     setIsDownloading(true);
     try {
       const pdfBytes = await generateReturnPackage(input, result);
-      const blob = new Blob([pdfBytes.buffer as ArrayBuffer], { type: 'application/pdf' });
+      const blob = new Blob([pdfBytes.buffer.slice(pdfBytes.byteOffset, pdfBytes.byteOffset + pdfBytes.byteLength) as ArrayBuffer], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;

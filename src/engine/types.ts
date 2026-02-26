@@ -188,6 +188,10 @@ export interface TaxInput {
   form1099INTs: Form1099INT[];
   form1099DIVs: Form1099DIV[];
   form1099Bs: Form1099B[];
+  capitalGainsSummary?: {
+    shortTermGainLoss: number;  // cents, negative = loss
+    longTermGainLoss: number;   // cents, negative = loss
+  };
   form1099NECs: Form1099NEC[];
   form1099Gs: Form1099G[];
   form1099Rs: Form1099R[];

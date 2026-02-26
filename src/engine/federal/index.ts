@@ -25,6 +25,7 @@ import type {
   CreditBreakdown,
   CapitalGainsResult,
   SelfEmploymentResult,
+  Form1099B,
 } from '../types';
 
 import { computeTotalIncome, computeAdjustments } from './income';
@@ -87,8 +88,43 @@ export function computeFederalTax(input: TaxInput, config: FederalConfig): TaxRe
   // Phase 2: Capital Gains (1099-B + 1099-DIV capital gain distributions)
   // ══════════════════════════════════════════════════════════════════════════
 
+  // If user provided summary totals instead of individual transactions, convert
+  // to synthetic Form 1099-B entries so the rest of the pipeline works unchanged.
+  let capGainsTransactions = input.form1099Bs;
+  if (capGainsTransactions.length === 0 && input.capitalGainsSummary) {
+    const synth: Form1099B[] = [];
+    const { shortTermGainLoss, longTermGainLoss } = input.capitalGainsSummary;
+    if (shortTermGainLoss !== 0) {
+      synth.push({
+        description: 'Short-term summary',
+        dateAcquired: 'VARIOUS',
+        dateSold: 'VARIOUS',
+        proceeds: Math.max(0, shortTermGainLoss),
+        costBasis: Math.max(0, -shortTermGainLoss),
+        gainLoss: shortTermGainLoss,
+        isLongTerm: false,
+        basisReportedToIRS: false,
+        category: '8949_C',
+      });
+    }
+    if (longTermGainLoss !== 0) {
+      synth.push({
+        description: 'Long-term summary',
+        dateAcquired: 'VARIOUS',
+        dateSold: 'VARIOUS',
+        proceeds: Math.max(0, longTermGainLoss),
+        costBasis: Math.max(0, -longTermGainLoss),
+        gainLoss: longTermGainLoss,
+        isLongTerm: true,
+        basisReportedToIRS: false,
+        category: '8949_F',
+      });
+    }
+    capGainsTransactions = synth;
+  }
+
   const rawCapGains = computeCapitalGains(
-    input.form1099Bs,
+    capGainsTransactions,
     input.priorYearCapitalLossCarryforward ?? 0,
     input.filingStatus,
     config,

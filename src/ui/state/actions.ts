@@ -133,6 +133,9 @@ export type TaxAction =
   | { type: 'UPDATE_EDUCATION_EXPENSE'; index: number; updates: Partial<NonNullable<TaxInput['educationExpenses']>[number]> }
   | { type: 'REMOVE_EDUCATION_EXPENSE'; index: number }
 
+  // Capital gains summary
+  | { type: 'SET_CAPITAL_GAINS_SUMMARY'; payload: TaxInput['capitalGainsSummary'] }
+
   // Structured setters
   | { type: 'SET_SELF_EMPLOYMENT'; payload: ScheduleCData | undefined }
   | { type: 'SET_ITEMIZED_DEDUCTIONS'; payload: ItemizedDeductions | undefined }
