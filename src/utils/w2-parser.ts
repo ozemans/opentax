@@ -525,7 +525,15 @@ export function parseW2Pdf(items: ExtractedTextItem[]): ParsedW2Result {
 
   // Validate: at least wages or some monetary value should be present
   if (wages === 0 && socialSecurityWages === 0 && medicareWages === 0) {
-    warnings.push('No wage amounts could be extracted from the W-2. The PDF layout may not be supported.');
+    if (items.length < 30) {
+      warnings.push(
+        'This PDF appears to contain a scanned image or non-text W-2 form. ' +
+        'Only W-2 PDFs with embedded text (not scanned images) can be imported. ' +
+        'Please enter your W-2 data manually.',
+      );
+    } else {
+      warnings.push('No wage amounts could be extracted from the W-2. The PDF layout may not be supported.');
+    }
     return { w2s: [], warnings };
   }
 

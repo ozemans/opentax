@@ -67,8 +67,8 @@ const HEADER_ROW_TOLERANCE = 30;
 /** Approximate page width for bounding box calculations */
 const PAGE_WIDTH = 620;
 
-/** Approximate page bottom (minimum y in PDF coords) */
-const PAGE_BOTTOM = 20;
+/** Approximate page top (maximum y in PDF coords) */
+const PAGE_TOP = 800;
 
 /**
  * Check if a string is a 1099 section header.
@@ -89,10 +89,10 @@ function matchesSectionHeader(text: string, sectionType: string): boolean {
 
   const upper = trimmed.toUpperCase();
 
-  // Special case: "Form 8949" or "Worksheet for Form 8949" → treat as 1099-B
-  // These don't need a year prefix since they're unambiguous
+  // Special case: "Form 8949 Worksheet" or similar section titles → treat as 1099-B
+  // Requires "Form 8949" to be at the start (rejects "Applicable check box on Form 8949")
   if (sectionType === 'B') {
-    if (/\bFORM\s*8949\b/.test(upper) || /\bWORKSHEET\b.*\b8949\b/.test(upper)) {
+    if (/^(?:WORKSHEET\s+FOR\s+)?FORM\s*8949\b/.test(upper)) {
       return true;
     }
   }
@@ -317,20 +317,16 @@ function detectTaxYear(items: ExtractedTextItem[]): string {
 function getInstructionPages(items: ExtractedTextItem[]): Set<number> {
   const pages = new Set<number>();
   for (const item of items) {
-    if (/instructions\s+for\s+recipients/i.test(item.text)) {
+    // Only match standalone instruction headings, NOT footer text like
+    // "Please consult the "Instructions for Recipients"..." which appears
+    // on every page including data pages.
+    const trimmed = item.text.trim();
+    if (/^instructions\s+for\s+recipients/i.test(trimmed)) {
       pages.add(item.page);
     }
   }
-  // Also exclude pages adjacent to instruction pages that share the pattern
-  // (instructions often span multiple pages)
-  if (pages.size > 0) {
-    const minPage = Math.min(...pages);
-    const maxPage = Math.max(...pages);
-    // Mark all pages in the range as instruction pages
-    for (let p = minPage; p <= maxPage; p++) {
-      pages.add(p);
-    }
-  }
+  // Also mark continuation pages (heading: "Instructions for Recipients ... (continued)")
+  // These share the same pattern and will be caught by the regex above.
   return pages;
 }
 
@@ -425,20 +421,26 @@ function detectSectionsWithBounds(
     }
 
     // Step 4: Assign bounding boxes
+    // IB format: section headers sit at the BOTTOM of their data sections.
+    // Data extends UPWARD from the header (higher y values).
+    // So yMin is at/below the header, and yMax extends up to the previous
+    // row's header y (or page top for the uppermost row).
     for (let rowIdx = 0; rowIdx < rows.length; rowIdx++) {
       const row = rows[rowIdx];
-      const yTop = row[0].y; // top of this row (highest y)
-      // Bottom boundary: next row's y (with some padding), or page bottom
-      const yBottom = rowIdx + 1 < rows.length
-        ? rows[rowIdx + 1][0].y + HEADER_ROW_TOLERANCE
-        : PAGE_BOTTOM;
+      // yMin: slightly below the header (include box labels just beneath)
+      const yMin = row[0].y - HEADER_ROW_TOLERANCE;
+      // yMax: extends upward to the previous row's header y, or page top
+      const yMax = rowIdx === 0
+        ? PAGE_TOP
+        : rows[rowIdx - 1][0].y - HEADER_ROW_TOLERANCE;
 
       for (let colIdx = 0; colIdx < row.length; colIdx++) {
         const h = row[colIdx];
-        const xLeft = colIdx === 0 ? 0 : (row[colIdx - 1].x + h.x) / 2;
+        // Use header x-positions directly as boundaries (data starts near header x)
+        const xLeft = colIdx === 0 ? 0 : h.x - 15;
         const xRight = colIdx === row.length - 1
           ? PAGE_WIDTH
-          : (h.x + row[colIdx + 1].x) / 2;
+          : row[colIdx + 1].x - 15;
 
         // Detect 1099-B sub-type from header text
         let subType: SectionBounds['subType'];
@@ -457,8 +459,8 @@ function detectSectionsWithBounds(
           headerY: h.y,
           xMin: xLeft,
           xMax: xRight,
-          yMin: yBottom,
-          yMax: yTop + HEADER_ROW_TOLERANCE, // extend above header slightly
+          yMin,
+          yMax,
           subType,
         });
       }
@@ -934,17 +936,6 @@ function parseBSectionLineByLine(
 // 1099-B detail table parsing (IB-specific)
 // ---------------------------------------------------------------------------
 
-/** Column labels for IB-style 1099-B detail tables using "(Box XX)" convention */
-const B_DETAIL_COLUMN_LABELS: Record<string, string[]> = {
-  description: ['(box 1a)', 'description of property'],
-  dateAcquired: ['(box 1b)', 'date acquired'],
-  dateSold: ['(box 1c)', 'date sold'],
-  proceeds: ['(box 1d)', 'proceeds'],
-  costBasis: ['(box 1e)', 'cost or other basis'],
-  washSale: ['(box 1g)', 'wash sale'],
-  gainLoss: ['(box 1h)', 'gain or (loss)'],
-};
-
 /**
  * Detect pages that contain a 1099-B detail transaction table.
  *
@@ -975,182 +966,146 @@ function findBDetailTablePages(
 /**
  * Parse a 1099-B detail transaction table from IB-format PDFs.
  *
- * These tables have columns identified by "(Box 1a)", "(Box 1d)", "(Box 1e)", etc.
- * Each row is one transaction (stock sale). The "Total" row at the bottom
- * is excluded.
+ * IB uses a TRANSPOSED table layout:
+ * - Each COLUMN is a security (INDY, SMIN, SPLG, VOO, etc.)
+ * - Each ROW is a field (Proceeds, Cost, Date Acquired, etc.)
+ * - Row labels on the left side contain "(Box 1d)", "(Box 1e)", etc.
+ * - Column positions identified from the "Symbol" row
  *
- * The holding period (short-term vs long-term) is determined from the page
- * title (e.g., "Short-Term Covered" in a section header on the same page).
+ * The holding period (short-term vs long-term) is determined from
+ * page text (e.g., "Short-Term" in a section title).
  */
 function parse1099BDetailTable(
   items: ExtractedTextItem[],
   detailPages: number[],
-  sectionBounds: SectionBounds[],
+  _sectionBounds: SectionBounds[],
   warnings: string[],
 ): Form1099B[] {
   const results: Form1099B[] = [];
+  const X_COL_TOLERANCE = 5;
+  const Y_FIELD_TOLERANCE = 30;
 
   for (const page of detailPages) {
     const pageItems = items.filter((item) => item.page === page);
     if (pageItems.length === 0) continue;
 
-    // Step 1: Find column headers by scanning for "(Box XX)" labels
-    const columnPositions: Array<{ field: string; x: number; y: number }> = [];
-
-    for (const item of pageItems) {
-      const lower = item.text.toLowerCase().trim();
-      for (const [field, aliases] of Object.entries(B_DETAIL_COLUMN_LABELS)) {
-        if (aliases.some((alias) => lower.includes(alias))) {
-          // Avoid duplicates for the same field on the same header row
-          if (!columnPositions.some((cp) => cp.field === field)) {
-            columnPositions.push({ field, x: item.x, y: item.y });
-          }
-          break;
-        }
-      }
-    }
-
-    if (columnPositions.length < 2) {
-      warnings.push(`1099-B detail table on page ${page} could not identify enough columns.`);
+    // Step 1: Find "Symbol" row to identify column (security) positions
+    const symbolLabel = pageItems.find(
+      (i) => i.text.toLowerCase().trim() === 'symbol',
+    );
+    if (!symbolLabel) {
+      warnings.push(`1099-B detail table on page ${page}: could not find Symbol row.`);
       continue;
     }
 
-    // Step 2: Find the header row y-position (most common y among column headers)
-    // Group by y with tolerance
-    const yGroups = new Map<number, typeof columnPositions>();
-    for (const pos of columnPositions) {
-      let foundGroup = false;
-      for (const [groupY, group] of yGroups) {
-        if (Math.abs(groupY - pos.y) <= Y_TOLERANCE * 3) {
-          group.push(pos);
-          foundGroup = true;
-          break;
+    const symbolY = symbolLabel.y;
+    const symbolItems = pageItems
+      .filter(
+        (i) =>
+          Math.abs(i.y - symbolY) <= Y_TOLERANCE &&
+          i.x > symbolLabel.x + 10 &&
+          i.text.trim() !== '' &&
+          !/^total$/i.test(i.text.trim()),
+      )
+      .sort((a, b) => a.x - b.x);
+
+    if (symbolItems.length === 0) {
+      warnings.push(`1099-B detail table on page ${page}: no security symbols found.`);
+      continue;
+    }
+
+    // Step 2: Find field label y-positions using "(Box XX)" patterns
+    const fieldLabels: Array<{
+      field: string;
+      pattern: RegExp;
+    }> = [
+      { field: 'description', pattern: /\(box\s*1a\)/i },
+      { field: 'dateAcquired', pattern: /\(box\s*1b\)/i },
+      { field: 'dateSold', pattern: /\(box\s*1c\)/i },
+      { field: 'proceeds', pattern: /\(box\s*1d\)/i },
+      { field: 'costBasis', pattern: /\(box\s*1e\)/i },
+      { field: 'washSale', pattern: /\(box\s*1g\)/i },
+    ];
+
+    const fieldYPositions: Record<string, number> = {};
+    for (const item of pageItems) {
+      for (const fl of fieldLabels) {
+        if (fl.pattern.test(item.text) && fieldYPositions[fl.field] === undefined) {
+          fieldYPositions[fl.field] = item.y;
         }
       }
-      if (!foundGroup) {
-        yGroups.set(pos.y, [pos]);
-      }
     }
 
-    let bestGroup: typeof columnPositions = [];
-    for (const group of yGroups.values()) {
-      if (group.length > bestGroup.length) {
-        bestGroup = group;
-      }
+    // Must have at least proceeds and cost basis labels
+    if (
+      fieldYPositions['proceeds'] === undefined &&
+      fieldYPositions['costBasis'] === undefined
+    ) {
+      warnings.push(`1099-B detail table on page ${page}: could not find Proceeds/Cost labels.`);
+      continue;
     }
 
-    if (bestGroup.length < 2) continue;
-
-    const headerRowY = Math.max(...bestGroup.map((g) => g.y));
-
-    // Step 3: Establish column boundaries from header positions
-    const sortedHeaders = [...bestGroup].sort((a, b) => a.x - b.x);
-    const boundaries: ColumnBoundary[] = [];
-    for (let i = 0; i < sortedHeaders.length; i++) {
-      const xMin = i === 0 ? 0 : (sortedHeaders[i - 1].x + sortedHeaders[i].x) / 2;
-      const xMax = i === sortedHeaders.length - 1 ? PAGE_WIDTH : (sortedHeaders[i].x + sortedHeaders[i + 1].x) / 2;
-      boundaries.push({ field: sortedHeaders[i].field, xMin, xMax });
-    }
-
-    // Step 4: Extract data rows (items below the header row — lower y in PDF coords)
-    const dataItems = pageItems
-      .filter(
-        (item) =>
-          item.y < headerRowY - Y_TOLERANCE &&
-          item.text.trim() !== '',
-      )
-      .sort((a, b) => {
-        if (Math.abs(a.y - b.y) > Y_TOLERANCE) return b.y - a.y; // top to bottom
-        return a.x - b.x; // left to right
-      });
-
-    if (dataItems.length === 0) continue;
-
-    // Step 5: Group data items into rows by y-proximity
-    const rows: ExtractedTextItem[][] = [];
-    let currentRow: ExtractedTextItem[] = [];
-    let currentRowY = dataItems[0].y;
-
-    for (const item of dataItems) {
-      if (Math.abs(item.y - currentRowY) <= Y_TOLERANCE) {
-        currentRow.push(item);
-      } else {
-        if (currentRow.length > 0) rows.push(currentRow);
-        currentRow = [item];
-        currentRowY = item.y;
-      }
-    }
-    if (currentRow.length > 0) rows.push(currentRow);
-
-    // Step 6: Determine holding period from section bounds on this page
-    // Look for 1099-B section bounds that overlap with this page
+    // Step 3: Determine holding period from page text
     let isLongTerm = false;
     let isNoncovered = false;
-    for (const sb of sectionBounds) {
-      if (sb.page === page && sb.type === 'B') {
-        if (sb.subType === 'long-term') isLongTerm = true;
-        if (sb.subType === 'noncovered') isNoncovered = true;
-      }
-    }
-    // Also check page text directly for "Short-Term" / "Long-Term"
     for (const item of pageItems) {
       const upper = item.text.toUpperCase();
-      // Only match section-title text, not instruction text
-      if (item.y > headerRowY && /LONG.?TERM/.test(upper)) isLongTerm = true;
-      if (item.y > headerRowY && /SHORT.?TERM/.test(upper)) isLongTerm = false;
-      if (item.y > headerRowY && /NONCOVERED|NON.?COVERED/.test(upper)) isNoncovered = true;
+      if (/LONG.?TERM/.test(upper)) isLongTerm = true;
+      if (/SHORT.?TERM/.test(upper)) isLongTerm = false;
+      if (/NONCOVERED|NON.?COVERED/.test(upper)) isNoncovered = true;
     }
 
     const basisReportedToIRS = !isNoncovered;
     const category = determineCategory(isLongTerm, basisReportedToIRS);
 
-    // Step 7: Map row items to columns and build Form1099B records
-    for (const row of rows) {
-      const fieldValues: Record<string, string> = {};
-      for (const item of row) {
-        for (const boundary of boundaries) {
-          if (item.x >= boundary.xMin && item.x < boundary.xMax) {
-            fieldValues[boundary.field] = fieldValues[boundary.field]
-              ? `${fieldValues[boundary.field]} ${item.text}`
-              : item.text;
-            break;
-          }
-        }
+    // Step 4: For each security column, extract field values
+    for (const sym of symbolItems) {
+      const colX = sym.x;
+
+      // Get all items at this column's x-position
+      const colItems = pageItems.filter(
+        (i) => Math.abs(i.x - colX) <= X_COL_TOLERANCE,
+      );
+
+      // Helper: find item(s) near a field's y-position, concatenate if multiple
+      function findFieldValue(fieldY: number | undefined): string {
+        if (fieldY === undefined) return '';
+        const matches = colItems
+          .filter((i) => Math.abs(i.y - fieldY) <= Y_FIELD_TOLERANCE)
+          .sort((a, b) => a.x - b.x);
+        if (matches.length === 0) return '';
+        return matches.map((m) => m.text.trim()).join(' ');
       }
 
-      // Skip the "Total" row
-      const descStr = (fieldValues['description'] ?? '').trim();
-      if (/^total$/i.test(descStr)) continue;
-
-      // Need at least proceeds or cost basis to constitute a transaction
-      const proceedsStr = fieldValues['proceeds'] ?? '';
-      const costBasisStr = fieldValues['costBasis'] ?? '';
-      if (!proceedsStr && !costBasisStr) continue;
-
+      const proceedsStr = findFieldValue(fieldYPositions['proceeds']);
+      const costBasisStr = findFieldValue(fieldYPositions['costBasis']);
       const proceeds = parsePdfDollarAmount(proceedsStr);
       const costBasis = parsePdfDollarAmount(costBasisStr);
 
-      // Skip rows where neither proceeds nor cost is a real dollar amount
+      // Skip if neither is a real dollar amount
       if (proceeds === 0 && costBasis === 0) continue;
 
-      const dateAcquired = parseDate(fieldValues['dateAcquired'] ?? '');
-      const dateSold = parseDate(fieldValues['dateSold'] ?? '');
-      const washSaleStr = fieldValues['washSale'] ?? '';
+      const descriptionStr = findFieldValue(fieldYPositions['description']);
+      const dateAcquiredStr = findFieldValue(fieldYPositions['dateAcquired']);
+      const dateSoldStr = findFieldValue(fieldYPositions['dateSold']);
+      const washSaleStr = findFieldValue(fieldYPositions['washSale']);
+
+      const dateAcquired = parseDate(dateAcquiredStr);
+      const dateSold = parseDate(dateSoldStr);
       const washSaleDisallowed = washSaleStr
         ? parsePdfDollarAmount(washSaleStr)
         : 0;
-      const gainLossStr = fieldValues['gainLoss'] ?? '';
-      const gainLoss = gainLossStr
-        ? parsePdfDollarAmount(gainLossStr)
-        : proceeds - costBasis;
+
+      // Use symbol as fallback description
+      const description = descriptionStr || sym.text.trim();
 
       results.push({
-        description: descStr,
+        description,
         dateAcquired,
         dateSold,
         proceeds,
         costBasis,
-        gainLoss,
+        gainLoss: proceeds - costBasis,
         isLongTerm,
         basisReportedToIRS,
         washSaleDisallowed: washSaleDisallowed || undefined,
