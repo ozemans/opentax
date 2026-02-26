@@ -52,13 +52,24 @@ const Y_TOLERANCE = 3;
  * - Must be short text (not a full sentence or legal paragraph)
  * - Must contain "1099-X" with an explicit hyphen (rejects "20251099")
  * - Must have the section type as a whole word (rejects "1099-BROKERAGE")
+ *
+ * Also detects IB-specific sub-section headers like "1099-B Short-Term Covered"
+ * and "Form 8949 Worksheet" (mapped to type B).
  */
 function matchesSectionHeader(text: string, sectionType: string): boolean {
   const trimmed = text.trim();
   // Section headers are short — reject long text (legal disclaimers, etc.)
-  if (trimmed.length > 50) return false;
+  if (trimmed.length > 60) return false;
 
   const upper = trimmed.toUpperCase();
+
+  // Special case: "Form 8949" or "Worksheet for Form 8949" → treat as 1099-B
+  if (sectionType === 'B') {
+    if (/\bFORM\s*8949\b/.test(upper) || /\bWORKSHEET\b.*\b8949\b/.test(upper)) {
+      return true;
+    }
+  }
+
   // Require explicit hyphen between 1099 and type, with type as whole word
   const pattern = new RegExp(
     `(?:FORM\\s+)?1099\\s*-\\s*${sectionType}\\b`,
@@ -152,12 +163,12 @@ function findNearestDollarOnLine(
 }
 
 /**
- * Match a box label in IRS 1099 forms (e.g., "Box 1a", "1a.", "Box 2").
+ * Match a box/line label in IRS 1099 forms.
  *
- * Strict rules:
- * - "Box X" or "BoxX" always matches
- * - Standalone box IDs (like "1a") only match if followed by a period,
- *   colon, space+text, or another indicator — not bare numbers
+ * Handles multiple labeling conventions used by different brokers:
+ * - "Box 1a" / "Box1a" (standard IRS)
+ * - "Line 1a" / "Line1a" (Interactive Brokers uses this for 1099-INT/DIV)
+ * - "1a Ordinary dividends" / "1a. Interest income" (standalone with separator)
  */
 function matchesBoxLabel(text: string, boxId: string): boolean {
   const upper = text.toUpperCase().replace(/\s+/g, ' ').trim();
@@ -165,6 +176,11 @@ function matchesBoxLabel(text: string, boxId: string): boolean {
 
   // "Box 1a", "BOX 1A", "Box1a"
   if (upper.includes(`BOX ${boxUpper}`) || upper.includes(`BOX${boxUpper}`)) {
+    return true;
+  }
+
+  // "Line 1a", "LINE 1A", "Line1a" (IB convention)
+  if (upper.includes(`LINE ${boxUpper}`) || upper.includes(`LINE${boxUpper}`)) {
     return true;
   }
 
@@ -276,7 +292,7 @@ function detectTaxYear(items: ExtractedTextItem[]): string {
 // ---------------------------------------------------------------------------
 
 interface SectionRange {
-  type: 'INT' | 'DIV' | 'B' | 'NEC';
+  type: 'INT' | 'DIV' | 'B' | 'NEC' | 'MISC';
   startIndex: number;
   endIndex: number; // exclusive
 }
@@ -290,7 +306,7 @@ interface SectionRange {
  * - Filters out sections with too few items (< 3) as likely false matches
  */
 function detectSections(items: ExtractedTextItem[]): SectionRange[] {
-  const sectionTypes = ['INT', 'DIV', 'B', 'NEC'] as const;
+  const sectionTypes = ['INT', 'DIV', 'B', 'NEC', 'MISC'] as const;
   const rawSections: Array<{ type: typeof sectionTypes[number]; index: number }> = [];
 
   for (let i = 0; i < items.length; i++) {
@@ -350,15 +366,51 @@ function detectSections(items: ExtractedTextItem[]): SectionRange[] {
 // Section parsers
 // ---------------------------------------------------------------------------
 
+/**
+ * Find a dollar amount associated with a descriptive label (e.g., "Interest income").
+ * Scans the section for text matching the label, then looks for a dollar value nearby.
+ */
+function findLabeledValue(
+  sectionItems: ExtractedTextItem[],
+  labelPatterns: string[],
+): number {
+  for (let i = 0; i < sectionItems.length; i++) {
+    const lower = sectionItems[i].text.toLowerCase().trim();
+    if (labelPatterns.some((p) => lower.includes(p))) {
+      const value = findNearestDollarOnLine(sectionItems, i);
+      if (value !== null) return value;
+    }
+  }
+  return 0;
+}
+
 function parse1099INTSection(
   sectionItems: ExtractedTextItem[],
   brokerName: string,
   warnings: string[],
 ): Form1099INT | null {
-  const interest = findBoxValue(sectionItems, '1');
-  const earlyWithdrawalPenalty = findBoxValue(sectionItems, '2');
-  const federalWithheld = findBoxValue(sectionItems, '4');
-  const taxExemptInterest = findBoxValue(sectionItems, '8');
+  // Try Box/Line labels first, then descriptive labels as fallback
+  let interest = findBoxValue(sectionItems, '1');
+  if (interest === 0) {
+    interest = findLabeledValue(sectionItems, ['interest income']);
+  }
+
+  let earlyWithdrawalPenalty = findBoxValue(sectionItems, '2');
+  if (earlyWithdrawalPenalty === 0) {
+    earlyWithdrawalPenalty = findLabeledValue(sectionItems, ['early withdrawal penalty']);
+  }
+
+  let federalWithheld = findBoxValue(sectionItems, '4');
+  if (federalWithheld === 0) {
+    federalWithheld = findLabeledValue(sectionItems, [
+      'federal income tax withheld', 'federal tax withheld', 'fed tax w/h',
+    ]);
+  }
+
+  let taxExemptInterest = findBoxValue(sectionItems, '8');
+  if (taxExemptInterest === 0) {
+    taxExemptInterest = findLabeledValue(sectionItems, ['tax-exempt interest', 'tax exempt interest']);
+  }
 
   if (interest === 0 && earlyWithdrawalPenalty === 0 && taxExemptInterest === 0) {
     warnings.push('1099-INT section found but no amounts could be extracted.');
@@ -379,12 +431,44 @@ function parse1099DIVSection(
   brokerName: string,
   warnings: string[],
 ): Form1099DIV | null {
-  const ordinaryDividends = findBoxValue(sectionItems, '1a');
-  const qualifiedDividends = findBoxValue(sectionItems, '1b');
-  const totalCapitalGain = findBoxValue(sectionItems, '2a');
-  const federalWithheld = findBoxValue(sectionItems, '4');
-  const foreignTaxPaid = findBoxValue(sectionItems, '7');
-  const exemptInterestDividends = findBoxValue(sectionItems, '12');
+  // Try Box/Line labels first, then descriptive labels as fallback
+  let ordinaryDividends = findBoxValue(sectionItems, '1a');
+  if (ordinaryDividends === 0) {
+    ordinaryDividends = findLabeledValue(sectionItems, [
+      'total ordinary dividends', 'ordinary dividends',
+    ]);
+  }
+
+  let qualifiedDividends = findBoxValue(sectionItems, '1b');
+  if (qualifiedDividends === 0) {
+    qualifiedDividends = findLabeledValue(sectionItems, ['qualified dividends']);
+  }
+
+  let totalCapitalGain = findBoxValue(sectionItems, '2a');
+  if (totalCapitalGain === 0) {
+    totalCapitalGain = findLabeledValue(sectionItems, [
+      'total capital gain', 'capital gain distributions',
+    ]);
+  }
+
+  let federalWithheld = findBoxValue(sectionItems, '4');
+  if (federalWithheld === 0) {
+    federalWithheld = findLabeledValue(sectionItems, [
+      'federal income tax withheld', 'federal tax withheld', 'fed tax w/h',
+    ]);
+  }
+
+  let foreignTaxPaid = findBoxValue(sectionItems, '7');
+  if (foreignTaxPaid === 0) {
+    foreignTaxPaid = findLabeledValue(sectionItems, ['foreign tax paid']);
+  }
+
+  let exemptInterestDividends = findBoxValue(sectionItems, '12');
+  if (exemptInterestDividends === 0) {
+    exemptInterestDividends = findLabeledValue(sectionItems, [
+      'exempt-interest dividends', 'exempt interest dividends',
+    ]);
+  }
 
   if (ordinaryDividends === 0 && totalCapitalGain === 0 && exemptInterestDividends === 0) {
     warnings.push('1099-DIV section found but no amounts could be extracted.');
@@ -407,8 +491,19 @@ function parse1099NECSection(
   brokerName: string,
   warnings: string[],
 ): Form1099NEC | null {
-  const nonemployeeCompensation = findBoxValue(sectionItems, '1');
-  const federalWithheld = findBoxValue(sectionItems, '4');
+  let nonemployeeCompensation = findBoxValue(sectionItems, '1');
+  if (nonemployeeCompensation === 0) {
+    nonemployeeCompensation = findLabeledValue(sectionItems, [
+      'nonemployee compensation', 'non-employee compensation',
+    ]);
+  }
+
+  let federalWithheld = findBoxValue(sectionItems, '4');
+  if (federalWithheld === 0) {
+    federalWithheld = findLabeledValue(sectionItems, [
+      'federal income tax withheld', 'federal tax withheld',
+    ]);
+  }
 
   if (nonemployeeCompensation === 0) {
     warnings.push('1099-NEC section found but no compensation amount could be extracted.');
@@ -422,18 +517,55 @@ function parse1099NECSection(
   };
 }
 
+/**
+ * Parse 1099-MISC section (used by Interactive Brokers instead of 1099-NEC).
+ * Extracts "Other income" (Line 3) which includes stock loan fees, and
+ * "Substitute payments in lieu of dividends" (Line 8).
+ * Maps to 1099-NEC format for compatibility with the engine.
+ */
+function parse1099MISCSection(
+  sectionItems: ExtractedTextItem[],
+  brokerName: string,
+  _warnings: string[],
+): Form1099NEC | null {
+  let otherIncome = findBoxValue(sectionItems, '3');
+  if (otherIncome === 0) {
+    otherIncome = findLabeledValue(sectionItems, [
+      'other income', 'stock loan fees',
+    ]);
+  }
+
+  let substitutePayments = findBoxValue(sectionItems, '8');
+  if (substitutePayments === 0) {
+    substitutePayments = findLabeledValue(sectionItems, [
+      'substitute payments', 'payments in lieu',
+    ]);
+  }
+
+  const totalMisc = otherIncome + substitutePayments;
+  if (totalMisc === 0) {
+    // 1099-MISC with no relevant amounts — silently skip
+    return null;
+  }
+
+  return {
+    payerName: brokerName,
+    nonemployeeCompensation: totalMisc,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // 1099-B table parsing
 // ---------------------------------------------------------------------------
 
 /** Known column labels for 1099-B tables */
 const B_COLUMN_LABELS: Record<string, string[]> = {
-  description: ['description', 'security', 'name', 'asset'],
-  dateAcquired: ['date acquired', 'acquired', 'acquisition'],
-  dateSold: ['date sold', 'sold', 'sale date', 'date of sale', 'disposition'],
-  proceeds: ['proceeds', 'sales price', 'gross proceeds'],
-  costBasis: ['cost basis', 'basis', 'cost or other basis', 'cost'],
-  gainLoss: ['gain/loss', 'gain or loss', 'gain(loss)', 'profit/loss', 'gain'],
+  description: ['description', 'security', 'name', 'asset', '(a)'],
+  dateAcquired: ['date acquired', 'acquired', 'acquisition', '(b)'],
+  dateSold: ['date sold', 'sold', 'sale date', 'date of sale', 'disposition', '(c)'],
+  proceeds: ['proceeds', 'sales price', 'gross proceeds', '(d)'],
+  costBasis: ['cost basis', 'basis', 'cost or other basis', 'cost', '(e)'],
+  gainLoss: ['gain/loss', 'gain or loss', 'gain(loss)', 'profit/loss', 'gain', '(h)'],
 };
 
 interface ColumnBoundary {
@@ -444,12 +576,22 @@ interface ColumnBoundary {
 
 /**
  * Parse a 1099-B section that contains tabular transaction data.
+ *
+ * IB splits 1099-B into sub-sections by holding period:
+ * "Short-Term Covered", "Long-Term Covered", etc.
+ * The section header text is checked to determine the default holding period.
  */
 function parse1099BSection(
   sectionItems: ExtractedTextItem[],
   warnings: string[],
 ): Form1099B[] {
   if (sectionItems.length < 5) return [];
+
+  // Check if the section header indicates short-term or long-term
+  const headerText = sectionItems.slice(0, 3).map((i) => i.text.toUpperCase()).join(' ');
+  const sectionIsLongTerm = /LONG.?TERM/i.test(headerText);
+  const sectionIsShortTerm = /SHORT.?TERM/i.test(headerText);
+  const sectionIsNoncovered = /NONCOVERED|NON.?COVERED/i.test(headerText);
 
   // Step 1: Find header row — scan for items that match column labels
   const columnPositions: Array<{ field: string; x: number; y: number }> = [];
@@ -568,8 +710,14 @@ function parse1099BSection(
       ? parsePdfDollarAmount(gainLossStr)
       : proceeds - costBasis;
 
-    const isLongTerm = isLongTermHolding(dateAcquired, dateSold);
-    const basisReportedToIRS = true; // Default assumption for broker 1099s
+    // Use section header to determine holding period if available,
+    // otherwise fall back to date comparison
+    const isLongTerm = sectionIsLongTerm
+      ? true
+      : sectionIsShortTerm
+        ? false
+        : isLongTermHolding(dateAcquired, dateSold);
+    const basisReportedToIRS = !sectionIsNoncovered;
     const category = determineCategory(isLongTerm, basisReportedToIRS);
 
     results.push({
@@ -708,6 +856,12 @@ export function parse1099Pdf(items: ExtractedTextItem[]): Parsed1099Result {
       }
       case 'NEC': {
         const result = parse1099NECSection(sectionItems, brokerName, warnings);
+        if (result) form1099NECs.push(result);
+        break;
+      }
+      case 'MISC': {
+        // IB uses 1099-MISC instead of 1099-NEC — map to NEC for the engine
+        const result = parse1099MISCSection(sectionItems, brokerName, warnings);
         if (result) form1099NECs.push(result);
         break;
       }

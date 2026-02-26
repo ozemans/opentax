@@ -7,13 +7,14 @@ You are building **OpenTax**, a privacy-first, 100% client-side tax filing web a
 ## Key Files to Read First
 
 1. `README.md` — Project overview, architecture, tech stack
-2. `src/engine/federal/README.md` — Federal tax engine specification (MOST IMPORTANT)
-3. `src/engine/states/README.md` — State tax modules for 11 states
-4. `src/ui/README.md` — Interview-style UI specification
-5. `src/pdf/README.md` — PDF generation specification
-6. `tests/README.md` — Testing strategy
-7. `docs/ARCHITECTURE.md` — System architecture and data flow
-8. `docs/PRIVACY.md` — Privacy guarantees and security model
+2. `TAX-VERIFICATION.md` — **MANDATORY** verification protocol for all tax constants (READ BEFORE ANY TAX WORK)
+3. `src/engine/federal/README.md` — Federal tax engine specification (MOST IMPORTANT)
+4. `src/engine/states/README.md` — State tax modules for 11 states
+5. `src/ui/README.md` — Interview-style UI specification
+6. `src/pdf/README.md` — PDF generation specification
+7. `tests/README.md` — Testing strategy
+8. `docs/ARCHITECTURE.md` — System architecture and data flow
+9. `docs/PRIVACY.md` — Privacy guarantees and security model
 
 ## Build Order
 
@@ -126,6 +127,29 @@ Follow this implementation sequence:
 9. **Don't forget New Hampshire's I&D tax is repealed starting 2025.**
 10. **Don't forget NYC residents pay BOTH NYS and NYC income tax.**
 
+## Tax Constant Verification (MANDATORY)
+
+**Before implementing or modifying ANY tax computation module, you MUST follow the protocol in `TAX-VERIFICATION.md`.** This is non-negotiable.
+
+Summary of the protocol:
+1. **FETCH** the authoritative IRS/state source document (use `curl` or `WebFetch`)
+2. **EXTRACT** the relevant constants (brackets, thresholds, limits, rates)
+3. **WRITE** them into config JSON with `_source` and `_verifiedDate` citations
+4. **IMPLEMENT** the computation logic
+5. **TEST** using IRS-published examples from the fetched instructions
+6. **CROSS-CHECK** results against IRS tax tables or an online calculator
+
+**Never use constants from training data. Always fetch and verify from the primary source.**
+
+If a source cannot be fetched, flag the constant as `UNVERIFIED` in the config file with `_action_required: "Human must verify this value before release"`. Never ship unverified constants without flagging them.
+
+See `TAX-VERIFICATION.md` for:
+- Complete list of authoritative source URLs for every tax module
+- Exact `curl` commands to fetch each data source
+- Config file citation format with `_source` and `_verifiedDate` fields
+- Test verification patterns using IRS-published examples
+- Annual update checklist for new tax years
+
 ## Verification
 
 After building each module, verify by:
@@ -136,6 +160,7 @@ After building each module, verify by:
 ## Questions?
 
 If any specification is unclear, refer to:
+- `TAX-VERIFICATION.md` — verification protocol and authoritative source URLs
 - The relevant README in that directory
 - IRS Form Instructions (available at irs.gov/forms-instructions)
 - State tax agency websites
