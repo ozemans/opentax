@@ -39,19 +39,45 @@ export interface Parsed1099Result {
 }
 
 // ---------------------------------------------------------------------------
+// Spatial section detection types
+// ---------------------------------------------------------------------------
+
+interface SectionBounds {
+  type: 'INT' | 'DIV' | 'B' | 'NEC' | 'MISC' | 'OID';
+  page: number;
+  headerX: number;
+  headerY: number;
+  xMin: number;
+  xMax: number;
+  yMin: number;
+  yMax: number;
+  subType?: 'short-term' | 'long-term' | 'noncovered' | 'futures' | 'detail';
+}
+
+// ---------------------------------------------------------------------------
 // Internal helpers
 // ---------------------------------------------------------------------------
 
 /** Y-tolerance for considering two items on the "same line" */
 const Y_TOLERANCE = 3;
 
+/** Y-tolerance for grouping section headers into the same row */
+const HEADER_ROW_TOLERANCE = 30;
+
+/** Approximate page width for bounding box calculations */
+const PAGE_WIDTH = 620;
+
+/** Approximate page bottom (minimum y in PDF coords) */
+const PAGE_BOTTOM = 20;
+
 /**
  * Check if a string is a 1099 section header.
  *
  * Strict rules:
  * - Must be short text (not a full sentence or legal paragraph)
- * - Must contain "1099-X" with an explicit hyphen (rejects "20251099")
+ * - Must contain "YYYY 1099-X" with a 4-digit year prefix and explicit hyphen
  * - Must have the section type as a whole word (rejects "1099-BROKERAGE")
+ * - The year prefix prevents matching instruction text like "1099-INT · Interest Income"
  *
  * Also detects IB-specific sub-section headers like "1099-B Short-Term Covered"
  * and "Form 8949 Worksheet" (mapped to type B).
@@ -59,20 +85,22 @@ const Y_TOLERANCE = 3;
 function matchesSectionHeader(text: string, sectionType: string): boolean {
   const trimmed = text.trim();
   // Section headers are short — reject long text (legal disclaimers, etc.)
-  if (trimmed.length > 60) return false;
+  if (trimmed.length > 80) return false;
 
   const upper = trimmed.toUpperCase();
 
   // Special case: "Form 8949" or "Worksheet for Form 8949" → treat as 1099-B
+  // These don't need a year prefix since they're unambiguous
   if (sectionType === 'B') {
     if (/\bFORM\s*8949\b/.test(upper) || /\bWORKSHEET\b.*\b8949\b/.test(upper)) {
       return true;
     }
   }
 
-  // Require explicit hyphen between 1099 and type, with type as whole word
+  // Require 4-digit year prefix before "1099-TYPE" to reject instruction page text.
+  // Pattern: "2025 1099-INT", "2025 Form 1099-DIV", etc.
   const pattern = new RegExp(
-    `(?:FORM\\s+)?1099\\s*-\\s*${sectionType}\\b`,
+    `\\b\\d{4}\\s+(?:FORM\\s+)?1099\\s*-\\s*${sectionType}\\b`,
   );
   return pattern.test(upper);
 }
@@ -215,17 +243,6 @@ function findBoxValue(
 }
 
 /**
- * Extract a range of items belonging to a section (between two section headers).
- */
-function extractSectionItems(
-  items: ExtractedTextItem[],
-  sectionStart: number,
-  sectionEnd: number,
-): ExtractedTextItem[] {
-  return items.slice(sectionStart, sectionEnd);
-}
-
-/**
  * Try to detect broker name from the first page header area.
  */
 function detectBrokerName(items: ExtractedTextItem[]): string {
@@ -288,78 +305,184 @@ function detectTaxYear(items: ExtractedTextItem[]): string {
 }
 
 // ---------------------------------------------------------------------------
-// Section indices
+// Instruction page detection
 // ---------------------------------------------------------------------------
 
-interface SectionRange {
-  type: 'INT' | 'DIV' | 'B' | 'NEC' | 'MISC';
-  startIndex: number;
-  endIndex: number; // exclusive
+/**
+ * Scan all items for "Instructions for Recipients" text and return
+ * the set of page numbers that contain instruction content.
+ * These pages should be excluded from section detection to prevent
+ * false positives on text like "1099-INT · Interest Income".
+ */
+function getInstructionPages(items: ExtractedTextItem[]): Set<number> {
+  const pages = new Set<number>();
+  for (const item of items) {
+    if (/instructions\s+for\s+recipients/i.test(item.text)) {
+      pages.add(item.page);
+    }
+  }
+  // Also exclude pages adjacent to instruction pages that share the pattern
+  // (instructions often span multiple pages)
+  if (pages.size > 0) {
+    const minPage = Math.min(...pages);
+    const maxPage = Math.max(...pages);
+    // Mark all pages in the range as instruction pages
+    for (let p = minPage; p <= maxPage; p++) {
+      pages.add(p);
+    }
+  }
+  return pages;
 }
 
-/**
- * Detect section boundaries within the extracted text items.
- *
- * Uses strict header matching and filters out false positives:
- * - Deduplicates sections of the same type that are close together
- *   (e.g., repeated "1099-INT" on the same page from headers/footers)
- * - Filters out sections with too few items (< 3) as likely false matches
- */
-function detectSections(items: ExtractedTextItem[]): SectionRange[] {
-  const sectionTypes = ['INT', 'DIV', 'B', 'NEC', 'MISC'] as const;
-  const rawSections: Array<{ type: typeof sectionTypes[number]; index: number }> = [];
+// ---------------------------------------------------------------------------
+// Spatial section detection
+// ---------------------------------------------------------------------------
 
-  for (let i = 0; i < items.length; i++) {
+/**
+ * Detect section boundaries using spatial bounding boxes.
+ *
+ * Instead of index-based ranges (which fail for side-by-side sections),
+ * this assigns each section a 2D bounding box on its page. Items are
+ * then scoped to sections by checking spatial containment.
+ *
+ * Algorithm:
+ * 1. Find section headers matching "YYYY 1099-XXX" pattern
+ * 2. Skip items on instruction pages
+ * 3. Group headers by page
+ * 4. Within each page, identify rows of headers (similar y within tolerance)
+ * 5. Within each row, assign x-boundaries (header x to next header x, or page edge)
+ * 6. Assign y-boundaries (header y to next row's y, or page bottom)
+ */
+function detectSectionsWithBounds(
+  items: ExtractedTextItem[],
+  instructionPages: Set<number>,
+): SectionBounds[] {
+  const sectionTypes = ['INT', 'DIV', 'B', 'NEC', 'MISC', 'OID'] as const;
+  type SType = typeof sectionTypes[number];
+
+  // Step 1: Find all section headers (excluding instruction pages)
+  const headers: Array<{
+    type: SType;
+    page: number;
+    x: number;
+    y: number;
+    text: string;
+  }> = [];
+
+  for (const item of items) {
+    if (instructionPages.has(item.page)) continue;
     for (const sType of sectionTypes) {
-      if (matchesSectionHeader(items[i].text, sType)) {
-        // Deduplicate: skip if we already have this type from the same page
-        // within 20 items (likely a repeated header or TOC entry)
-        const lastOfType = rawSections.filter((s) => s.type === sType).pop();
-        if (lastOfType) {
-          const prevItem = items[lastOfType.index];
-          const currItem = items[i];
-          // Skip if same page and within 20 items (likely duplicate header)
-          if (
-            prevItem.page === currItem.page &&
-            i - lastOfType.index < 20
-          ) {
-            continue;
-          }
-          // Skip if on adjacent pages and very close in index
-          // (header/footer repeats across pages)
-          if (
-            Math.abs(prevItem.page - currItem.page) === 1 &&
-            i - lastOfType.index < 10
-          ) {
-            continue;
-          }
-        }
-        rawSections.push({ type: sType, index: i });
+      if (matchesSectionHeader(item.text, sType)) {
+        headers.push({
+          type: sType,
+          page: item.page,
+          x: item.x,
+          y: item.y,
+          text: item.text,
+        });
+        break; // Each item matches at most one section type
       }
     }
   }
 
-  // Sort by index to establish ordering
-  rawSections.sort((a, b) => a.index - b.index);
+  if (headers.length === 0) return [];
 
-  // Convert to ranges
-  const sections: SectionRange[] = [];
-  for (let i = 0; i < rawSections.length; i++) {
-    const endIndex = i + 1 < rawSections.length
-      ? rawSections[i + 1].index
-      : items.length;
-
-    // Filter out sections with too few items (likely false positives)
-    if (endIndex - rawSections[i].index < 3) continue;
-
-    sections.push({
-      type: rawSections[i].type,
-      startIndex: rawSections[i].index,
-      endIndex,
-    });
+  // Step 2: Group headers by page
+  const byPage = new Map<number, typeof headers>();
+  for (const h of headers) {
+    const arr = byPage.get(h.page) ?? [];
+    arr.push(h);
+    byPage.set(h.page, arr);
   }
 
-  return sections;
+  const bounds: SectionBounds[] = [];
+
+  for (const [page, pageHeaders] of byPage) {
+    // Step 3: Within each page, identify rows (similar y within tolerance)
+    const rows: Array<typeof headers> = [];
+    const sortedByY = [...pageHeaders].sort((a, b) => b.y - a.y); // descending y (top first)
+
+    for (const h of sortedByY) {
+      let placed = false;
+      for (const row of rows) {
+        if (Math.abs(row[0].y - h.y) <= HEADER_ROW_TOLERANCE) {
+          row.push(h);
+          placed = true;
+          break;
+        }
+      }
+      if (!placed) {
+        rows.push([h]);
+      }
+    }
+
+    // Sort rows top-to-bottom (descending y)
+    rows.sort((a, b) => b[0].y - a[0].y);
+
+    // Sort headers within each row left-to-right
+    for (const row of rows) {
+      row.sort((a, b) => a.x - b.x);
+    }
+
+    // Step 4: Assign bounding boxes
+    for (let rowIdx = 0; rowIdx < rows.length; rowIdx++) {
+      const row = rows[rowIdx];
+      const yTop = row[0].y; // top of this row (highest y)
+      // Bottom boundary: next row's y (with some padding), or page bottom
+      const yBottom = rowIdx + 1 < rows.length
+        ? rows[rowIdx + 1][0].y + HEADER_ROW_TOLERANCE
+        : PAGE_BOTTOM;
+
+      for (let colIdx = 0; colIdx < row.length; colIdx++) {
+        const h = row[colIdx];
+        const xLeft = colIdx === 0 ? 0 : (row[colIdx - 1].x + h.x) / 2;
+        const xRight = colIdx === row.length - 1
+          ? PAGE_WIDTH
+          : (h.x + row[colIdx + 1].x) / 2;
+
+        // Detect 1099-B sub-type from header text
+        let subType: SectionBounds['subType'];
+        if (h.type === 'B') {
+          const upper = h.text.toUpperCase();
+          if (/SHORT.?TERM/.test(upper)) subType = 'short-term';
+          else if (/LONG.?TERM/.test(upper)) subType = 'long-term';
+          else if (/NONCOVERED|NON.?COVERED/.test(upper)) subType = 'noncovered';
+          else if (/FUTURES|REGULATED/.test(upper)) subType = 'futures';
+        }
+
+        bounds.push({
+          type: h.type,
+          page,
+          headerX: h.x,
+          headerY: h.y,
+          xMin: xLeft,
+          xMax: xRight,
+          yMin: yBottom,
+          yMax: yTop + HEADER_ROW_TOLERANCE, // extend above header slightly
+          subType,
+        });
+      }
+    }
+  }
+
+  return bounds;
+}
+
+/**
+ * Filter items that fall within a spatial bounding box.
+ */
+function getItemsInBounds(
+  items: ExtractedTextItem[],
+  bounds: SectionBounds,
+): ExtractedTextItem[] {
+  return items.filter(
+    (item) =>
+      item.page === bounds.page &&
+      item.x >= bounds.xMin &&
+      item.x <= bounds.xMax &&
+      item.y >= bounds.yMin &&
+      item.y <= bounds.yMax,
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -808,15 +931,254 @@ function parseBSectionLineByLine(
 }
 
 // ---------------------------------------------------------------------------
+// 1099-B detail table parsing (IB-specific)
+// ---------------------------------------------------------------------------
+
+/** Column labels for IB-style 1099-B detail tables using "(Box XX)" convention */
+const B_DETAIL_COLUMN_LABELS: Record<string, string[]> = {
+  description: ['(box 1a)', 'description of property'],
+  dateAcquired: ['(box 1b)', 'date acquired'],
+  dateSold: ['(box 1c)', 'date sold'],
+  proceeds: ['(box 1d)', 'proceeds'],
+  costBasis: ['(box 1e)', 'cost or other basis'],
+  washSale: ['(box 1g)', 'wash sale'],
+  gainLoss: ['(box 1h)', 'gain or (loss)'],
+};
+
+/**
+ * Detect pages that contain a 1099-B detail transaction table.
+ *
+ * IB places individual transactions on a separate page (e.g., page 3)
+ * with column headers containing "(Box 1d)", "(Box 1e)", etc.
+ * This is distinct from the summary sections on page 2 which show totals.
+ */
+function findBDetailTablePages(
+  items: ExtractedTextItem[],
+  instructionPages: Set<number>,
+): number[] {
+  const pages = new Set<number>();
+  for (const item of items) {
+    if (instructionPages.has(item.page)) continue;
+    const lower = item.text.toLowerCase();
+    // Look for "(Box 1d)" or "Proceeds (Box" — distinctive markers of the detail table
+    if (
+      /\(box\s*1d\)/i.test(lower) ||
+      /proceeds\s*\(box/i.test(lower) ||
+      /\(box\s*1e\)/i.test(lower)
+    ) {
+      pages.add(item.page);
+    }
+  }
+  return [...pages].sort((a, b) => a - b);
+}
+
+/**
+ * Parse a 1099-B detail transaction table from IB-format PDFs.
+ *
+ * These tables have columns identified by "(Box 1a)", "(Box 1d)", "(Box 1e)", etc.
+ * Each row is one transaction (stock sale). The "Total" row at the bottom
+ * is excluded.
+ *
+ * The holding period (short-term vs long-term) is determined from the page
+ * title (e.g., "Short-Term Covered" in a section header on the same page).
+ */
+function parse1099BDetailTable(
+  items: ExtractedTextItem[],
+  detailPages: number[],
+  sectionBounds: SectionBounds[],
+  warnings: string[],
+): Form1099B[] {
+  const results: Form1099B[] = [];
+
+  for (const page of detailPages) {
+    const pageItems = items.filter((item) => item.page === page);
+    if (pageItems.length === 0) continue;
+
+    // Step 1: Find column headers by scanning for "(Box XX)" labels
+    const columnPositions: Array<{ field: string; x: number; y: number }> = [];
+
+    for (const item of pageItems) {
+      const lower = item.text.toLowerCase().trim();
+      for (const [field, aliases] of Object.entries(B_DETAIL_COLUMN_LABELS)) {
+        if (aliases.some((alias) => lower.includes(alias))) {
+          // Avoid duplicates for the same field on the same header row
+          if (!columnPositions.some((cp) => cp.field === field)) {
+            columnPositions.push({ field, x: item.x, y: item.y });
+          }
+          break;
+        }
+      }
+    }
+
+    if (columnPositions.length < 2) {
+      warnings.push(`1099-B detail table on page ${page} could not identify enough columns.`);
+      continue;
+    }
+
+    // Step 2: Find the header row y-position (most common y among column headers)
+    // Group by y with tolerance
+    const yGroups = new Map<number, typeof columnPositions>();
+    for (const pos of columnPositions) {
+      let foundGroup = false;
+      for (const [groupY, group] of yGroups) {
+        if (Math.abs(groupY - pos.y) <= Y_TOLERANCE * 3) {
+          group.push(pos);
+          foundGroup = true;
+          break;
+        }
+      }
+      if (!foundGroup) {
+        yGroups.set(pos.y, [pos]);
+      }
+    }
+
+    let bestGroup: typeof columnPositions = [];
+    for (const group of yGroups.values()) {
+      if (group.length > bestGroup.length) {
+        bestGroup = group;
+      }
+    }
+
+    if (bestGroup.length < 2) continue;
+
+    const headerRowY = Math.max(...bestGroup.map((g) => g.y));
+
+    // Step 3: Establish column boundaries from header positions
+    const sortedHeaders = [...bestGroup].sort((a, b) => a.x - b.x);
+    const boundaries: ColumnBoundary[] = [];
+    for (let i = 0; i < sortedHeaders.length; i++) {
+      const xMin = i === 0 ? 0 : (sortedHeaders[i - 1].x + sortedHeaders[i].x) / 2;
+      const xMax = i === sortedHeaders.length - 1 ? PAGE_WIDTH : (sortedHeaders[i].x + sortedHeaders[i + 1].x) / 2;
+      boundaries.push({ field: sortedHeaders[i].field, xMin, xMax });
+    }
+
+    // Step 4: Extract data rows (items below the header row — lower y in PDF coords)
+    const dataItems = pageItems
+      .filter(
+        (item) =>
+          item.y < headerRowY - Y_TOLERANCE &&
+          item.text.trim() !== '',
+      )
+      .sort((a, b) => {
+        if (Math.abs(a.y - b.y) > Y_TOLERANCE) return b.y - a.y; // top to bottom
+        return a.x - b.x; // left to right
+      });
+
+    if (dataItems.length === 0) continue;
+
+    // Step 5: Group data items into rows by y-proximity
+    const rows: ExtractedTextItem[][] = [];
+    let currentRow: ExtractedTextItem[] = [];
+    let currentRowY = dataItems[0].y;
+
+    for (const item of dataItems) {
+      if (Math.abs(item.y - currentRowY) <= Y_TOLERANCE) {
+        currentRow.push(item);
+      } else {
+        if (currentRow.length > 0) rows.push(currentRow);
+        currentRow = [item];
+        currentRowY = item.y;
+      }
+    }
+    if (currentRow.length > 0) rows.push(currentRow);
+
+    // Step 6: Determine holding period from section bounds on this page
+    // Look for 1099-B section bounds that overlap with this page
+    let isLongTerm = false;
+    let isNoncovered = false;
+    for (const sb of sectionBounds) {
+      if (sb.page === page && sb.type === 'B') {
+        if (sb.subType === 'long-term') isLongTerm = true;
+        if (sb.subType === 'noncovered') isNoncovered = true;
+      }
+    }
+    // Also check page text directly for "Short-Term" / "Long-Term"
+    for (const item of pageItems) {
+      const upper = item.text.toUpperCase();
+      // Only match section-title text, not instruction text
+      if (item.y > headerRowY && /LONG.?TERM/.test(upper)) isLongTerm = true;
+      if (item.y > headerRowY && /SHORT.?TERM/.test(upper)) isLongTerm = false;
+      if (item.y > headerRowY && /NONCOVERED|NON.?COVERED/.test(upper)) isNoncovered = true;
+    }
+
+    const basisReportedToIRS = !isNoncovered;
+    const category = determineCategory(isLongTerm, basisReportedToIRS);
+
+    // Step 7: Map row items to columns and build Form1099B records
+    for (const row of rows) {
+      const fieldValues: Record<string, string> = {};
+      for (const item of row) {
+        for (const boundary of boundaries) {
+          if (item.x >= boundary.xMin && item.x < boundary.xMax) {
+            fieldValues[boundary.field] = fieldValues[boundary.field]
+              ? `${fieldValues[boundary.field]} ${item.text}`
+              : item.text;
+            break;
+          }
+        }
+      }
+
+      // Skip the "Total" row
+      const descStr = (fieldValues['description'] ?? '').trim();
+      if (/^total$/i.test(descStr)) continue;
+
+      // Need at least proceeds or cost basis to constitute a transaction
+      const proceedsStr = fieldValues['proceeds'] ?? '';
+      const costBasisStr = fieldValues['costBasis'] ?? '';
+      if (!proceedsStr && !costBasisStr) continue;
+
+      const proceeds = parsePdfDollarAmount(proceedsStr);
+      const costBasis = parsePdfDollarAmount(costBasisStr);
+
+      // Skip rows where neither proceeds nor cost is a real dollar amount
+      if (proceeds === 0 && costBasis === 0) continue;
+
+      const dateAcquired = parseDate(fieldValues['dateAcquired'] ?? '');
+      const dateSold = parseDate(fieldValues['dateSold'] ?? '');
+      const washSaleStr = fieldValues['washSale'] ?? '';
+      const washSaleDisallowed = washSaleStr
+        ? parsePdfDollarAmount(washSaleStr)
+        : 0;
+      const gainLossStr = fieldValues['gainLoss'] ?? '';
+      const gainLoss = gainLossStr
+        ? parsePdfDollarAmount(gainLossStr)
+        : proceeds - costBasis;
+
+      results.push({
+        description: descStr,
+        dateAcquired,
+        dateSold,
+        proceeds,
+        costBasis,
+        gainLoss,
+        isLongTerm,
+        basisReportedToIRS,
+        washSaleDisallowed: washSaleDisallowed || undefined,
+        category,
+      });
+    }
+  }
+
+  if (detailPages.length > 0 && results.length === 0) {
+    warnings.push('1099-B detail table found but no transactions could be parsed.');
+  }
+
+  return results;
+}
+
+// ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
 
 /**
  * Parse extracted PDF text items into structured 1099 data.
  *
- * Detects 1099-INT, 1099-DIV, 1099-B, and 1099-NEC sections,
- * extracts box values and transaction tables, and returns
- * a consolidated result with warnings for any parsing issues.
+ * Uses spatial bounding boxes to scope items to sections, which handles
+ * side-by-side section layouts (e.g., Interactive Brokers). Excludes
+ * instruction pages to prevent false section detection.
+ *
+ * For 1099-B: prefers the detail transaction table (individual trades)
+ * over summary sections (totals only).
  */
 export function parse1099Pdf(items: ExtractedTextItem[]): Parsed1099Result {
   const warnings: string[] = [];
@@ -828,43 +1190,65 @@ export function parse1099Pdf(items: ExtractedTextItem[]): Parsed1099Result {
   const form1099Bs: Form1099B[] = [];
   const form1099NECs: Form1099NEC[] = [];
 
-  const sections = detectSections(items);
+  // Step 1: Identify instruction pages to exclude
+  const instructionPages = getInstructionPages(items);
+
+  // Step 2: Detect sections using spatial bounding boxes
+  const sections = detectSectionsWithBounds(items, instructionPages);
 
   if (sections.length === 0) {
     warnings.push('No 1099 sections detected in this PDF. Make sure this is a 1099 tax document.');
     return { form1099INTs, form1099DIVs, form1099Bs, form1099NECs, brokerName, taxYear, warnings };
   }
 
+  // Step 3: Parse non-B sections using spatial bounds
   for (const section of sections) {
-    const sectionItems = extractSectionItems(items, section.startIndex, section.endIndex);
+    const sectionItems = getItemsInBounds(items, section);
 
     switch (section.type) {
       case 'INT': {
-        const result = parse1099INTSection(sectionItems, brokerName, warnings);
+        const result = parse1099INTSection(sectionItems, brokerName, []);
+        // Suppress warnings for all-zero sections — return null silently
         if (result) form1099INTs.push(result);
         break;
       }
       case 'DIV': {
-        const result = parse1099DIVSection(sectionItems, brokerName, warnings);
+        const result = parse1099DIVSection(sectionItems, brokerName, []);
         if (result) form1099DIVs.push(result);
         break;
       }
-      case 'B': {
-        const transactions = parse1099BSection(sectionItems, warnings);
-        form1099Bs.push(...transactions);
-        break;
-      }
       case 'NEC': {
-        const result = parse1099NECSection(sectionItems, brokerName, warnings);
+        const result = parse1099NECSection(sectionItems, brokerName, []);
         if (result) form1099NECs.push(result);
         break;
       }
       case 'MISC': {
         // IB uses 1099-MISC instead of 1099-NEC — map to NEC for the engine
-        const result = parse1099MISCSection(sectionItems, brokerName, warnings);
+        const result = parse1099MISCSection(sectionItems, brokerName, []);
         if (result) form1099NECs.push(result);
         break;
       }
+      case 'OID':
+        // OID sections are detected but ignored (not supported by the engine)
+        break;
+      case 'B':
+        // 1099-B handled separately via detail table below
+        break;
+    }
+  }
+
+  // Step 4: Parse 1099-B from detail table pages (preferred over summary sections)
+  const detailPages = findBDetailTablePages(items, instructionPages);
+  if (detailPages.length > 0) {
+    const transactions = parse1099BDetailTable(items, detailPages, sections, warnings);
+    form1099Bs.push(...transactions);
+  } else {
+    // Fallback: parse 1099-B from the summary/table sections
+    const bSections = sections.filter((s) => s.type === 'B');
+    for (const section of bSections) {
+      const sectionItems = getItemsInBounds(items, section);
+      const transactions = parse1099BSection(sectionItems, warnings);
+      form1099Bs.push(...transactions);
     }
   }
 
