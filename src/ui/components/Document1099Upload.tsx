@@ -77,26 +77,46 @@ export function Document1099Upload({ onImport }: Document1099UploadProps) {
         return;
       }
 
-      if (extraction.items.length === 0) {
+      let { items } = extraction;
+
+      // If pdfjs found pages but no text, the PDF likely contains scanned images.
+      // Fall back to Tesseract.js OCR (runs entirely client-side).
+      if (items.length === 0 && extraction.numPages > 0) {
+        setState({ step: 'loading', message: 'No text found — running OCR...' });
+        const { extractTextViaOcr } = await import('@/utils/ocr-extract');
+        const ocrItems = await extractTextViaOcr(fileBytes, (page, total) => {
+          setState({ step: 'loading', message: `Running OCR... (page ${page} of ${total})` });
+        });
+        if (ocrItems.length === 0) {
+          setState({
+            step: 'error',
+            message: 'Could not extract any text from this PDF, even with OCR.',
+          });
+          return;
+        }
+        items = ocrItems;
+      }
+
+      if (items.length === 0) {
         setState({
           step: 'error',
-          message: 'No text could be extracted from this PDF. It may be a scanned image.',
+          message: 'No text could be extracted from this PDF.',
         });
         return;
       }
 
       // Build raw text dump for debugging
-      const rawTextLines = extraction.items.map(
+      const rawTextLines = items.map(
         (item, idx) =>
           `[${idx}] p${item.page} (${item.x.toFixed(1)}, ${item.y.toFixed(1)}) "${item.text}"`,
       );
-      const rawText = `Total items: ${extraction.items.length}\nPages: ${extraction.numPages}\n\n${rawTextLines.join('\n')}`;
+      const rawText = `Total items: ${items.length}\nPages: ${extraction.numPages}\n\n${rawTextLines.join('\n')}`;
 
       setState({ step: 'loading', message: 'Parsing 1099 data...' });
 
       // Lazy-load the parser
       const { parse1099Pdf } = await import('@/utils/1099-parser');
-      const result = parse1099Pdf(extraction.items);
+      const result = parse1099Pdf(items);
 
       const totalSections =
         result.form1099INTs.length +
