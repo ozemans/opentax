@@ -45,14 +45,61 @@ export interface Parsed1099Result {
 /** Y-tolerance for considering two items on the "same line" */
 const Y_TOLERANCE = 3;
 
-/** Check if a string matches a 1099 section header */
+/**
+ * Check if a string is a 1099 section header.
+ *
+ * Strict rules:
+ * - Must be short text (not a full sentence or legal paragraph)
+ * - Must contain "1099-X" with an explicit hyphen (rejects "20251099")
+ * - Must have the section type as a whole word (rejects "1099-BROKERAGE")
+ */
 function matchesSectionHeader(text: string, sectionType: string): boolean {
-  const upper = text.toUpperCase();
-  return (
-    upper.includes(`1099-${sectionType}`) ||
-    upper.includes(`FORM 1099-${sectionType}`) ||
-    upper === `1099${sectionType}`
+  const trimmed = text.trim();
+  // Section headers are short — reject long text (legal disclaimers, etc.)
+  if (trimmed.length > 50) return false;
+
+  const upper = trimmed.toUpperCase();
+  // Require explicit hyphen between 1099 and type, with type as whole word
+  const pattern = new RegExp(
+    `(?:FORM\\s+)?1099\\s*-\\s*${sectionType}\\b`,
   );
+  return pattern.test(upper);
+}
+
+/**
+ * Check if a text string looks like a formatted dollar amount.
+ *
+ * Requires at least one monetary indicator: $ sign, decimal point
+ * with 1-2 trailing digits, or comma-separated thousands.
+ * Rejects bare integers (form numbers, dates, page numbers, etc.).
+ */
+function looksLikeDollarAmount(text: string): boolean {
+  const trimmed = text.trim();
+  if (trimmed === '') return false;
+
+  // Strip outer parens for negative-amount check
+  const inner = trimmed.startsWith('(') && trimmed.endsWith(')')
+    ? trimmed.slice(1, -1).trim()
+    : trimmed;
+
+  return (
+    // Has a $ sign
+    /\$/.test(inner) ||
+    // Has decimal point followed by 1-2 digits at end (e.g., "1234.56")
+    /\d\.\d{1,2}\s*$/.test(inner) ||
+    // Has comma-formatted thousands (e.g., "1,234" or "1,234,567")
+    /\d{1,3},\d{3}/.test(inner)
+  );
+}
+
+/**
+ * Parse a dollar amount from PDF text, with stricter validation
+ * than the CSV parser. Only parses text that looks like a formatted
+ * monetary value (has $, decimals, or comma-separated thousands).
+ */
+function parsePdfDollarAmount(text: string): number {
+  if (!looksLikeDollarAmount(text)) return 0;
+  return parseDollarsToCents(text);
 }
 
 /**
@@ -69,7 +116,7 @@ function getItemsOnLine(
 /**
  * Find the nearest dollar value on the same line or immediately following.
  * Scans items to the right of the label on the same y-line first,
- * then checks the line below.
+ * then checks the line below. Uses strict dollar validation.
  */
 function findNearestDollarOnLine(
   items: ExtractedTextItem[],
@@ -82,7 +129,7 @@ function findNearestDollarOnLine(
     (item) => item.x > label.x,
   );
   for (const item of sameLine) {
-    const cents = parseDollarsToCents(item.text);
+    const cents = parsePdfDollarAmount(item.text);
     if (cents !== 0 || /^\$?0(\.00)?$/.test(item.text.trim())) {
       return cents;
     }
@@ -93,7 +140,7 @@ function findNearestDollarOnLine(
     if (items[i].page !== label.page) break;
     if (Math.abs(items[i].y - label.y) > Y_TOLERANCE) {
       // We're now on a different line — check it
-      const cents = parseDollarsToCents(items[i].text);
+      const cents = parsePdfDollarAmount(items[i].text);
       if (cents !== 0 || /^\$?0(\.00)?$/.test(items[i].text.trim())) {
         return cents;
       }
@@ -105,19 +152,33 @@ function findNearestDollarOnLine(
 }
 
 /**
- * Match a box label pattern like "Box 1", "Box 1a", "Box 2a" etc.
- * Returns true if the text contains the expected box reference.
+ * Match a box label in IRS 1099 forms (e.g., "Box 1a", "1a.", "Box 2").
+ *
+ * Strict rules:
+ * - "Box X" or "BoxX" always matches
+ * - Standalone box IDs (like "1a") only match if followed by a period,
+ *   colon, space+text, or another indicator — not bare numbers
  */
 function matchesBoxLabel(text: string, boxId: string): boolean {
-  const upper = text.toUpperCase().replace(/\s+/g, ' ');
+  const upper = text.toUpperCase().replace(/\s+/g, ' ').trim();
   const boxUpper = boxId.toUpperCase();
-  // Match "Box 1", "Box 1a", "BOX 1A", or just the number at start
-  return (
-    upper.includes(`BOX ${boxUpper}`) ||
-    upper.includes(`BOX${boxUpper}`) ||
-    // Some PDFs use only the box number like "1a" as a label
-    upper === boxUpper
-  );
+
+  // "Box 1a", "BOX 1A", "Box1a"
+  if (upper.includes(`BOX ${boxUpper}`) || upper.includes(`BOX${boxUpper}`)) {
+    return true;
+  }
+
+  // "1a Ordinary dividends", "1a. Interest income", "1a:"
+  // Must start with the box ID and be followed by separator + more text
+  const escaped = boxUpper.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  if (
+    new RegExp(`^${escaped}[.:,\\s]`).test(upper) &&
+    upper.length > boxUpper.length + 1
+  ) {
+    return true;
+  }
+
+  return false;
 }
 
 /**
@@ -150,8 +211,6 @@ function extractSectionItems(
 
 /**
  * Try to detect broker name from the first page header area.
- * Heuristic: first page items in the top portion, look for recognizable
- * broker names or "PAYER'S name" field.
  */
 function detectBrokerName(items: ExtractedTextItem[]): string {
   const firstPageItems = items.filter((item) => item.page === 1);
@@ -170,23 +229,18 @@ function detectBrokerName(items: ExtractedTextItem[]): string {
   for (let i = 0; i < firstPageItems.length; i++) {
     const text = firstPageItems[i].text.toUpperCase();
     if (text.includes("PAYER") && text.includes("NAME")) {
-      // The payer name is often on the same line to the right, or the line below
-      const value = findNearestDollarOnLine(firstPageItems, i);
-      // Not a dollar — look for text instead
-      if (value === null) {
-        // Check items to the right on the same line
-        const sameLine = getItemsOnLine(firstPageItems, firstPageItems[i].y)
-          .filter((item) => item.x > firstPageItems[i].x);
-        if (sameLine.length > 0) {
-          return sameLine[0].text.trim();
-        }
-        // Check next line
-        for (let j = i + 1; j < Math.min(i + 3, firstPageItems.length); j++) {
-          if (Math.abs(firstPageItems[j].y - firstPageItems[i].y) > Y_TOLERANCE) {
-            const candidate = firstPageItems[j].text.trim();
-            if (candidate.length > 2) return candidate;
-            break;
-          }
+      // Check items to the right on the same line
+      const sameLine = getItemsOnLine(firstPageItems, firstPageItems[i].y)
+        .filter((item) => item.x > firstPageItems[i].x);
+      if (sameLine.length > 0) {
+        return sameLine[0].text.trim();
+      }
+      // Check next line
+      for (let j = i + 1; j < Math.min(i + 3, firstPageItems.length); j++) {
+        if (Math.abs(firstPageItems[j].y - firstPageItems[i].y) > Y_TOLERANCE) {
+          const candidate = firstPageItems[j].text.trim();
+          if (candidate.length > 2) return candidate;
+          break;
         }
       }
     }
@@ -211,7 +265,6 @@ function detectBrokerName(items: ExtractedTextItem[]): string {
 function detectTaxYear(items: ExtractedTextItem[]): string {
   const firstPageItems = items.filter((item) => item.page === 1).slice(0, 50);
   for (const item of firstPageItems) {
-    // Look for a 4-digit year (2020-2029 range for relevance)
     const yearMatch = /\b(20[2-3]\d)\b/.exec(item.text);
     if (yearMatch) return yearMatch[1];
   }
@@ -230,6 +283,11 @@ interface SectionRange {
 
 /**
  * Detect section boundaries within the extracted text items.
+ *
+ * Uses strict header matching and filters out false positives:
+ * - Deduplicates sections of the same type that are close together
+ *   (e.g., repeated "1099-INT" on the same page from headers/footers)
+ * - Filters out sections with too few items (< 3) as likely false matches
  */
 function detectSections(items: ExtractedTextItem[]): SectionRange[] {
   const sectionTypes = ['INT', 'DIV', 'B', 'NEC'] as const;
@@ -238,11 +296,27 @@ function detectSections(items: ExtractedTextItem[]): SectionRange[] {
   for (let i = 0; i < items.length; i++) {
     for (const sType of sectionTypes) {
       if (matchesSectionHeader(items[i].text, sType)) {
-        // Avoid duplicate detection on the same line
+        // Deduplicate: skip if we already have this type from the same page
+        // within 20 items (likely a repeated header or TOC entry)
         const lastOfType = rawSections.filter((s) => s.type === sType).pop();
-        if (lastOfType && Math.abs(items[lastOfType.index].y - items[i].y) < Y_TOLERANCE &&
-            items[lastOfType.index].page === items[i].page) {
-          continue;
+        if (lastOfType) {
+          const prevItem = items[lastOfType.index];
+          const currItem = items[i];
+          // Skip if same page and within 20 items (likely duplicate header)
+          if (
+            prevItem.page === currItem.page &&
+            i - lastOfType.index < 20
+          ) {
+            continue;
+          }
+          // Skip if on adjacent pages and very close in index
+          // (header/footer repeats across pages)
+          if (
+            Math.abs(prevItem.page - currItem.page) === 1 &&
+            i - lastOfType.index < 10
+          ) {
+            continue;
+          }
         }
         rawSections.push({ type: sType, index: i });
       }
@@ -258,6 +332,10 @@ function detectSections(items: ExtractedTextItem[]): SectionRange[] {
     const endIndex = i + 1 < rawSections.length
       ? rawSections[i + 1].index
       : items.length;
+
+    // Filter out sections with too few items (likely false positives)
+    if (endIndex - rawSections[i].index < 3) continue;
+
     sections.push({
       type: rawSections[i].type,
       startIndex: rawSections[i].index,
@@ -374,7 +452,6 @@ function parse1099BSection(
   if (sectionItems.length < 5) return [];
 
   // Step 1: Find header row — scan for items that match column labels
-  let headerRowY = -1;
   const columnPositions: Array<{ field: string; x: number; y: number }> = [];
 
   for (const item of sectionItems) {
@@ -395,7 +472,6 @@ function parse1099BSection(
   // Find the y-position that has the most column header matches (the header row)
   const yGroups = new Map<number, typeof columnPositions>();
   for (const pos of columnPositions) {
-    // Group by approximate y
     let foundGroup = false;
     for (const [groupY, group] of yGroups) {
       if (Math.abs(groupY - pos.y) <= Y_TOLERANCE) {
@@ -420,7 +496,7 @@ function parse1099BSection(
     return parseBSectionLineByLine(sectionItems, warnings);
   }
 
-  headerRowY = bestGroup[0].y;
+  const headerRowY = bestGroup[0].y;
 
   // Step 2: Establish column boundaries from header positions
   const sortedHeaders = [...bestGroup].sort((a, b) => a.x - b.x);
@@ -465,7 +541,6 @@ function parse1099BSection(
     for (const item of row) {
       for (const boundary of boundaries) {
         if (item.x >= boundary.xMin && item.x < boundary.xMax) {
-          // Concatenate if multiple items fall in the same column
           fieldValues[boundary.field] = fieldValues[boundary.field]
             ? `${fieldValues[boundary.field]} ${item.text}`
             : item.text;
@@ -479,14 +554,18 @@ function parse1099BSection(
     const costBasisStr = fieldValues['costBasis'] ?? '';
     if (!proceedsStr && !costBasisStr) continue;
 
-    const proceeds = parseDollarsToCents(proceedsStr);
-    const costBasis = parseDollarsToCents(costBasisStr);
+    const proceeds = parsePdfDollarAmount(proceedsStr);
+    const costBasis = parsePdfDollarAmount(costBasisStr);
+
+    // Skip rows where neither proceeds nor cost is a real dollar amount
+    if (proceeds === 0 && costBasis === 0) continue;
+
     const description = fieldValues['description'] ?? '';
     const dateAcquired = parseDate(fieldValues['dateAcquired'] ?? '');
     const dateSold = parseDate(fieldValues['dateSold'] ?? '');
     const gainLossStr = fieldValues['gainLoss'] ?? '';
     const gainLoss = gainLossStr
-      ? parseDollarsToCents(gainLossStr)
+      ? parsePdfDollarAmount(gainLossStr)
       : proceeds - costBasis;
 
     const isLongTerm = isLongTermHolding(dateAcquired, dateSold);
@@ -528,7 +607,7 @@ function parseBSectionLineByLine(
   const dollarItems: Array<{ index: number; cents: number; item: ExtractedTextItem }> = [];
 
   for (let i = 0; i < sectionItems.length; i++) {
-    const cents = parseDollarsToCents(sectionItems[i].text);
+    const cents = parsePdfDollarAmount(sectionItems[i].text);
     if (cents !== 0) {
       dollarItems.push({ index: i, cents, item: sectionItems[i] });
     }
