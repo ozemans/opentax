@@ -21,6 +21,7 @@ export interface StateTaxInput {
   spouseBlind: boolean;
   numDependents: number;
   numQualifyingChildren: number;
+  numChildrenUnder4?: number;
   wages: number;
   taxableInterest: number;
   ordinaryDividends: number;
@@ -98,6 +99,7 @@ export interface StateConfig {
     dependent: number;
     age65Additional?: number;
     blindAdditional?: number;
+    tiers?: Array<{ maxAgi: number | null; amount: number }>;
   };
   socialSecurityExempt: boolean;
   retirementExemption?: Partial<Record<FilingStatus, number>>;
@@ -109,14 +111,28 @@ export interface StateConfig {
     description: string;
   };
   localTax?: Record<string, {
-    brackets: TaxBracket[];
+    brackets: TaxBracket[] | Partial<Record<FilingStatus, TaxBracket[]>>;
     standardDeduction?: Partial<Record<FilingStatus, number>>;
   }>;
   credits?: {
-    eitc?: { type: 'percent_of_federal'; percentOfFederal: number; refundable: boolean };
+    eitc?: { type: 'percent_of_federal'; percentOfFederal: number; refundable: boolean }
+      | {
+          type: 'independent';
+          refundable: boolean;
+          investmentIncomeLimit: number;
+          tiers: Array<{
+            children: number;
+            maxCredit: number;
+            phaseInRate: number;
+            completedPhaseIn: number;
+            phaseOutBegins: number;
+            phaseOutRate: number;
+            phaseOutEnds: number;
+          }>;
+        };
     propertyTax?: { maxCredit: Partial<Record<FilingStatus, number>>; eligibilityIncomeLimit?: number };
     rentersCredit?: { amount: Partial<Record<FilingStatus, number>>; agiLimit: Partial<Record<FilingStatus, number>> };
-    childCredit?: { amountPerChild: number; agiPhaseOut: Partial<Record<FilingStatus, number>> };
+    childCredit?: { amountPerChild: number; amountPerChildUnder4?: number; agiPhaseOut: Partial<Record<FilingStatus, number>> };
   };
   specialTaxes?: { sdi?: { rate: number; wageBase: number } };
   formId: string;

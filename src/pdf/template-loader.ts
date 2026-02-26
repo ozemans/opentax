@@ -23,6 +23,12 @@ const formFilenames: Record<FormId, string> = {
   f8959: 'f8959',
   f8960: 'f8960',
   it201: 'it-201',
+  ftb540: 'ftb540',
+  va760: 'va760',
+  il1040: 'il1040',
+  pa40: 'pa40',
+  nj1040: 'nj1040',
+  maForm1: 'ma-form1',
 };
 
 /**

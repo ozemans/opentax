@@ -3,7 +3,8 @@
 // Ohio uses progressive brackets with a 0% bracket for the first ~$26,050.
 // Starting point: federal AGI (Ohio AGI).
 // Exemptions are applied as CREDITS, not deductions.
-// Each exemption = $2,400 credit against tax.
+// Exemption credits are income-tiered: $2,400 (AGI <= $40k), $2,150 ($40k-$80k),
+// $1,900 ($80k-$750k), $0 (AGI > $750k).
 //
 // Ohio brackets (2025, approximated from 2024):
 //   0% up to $26,050
@@ -26,7 +27,11 @@ import {
  * In Ohio, exemptions reduce TAX (as credits), not taxable income.
  * $2,400 per exemption (taxpayer, spouse for MFJ, each dependent).
  */
-function computeOHExemptionCredits(input: StateTaxInput, config: StateConfig): number {
+function computeOHExemptionCredits(
+  input: StateTaxInput,
+  config: StateConfig,
+  ohioAGI: number,
+): number {
   if (!config.personalExemption) return 0;
 
   const pe = config.personalExemption;
@@ -46,7 +51,20 @@ function computeOHExemptionCredits(input: StateTaxInput, config: StateConfig): n
   // Dependents
   count += input.numDependents;
 
-  const perExemption = pe.taxpayer[input.filingStatus] ?? pe.dependent;
+  // Use income-tiered amounts if available, otherwise fall back to flat amount
+  let perExemption: number;
+  if (pe.tiers?.length) {
+    perExemption = 0;
+    for (const tier of pe.tiers) {
+      if (tier.maxAgi === null || ohioAGI <= tier.maxAgi) {
+        perExemption = tier.amount;
+        break;
+      }
+    }
+  } else {
+    perExemption = pe.taxpayer[input.filingStatus] ?? pe.dependent;
+  }
+
   return count * perExemption;
 }
 
@@ -73,7 +91,7 @@ export const ohio: StateModule = {
     const taxBeforeCredits = computeStateBracketTax(taxableIncome, brackets);
 
     // Ohio exemption credits (reduce tax, not income)
-    const exemptionCredits = computeOHExemptionCredits(input, config);
+    const exemptionCredits = computeOHExemptionCredits(input, config, ohioAGI);
 
     const totalCredits = exemptionCredits;
     const taxAfterCredits = Math.max(0, taxBeforeCredits - totalCredits);

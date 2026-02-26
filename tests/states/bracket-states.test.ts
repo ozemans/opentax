@@ -221,25 +221,26 @@ describe('Ohio (OH) — progressive brackets with exemption credits', () => {
     expect(result.stateTaxBeforeCredits).toBe(expectedTax);
   });
 
-  it('applies exemption credits (taxpayer only)', () => {
+  it('applies exemption credits (taxpayer only, tier 2)', () => {
     const input = makeInput({
       wages: 7_500_000,
       federalAGI: 7_500_000,
     });
     const result = ohio.compute(input, ohConfig);
-    // Single taxpayer: 1 exemption * $2,400 = $2,400 credit (240_000)
-    expect(result.stateCredits).toBe(240_000);
+    // Single taxpayer: 1 exemption. Ohio AGI $75k → tier 2 ($40k < $75k ≤ $80k) = $2,150
+    expect(result.stateCredits).toBe(215_000);
   });
 
-  it('applies exemption credits for MFJ + dependents', () => {
+  it('applies exemption credits for MFJ + dependents (tier 3)', () => {
     const input = makeInput({
       filingStatus: 'married_filing_jointly',
       numDependents: 2,
       federalAGI: 10_000_000,
     });
     const result = ohio.compute(input, ohConfig);
-    // MFJ: taxpayer + spouse + 2 deps = 4 * $2,400 = $9,600 (960_000)
-    expect(result.stateCredits).toBe(960_000);
+    // MFJ: taxpayer + spouse + 2 deps = 4. Ohio AGI $100k → tier 3 ($80k < $100k ≤ $750k) = $1,900
+    // 4 * $1,900 = $7,600 (760_000)
+    expect(result.stateCredits).toBe(760_000);
   });
 
   it('exemption credits cannot make tax negative', () => {

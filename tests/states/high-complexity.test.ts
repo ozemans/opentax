@@ -161,13 +161,17 @@ describe('New York (NY) — progressive + NYC local', () => {
     expect(result.creditBreakdown.childCredit).toBe(66_000);
   });
 
-  it('no child credit above AGI threshold', () => {
+  it('child credit gradually phases out above AGI threshold', () => {
     const input = makeInput({
       numQualifyingChildren: 2,
-      federalAGI: 10_000_000, // Over $75,000 threshold for single
+      federalAGI: 10_000_000, // $100k, over $75k threshold for single
     });
     const result = newYork.compute(input, nyConfig);
-    expect(result.creditBreakdown.childCredit).toBeUndefined();
+    // Base: 2 children * $330 = $660 (66_000)
+    // Excess: $100,000 - $75,000 = $25,000
+    // Reduction: ceil($25,000 / $1,000) * $16.50 = 25 * 1650 = 41,250
+    // Credit: 66,000 - 41,250 = 24,750
+    expect(result.creditBreakdown.childCredit).toBe(24_750);
   });
 
   it('returns zero tax for zero income', () => {
@@ -272,15 +276,17 @@ describe('California (CA) — 10 brackets + surtax + CalEITC + renter\'s credit'
     expect(result.stateSurtax).toBe(0);
   });
 
-  it('computes CalEITC as 45% of federal', () => {
+  it('computes CalEITC independently (1 child, plateau)', () => {
+    // 1 qualifying child, earned income $10,000 — in plateau region
+    // ($5,929 < $10,000 < $20,285) → max credit $2,016 (201_600)
     const input = makeInput({
-      wages: 2_000_000,
-      federalAGI: 2_000_000,
-      federalTotalIncome: 2_000_000,
-      federalEITC: 432_800,
+      wages: 1_000_000,
+      federalAGI: 1_000_000,
+      federalTotalIncome: 1_000_000,
+      numQualifyingChildren: 1,
     });
     const result = california.compute(input, caConfig);
-    expect(result.creditBreakdown.calEITC).toBe(Math.round(432_800 * 0.45));
+    expect(result.creditBreakdown.calEITC).toBe(201_600);
   });
 
   it('CalEITC is refundable', () => {

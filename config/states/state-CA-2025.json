@@ -102,10 +102,17 @@
   "capitalGainsTreatment": "ordinary",
   "credits": {
     "eitc": {
-      "type": "percent_of_federal",
-      "percentOfFederal": 0.45,
+      "type": "independent",
       "refundable": true,
-      "_notes": "CalEITC is actually an independent credit per R&TC §17052 with its own phase-in percentages (7.65%/34%/40%/45% by number of children). The 45% figure is only the credit percentage for 3+ qualifying children, not a blanket percentage of federal EITC. This approximation overstates the credit for filers with 0-2 children."
+      "investmentIncomeLimit": 481400,
+      "_source": "R&TC §17052.1; FTB 2025 Form 3514 instructions (https://www.ftb.ca.gov/forms/2025/2025-3514-booklet.html); max credits from https://www.ftb.ca.gov/file/personal/credits/caleitc/eligibility-and-credit-information.html",
+      "_notes": "Credit rates match federal EITC: 7.65%/34%/40%/45%. Phase-out rates: 7.65%/15.98%/21.06%/21.06%. Max income $32,900.",
+      "tiers": [
+        { "children": 0, "maxCredit": 30200,  "phaseInRate": 0.0765, "completedPhaseIn": 394800,  "phaseOutBegins": 394800,  "phaseOutRate": 0.0765, "phaseOutEnds": 789600 },
+        { "children": 1, "maxCredit": 201600, "phaseInRate": 0.34,   "completedPhaseIn": 592900,  "phaseOutBegins": 2028500, "phaseOutRate": 0.1598, "phaseOutEnds": 3290000 },
+        { "children": 2, "maxCredit": 333900, "phaseInRate": 0.40,   "completedPhaseIn": 834800,  "phaseOutBegins": 1704500, "phaseOutRate": 0.2106, "phaseOutEnds": 3290000 },
+        { "children": 3, "maxCredit": 375600, "phaseInRate": 0.45,   "completedPhaseIn": 834700,  "phaseOutBegins": 1506400, "phaseOutRate": 0.2106, "phaseOutEnds": 3290000 }
+      ]
     },
     "rentersCredit": {
       "amount": {
@@ -124,6 +131,6 @@
       }
     }
   },
-  "formId": "CA-540",
+  "formId": "ftb540",
   "formName": "California Resident Income Tax Return"
 }

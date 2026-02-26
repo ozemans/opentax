@@ -407,6 +407,12 @@ export interface FederalConfig {
     single: number;                // Per qualifying individual (single/HoH)
   };
 
+  seniorDeduction?: {
+    amount: number;                // Per qualifying individual (cents)
+    phaseOut: Record<FilingStatus, { begin: number; end: number }>;
+    phaseOutRate: number;          // 0.06 = 6 cents per dollar over threshold
+  };
+
   brackets: Record<FilingStatus, TaxBracket[]>;
 
   capitalGainsRates: Record<FilingStatus, CapitalGainsRateBracket[]>;

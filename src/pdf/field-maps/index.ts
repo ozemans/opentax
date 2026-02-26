@@ -16,6 +16,12 @@ import { f8949FieldMap } from './f8949';
 import { f8959FieldMap } from './f8959';
 import { f8960FieldMap } from './f8960';
 import { it201FieldMap } from './it201';
+import { ftb540FieldMap } from './ftb540';
+import { va760FieldMap } from './va760';
+import { il1040FieldMap } from './il1040';
+import { pa40FieldMap } from './pa40';
+import { nj1040FieldMap } from './nj1040';
+import { maForm1FieldMap } from './ma-form1';
 
 const registry: Record<FormId, FieldMap> = {
   f1040: f1040FieldMap,
@@ -31,6 +37,12 @@ const registry: Record<FormId, FieldMap> = {
   f8959: f8959FieldMap,
   f8960: f8960FieldMap,
   it201: it201FieldMap,
+  ftb540: ftb540FieldMap,
+  va760: va760FieldMap,
+  il1040: il1040FieldMap,
+  pa40: pa40FieldMap,
+  nj1040: nj1040FieldMap,
+  maForm1: maForm1FieldMap,
 };
 
 /**

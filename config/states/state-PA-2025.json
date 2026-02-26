@@ -9,6 +9,6 @@
   "flatRate": 0.0307,
   "socialSecurityExempt": true,
   "capitalGainsTreatment": "ordinary",
-  "formId": "PA-40",
+  "formId": "pa40",
   "formName": "Pennsylvania Income Tax Return"
 }

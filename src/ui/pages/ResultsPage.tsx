@@ -15,6 +15,29 @@ function formatCents(cents: number): string {
   return dollars.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 }
 
+function formatSignedCents(cents: number): string {
+  const prefix = cents >= 0 ? '' : '-';
+  return `${prefix}$${formatCents(cents)}`;
+}
+
+function formatCreditName(key: string): string {
+  return key
+    .replace(/([A-Z])/g, ' $1')
+    .replace(/^./, (s) => s.toUpperCase())
+    .trim();
+}
+
+function LineItem({ label, value, highlight }: { label: string; value: number; highlight?: boolean }) {
+  return (
+    <div className="flex justify-between py-1.5 text-sm font-body">
+      <span className="text-slate">{label}</span>
+      <span className={`tabular-nums font-medium ${highlight ? 'text-primary-dark' : 'text-slate-dark'}`}>
+        ${formatCents(value)}
+      </span>
+    </div>
+  );
+}
+
 interface BarSegment {
   label: string;
   value: number;
@@ -84,6 +107,13 @@ export function ResultsPage() {
   const taxBreakdown = result?.taxBreakdown;
 
   const isRefund = refundOrOwed >= 0;
+
+  // State results
+  const stateResults = result?.stateResults ?? {};
+  const stateEntries = Object.values(stateResults);
+  const statesWithIncomeTax = stateEntries.filter((s) => s.hasIncomeTax);
+  const totalStateRefundOrOwed = stateEntries.reduce((s, r) => s + r.stateRefundOrOwed, 0);
+  const combinedRefundOrOwed = refundOrOwed + totalStateRefundOrOwed;
 
   // Animated number
   const [displayAmount, setDisplayAmount] = useState('0');
@@ -243,6 +273,103 @@ export function ResultsPage() {
             </p>
           </div>
         </motion.section>
+
+        {/* State Tax Results */}
+        {stateEntries.length > 0 && (
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.55 }}
+            aria-labelledby="state-taxes-heading"
+            className="space-y-4"
+          >
+            <div className="flex items-center gap-3">
+              <div className="h-px flex-1 bg-slate-light/40" />
+              <h2 id="state-taxes-heading" className="text-sm font-display font-semibold text-slate uppercase tracking-wide">
+                State Taxes
+              </h2>
+              <div className="h-px flex-1 bg-slate-light/40" />
+            </div>
+
+            {stateEntries.map((sr) => (
+              <div key={sr.stateCode} className="rounded-2xl border border-slate-light/30 bg-white p-5 shadow-card">
+                {!sr.hasIncomeTax ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-display font-semibold text-slate-dark">{sr.stateName}</span>
+                    <span className="rounded-full bg-success/15 px-2.5 py-0.5 text-xs font-body font-medium text-success">
+                      No State Income Tax
+                    </span>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* State refund/owed hero */}
+                    <div className="text-center">
+                      <p className="text-xs font-body text-slate mb-1">{sr.stateName}</p>
+                      <p className={`text-2xl font-display font-bold tabular-nums ${sr.stateRefundOrOwed >= 0 ? 'text-success' : 'text-accent'}`}>
+                        {formatSignedCents(sr.stateRefundOrOwed)}
+                      </p>
+                      <p className="text-xs font-body text-slate mt-0.5">
+                        {sr.stateRefundOrOwed >= 0 ? 'Estimated State Refund' : 'Estimated Amount Owed'}
+                      </p>
+                    </div>
+
+                    {/* Line-item breakdown */}
+                    <div className="divide-y divide-slate-light/20">
+                      <LineItem label="State AGI" value={sr.stateAGI} />
+                      {sr.stateSubtractions > 0 && <LineItem label="Subtractions" value={sr.stateSubtractions} />}
+                      {sr.stateDeduction > 0 && <LineItem label="Deduction" value={sr.stateDeduction} />}
+                      {sr.stateExemptions > 0 && <LineItem label="Exemptions" value={sr.stateExemptions} />}
+                      <LineItem label="Taxable Income" value={sr.stateTaxableIncome} highlight />
+                      <LineItem label="Tax Before Credits" value={sr.stateTaxBeforeCredits} />
+                      {sr.stateCredits > 0 && <LineItem label="Credits" value={sr.stateCredits} />}
+                      {sr.stateSurtax > 0 && <LineItem label="Surtax" value={sr.stateSurtax} />}
+                      {sr.localTax > 0 && <LineItem label="Local Tax" value={sr.localTax} />}
+                      <LineItem label="Tax After Credits" value={sr.stateTaxAfterCredits} highlight />
+                    </div>
+
+                    {/* Credits breakdown */}
+                    {Object.keys(sr.creditBreakdown).length > 0 && (
+                      <div className="rounded-xl bg-surface/50 p-3">
+                        <p className="text-xs font-display font-semibold text-slate mb-2">Credits</p>
+                        {Object.entries(sr.creditBreakdown).map(([key, val]) => (
+                          <div key={key} className="flex justify-between text-xs font-body py-0.5">
+                            <span className="text-slate">{formatCreditName(key)}</span>
+                            <span className="text-slate-dark tabular-nums">${formatCents(val)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* State rates */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="rounded-xl bg-highlight-light/50 p-3 text-center">
+                        <p className="text-xs font-body text-slate">Effective</p>
+                        <p className="text-lg font-display font-bold text-slate-dark">{sr.effectiveRate.toFixed(1)}%</p>
+                      </div>
+                      <div className="rounded-xl bg-highlight-light/50 p-3 text-center">
+                        <p className="text-xs font-body text-slate">Marginal</p>
+                        <p className="text-lg font-display font-bold text-slate-dark">{sr.marginalRate.toFixed(0)}%</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+
+            {/* Combined total */}
+            {statesWithIncomeTax.length > 0 && (
+              <div className="rounded-2xl bg-primary/5 border border-primary/20 p-5 text-center">
+                <p className="text-xs font-body text-slate mb-1">Combined Federal + State</p>
+                <p className={`text-3xl font-display font-bold tabular-nums ${combinedRefundOrOwed >= 0 ? 'text-success' : 'text-accent'}`}>
+                  {formatSignedCents(combinedRefundOrOwed)}
+                </p>
+                <p className="text-xs font-body text-slate mt-0.5">
+                  {combinedRefundOrOwed >= 0 ? 'Total Estimated Refund' : 'Total Estimated Amount Owed'}
+                </p>
+              </div>
+            )}
+          </motion.section>
+        )}
 
         {/* What's Next */}
         <motion.section

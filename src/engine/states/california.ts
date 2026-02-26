@@ -6,7 +6,7 @@
 // - Personal exemptions: $144 taxpayer, $446/dependent
 // - Capital gains taxed as ORDINARY income (no preferential rates)
 // - Mental Health Services Tax: 1% surtax on income over $1,000,000
-// - CalEITC = 45% of federal EITC (refundable)
+// - CalEITC = independent credit per R&TC §17052.1 (refundable)
 // - Renter's credit: $60 single / $120 MFJ if AGI under threshold
 // - Social Security is exempt
 //
@@ -22,6 +22,53 @@ import {
   computeStateEITC,
   computeSurtax,
 } from './common';
+
+/**
+ * Compute CalEITC independently using California's own phase-in/phase-out structure.
+ * R&TC §17052.1 — credit rates match federal EITC (7.65%/34%/40%/45% by children).
+ */
+function computeCalEITCIndependent(
+  input: StateTaxInput,
+  config: StateConfig,
+): number {
+  const eitcConfig = config.credits?.eitc;
+  if (!eitcConfig || eitcConfig.type !== 'independent') return 0;
+
+  // Earned income = wages + max(0, self-employment income)
+  const earnedIncome = input.wages + Math.max(0, input.selfEmploymentIncome);
+  if (earnedIncome <= 0) return 0;
+
+  // Investment income disqualification
+  const investmentIncome =
+    input.taxableInterest + input.ordinaryDividends +
+    Math.max(0, input.netCapitalGainLoss);
+  if (investmentIncome > eitcConfig.investmentIncomeLimit) return 0;
+
+  // Find the correct tier (3+ children uses tier with children=3)
+  const numChildren = Math.min(input.numQualifyingChildren, 3);
+  const tier = eitcConfig.tiers.find((t) => t.children === numChildren);
+  if (!tier) return 0;
+
+  let credit: number;
+
+  if (earnedIncome <= tier.completedPhaseIn) {
+    // Phase-in: credit grows with income
+    credit = Math.round(earnedIncome * tier.phaseInRate);
+    credit = Math.min(credit, tier.maxCredit);
+  } else if (earnedIncome <= tier.phaseOutBegins) {
+    // Plateau: max credit
+    credit = tier.maxCredit;
+  } else if (earnedIncome <= tier.phaseOutEnds) {
+    // Phase-out: credit decreases
+    const excess = earnedIncome - tier.phaseOutBegins;
+    const reduction = Math.round(excess * tier.phaseOutRate);
+    credit = Math.max(0, tier.maxCredit - reduction);
+  } else {
+    credit = 0;
+  }
+
+  return credit;
+}
 
 /**
  * Compute California renter's credit.
@@ -86,9 +133,14 @@ export const california: StateModule = {
     const creditBreakdown: Record<string, number> = {};
     let totalCredits = 0;
 
-    // CalEITC = 45% of federal EITC (refundable)
-    const eitcPercent = config.credits?.eitc?.percentOfFederal ?? 0;
-    const calEITC = computeStateEITC(input.federalEITC, eitcPercent);
+    // CalEITC — independent computation if available, otherwise percent of federal
+    let calEITC = 0;
+    const eitcConfig = config.credits?.eitc;
+    if (eitcConfig?.type === 'independent') {
+      calEITC = computeCalEITCIndependent(input, config);
+    } else if (eitcConfig?.type === 'percent_of_federal') {
+      calEITC = computeStateEITC(input.federalEITC, eitcConfig.percentOfFederal);
+    }
     if (calEITC > 0) {
       creditBreakdown.calEITC = calEITC;
       totalCredits += calEITC;

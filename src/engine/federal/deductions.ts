@@ -14,6 +14,7 @@ export function computeStandardDeduction(
   taxpayerBlind: boolean,
   spouse65OrOlder: boolean,
   spouseBlind: boolean,
+  agi: number = 0,
 ): number {
   let deduction = config.standardDeduction[filingStatus];
 
@@ -34,6 +35,26 @@ export function computeStandardDeduction(
   if (isMarried) {
     if (spouse65OrOlder) deduction += additionalAmount;
     if (spouseBlind) deduction += additionalAmount;
+  }
+
+  // OBBBA §70102 — Senior deduction for age 65+
+  if (config.seniorDeduction) {
+    const sd = config.seniorDeduction;
+    const phaseOut = sd.phaseOut[filingStatus];
+    const numSeniors =
+      (taxpayer65OrOlder ? 1 : 0) +
+      (isMarried && spouse65OrOlder ? 1 : 0);
+
+    if (numSeniors > 0) {
+      let seniorAmount = sd.amount;
+      // Phase-out: reduce by phaseOutRate per dollar of AGI over begin threshold
+      if (agi > phaseOut.begin) {
+        const excess = agi - phaseOut.begin;
+        const reduction = Math.round(excess * sd.phaseOutRate);
+        seniorAmount = Math.max(0, seniorAmount - reduction);
+      }
+      deduction += seniorAmount * numSeniors;
+    }
   }
 
   return deduction;
@@ -134,6 +155,7 @@ export function computeDeductions(
     taxpayerBlind,
     spouse65OrOlder,
     spouseBlind,
+    agi,
   );
 
   let itemizedAmount = 0;

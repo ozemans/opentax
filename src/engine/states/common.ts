@@ -338,6 +338,13 @@ export function buildStateTaxInput(
     numQualifyingChildren: input.dependents.filter(
       (d) => d.qualifiesForCTC,
     ).length,
+    numChildrenUnder4: input.dependents.filter((d) => {
+      if (!d.dateOfBirth || !d.qualifiesForCTC) return false;
+      const dob = new Date(d.dateOfBirth);
+      // Under 4 = born on or after Jan 1 of (taxYear - 3)
+      const cutoff = new Date(input.taxYear - 3, 0, 1);
+      return dob >= cutoff;
+    }).length,
     wages,
     taxableInterest,
     ordinaryDividends,

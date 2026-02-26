@@ -44,6 +44,9 @@
 
 import type { FieldMap } from './types';
 
+/** Strip dashes/spaces from SSN for PDF fields with maxLen=9. */
+const ssnDigitsOnly = (v: string | number): string => String(v).replace(/\D/g, '');
+
 // Shorthand helpers for the deeply nested field name prefixes
 const p1 = (name: string) => `topmostSubform[0].Page1[0].${name}`;
 const p1Addr = (name: string) => `topmostSubform[0].Page1[0].Address_ReadOrder[0].${name}`;
@@ -59,7 +62,7 @@ export const f1040FieldMap: FieldMap = {
   // f1_16 = Your SSN (maxLen=9)
   firstName:      { pdfFieldName: p1('f1_11[0]'), type: 'text' },
   lastName:       { pdfFieldName: p1('f1_12[0]'), type: 'text' },
-  ssn:            { pdfFieldName: p1('f1_16[0]'), type: 'text' },
+  ssn:            { pdfFieldName: p1('f1_16[0]'), type: 'text', transform: ssnDigitsOnly },
 
   // ── Filing Status checkboxes ──
   // c1_5 = Single
@@ -85,7 +88,7 @@ export const f1040FieldMap: FieldMap = {
   // f1_19 = Spouse SSN (maxLen=9)
   spouseFirstName: { pdfFieldName: p1('f1_13[0]'), type: 'text' },
   spouseLastName:  { pdfFieldName: p1('f1_14[0]'), type: 'text' },
-  spouseSSN:       { pdfFieldName: p1('f1_19[0]'), type: 'text' },
+  spouseSSN:       { pdfFieldName: p1('f1_19[0]'), type: 'text', transform: ssnDigitsOnly },
 
   // ── Address ──
   // In Address_ReadOrder subform:

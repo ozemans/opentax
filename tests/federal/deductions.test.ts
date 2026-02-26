@@ -34,33 +34,33 @@ describe('computeStandardDeduction', () => {
     expect(computeStandardDeduction('qualifying_surviving_spouse', cfg, false, false, false, false)).toBe(3150000);
   });
 
-  it('should add $2,000 for single filer age 65+', () => {
-    // $15,750 + $2,000 = $17,750
-    expect(computeStandardDeduction('single', cfg, true, false, false, false)).toBe(1775000);
+  it('should add $2,000 + $6,000 senior for single filer age 65+', () => {
+    // $15,750 + $2,000 age + $6,000 senior = $23,750 (AGI 0 = below phase-out)
+    expect(computeStandardDeduction('single', cfg, true, false, false, false)).toBe(2375000);
   });
 
-  it('should add $2,000 for single filer who is blind', () => {
+  it('should add $2,000 for single filer who is blind (no senior deduction)', () => {
     expect(computeStandardDeduction('single', cfg, false, true, false, false)).toBe(1775000);
   });
 
-  it('should add $4,000 for single filer age 65+ AND blind', () => {
-    // $15,750 + $2,000 + $2,000 = $19,750
-    expect(computeStandardDeduction('single', cfg, true, true, false, false)).toBe(1975000);
+  it('should add $4,000 + $6,000 senior for single filer age 65+ AND blind', () => {
+    // $15,750 + $2,000 + $2,000 + $6,000 senior = $25,750
+    expect(computeStandardDeduction('single', cfg, true, true, false, false)).toBe(2575000);
   });
 
-  it('should add $1,600 for MFJ taxpayer age 65+', () => {
-    // $31,500 + $1,600 = $33,100
-    expect(computeStandardDeduction('married_filing_jointly', cfg, true, false, false, false)).toBe(3310000);
+  it('should add $1,600 + $6,000 senior for MFJ taxpayer age 65+', () => {
+    // $31,500 + $1,600 + $6,000 senior = $39,100 (AGI 0 = below phase-out)
+    expect(computeStandardDeduction('married_filing_jointly', cfg, true, false, false, false)).toBe(3910000);
   });
 
-  it('should add $3,200 for MFJ both spouses age 65+', () => {
-    // $31,500 + $1,600 + $1,600 = $34,700
-    expect(computeStandardDeduction('married_filing_jointly', cfg, true, false, true, false)).toBe(3470000);
+  it('should add $3,200 + $12,000 senior for MFJ both spouses age 65+', () => {
+    // $31,500 + $1,600 + $1,600 + $6,000 * 2 = $46,700
+    expect(computeStandardDeduction('married_filing_jointly', cfg, true, false, true, false)).toBe(4670000);
   });
 
-  it('should add $6,400 for MFJ both spouses 65+ and blind', () => {
-    // $31,500 + $1,600 * 4 = $37,900
-    expect(computeStandardDeduction('married_filing_jointly', cfg, true, true, true, true)).toBe(3790000);
+  it('should add $6,400 + $12,000 senior for MFJ both 65+ and blind', () => {
+    // $31,500 + $1,600 * 4 + $6,000 * 2 = $49,900
+    expect(computeStandardDeduction('married_filing_jointly', cfg, true, true, true, true)).toBe(4990000);
   });
 });
 

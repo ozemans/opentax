@@ -1068,13 +1068,13 @@ describe('Scenario 15: Age 65+ additional standard deduction', () => {
   const result = computeFederalTax(input, config);
 
   it('gets additional standard deduction for age 65+', () => {
-    // Single standard = $15,750 + additional $2,000 for 65+ = $17,750
-    expect(result.deductionBreakdown.amount).toBe(1_775_000);
+    // Single standard = $15,750 + additional $2,000 for 65+ + $6,000 senior = $23,750
+    expect(result.deductionBreakdown.amount).toBe(2_375_000);
   });
 
   it('taxable income is lower due to additional deduction', () => {
-    // $40k - $17.75k = $22.25k
-    expect(result.taxableIncome).toBe(2_225_000);
+    // $40k - $23.75k = $16.25k
+    expect(result.taxableIncome).toBe(1_625_000);
   });
 });
 

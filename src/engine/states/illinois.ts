@@ -56,7 +56,8 @@ export const illinois: StateModule = {
     const taxBeforeCredits = computeFlatTax(taxableIncome, rate);
 
     // IL EITC = 20% of federal EITC (refundable)
-    const eitcPercent = config.credits?.eitc?.percentOfFederal ?? 0.20;
+    const eitcCfg = config.credits?.eitc;
+    const eitcPercent = eitcCfg?.type === 'percent_of_federal' ? eitcCfg.percentOfFederal : 0.20;
     const stateEITC = computeStateEITC(input.federalEITC, eitcPercent);
 
     const creditBreakdown: Record<string, number> = {};

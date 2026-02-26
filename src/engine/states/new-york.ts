@@ -5,7 +5,7 @@
 // - Standard deduction
 // - NYC local tax if locality === 'NYC' (4 brackets: 3.078%–3.876%)
 // - EITC = 30% of federal EITC (refundable)
-// - Child credit: $330/child, phases out at income thresholds
+// - Empire State child credit: $1,000/child under 4, $330/child 4-16, gradual phase-out
 // - Social Security is exempt
 //
 // NYC residents pay BOTH NYS and NYC income tax.
@@ -13,7 +13,7 @@
 // All monetary values are integers in CENTS.
 
 import type { StateModule, StateTaxInput, StateTaxResult, StateConfig } from './interface';
-import type { TaxBracket, FilingStatus } from '../types';
+import type { TaxBracket } from '../types';
 import {
   computeStateBracketTax,
   getStateMarginalRate,
@@ -22,24 +22,37 @@ import {
 } from './common';
 
 /**
- * Compute NY child credit.
- * $330 per qualifying child, phases out above AGI threshold.
+ * Compute NY Empire State child credit.
+ * $1,000 per child under 4, $330 per child ages 4-16.
+ * Gradual phase-out: $16.50 reduction per $1,000 of AGI over threshold
+ * (round up partial $1,000 increments).
  */
 function computeNYChildCredit(
-  numChildren: number,
-  agi: number,
-  filingStatus: FilingStatus,
+  input: StateTaxInput,
   config: StateConfig,
 ): number {
-  if (numChildren <= 0) return 0;
+  if (input.numQualifyingChildren <= 0) return 0;
   if (!config.credits?.childCredit) return 0;
 
-  const { amountPerChild, agiPhaseOut } = config.credits.childCredit;
-  const threshold = agiPhaseOut[filingStatus] ?? Infinity;
+  const { amountPerChild, amountPerChildUnder4, agiPhaseOut } = config.credits.childCredit;
+  const threshold = agiPhaseOut[input.filingStatus] ?? Infinity;
 
-  if (agi > threshold) return 0;
+  // Under-4 children get higher amount; remaining qualifying children get standard
+  const numUnder4 = Math.min(input.numChildrenUnder4 ?? 0, input.numQualifyingChildren);
+  const numOlder = input.numQualifyingChildren - numUnder4;
 
-  return numChildren * amountPerChild;
+  const under4Amount = amountPerChildUnder4 ?? amountPerChild;
+  let totalCredit = (numUnder4 * under4Amount) + (numOlder * amountPerChild);
+
+  // Gradual phase-out: $16.50 per $1,000 over threshold (in cents: 1650 per 100000)
+  if (input.federalAGI > threshold) {
+    const excess = input.federalAGI - threshold;
+    const increments = Math.ceil(excess / 100_000); // Round up partial $1,000
+    const reduction = increments * 1650; // $16.50 = 1650 cents per increment
+    totalCredit = Math.max(0, totalCredit - reduction);
+  }
+
+  return totalCredit;
 }
 
 export const newYork: StateModule = {
@@ -72,7 +85,12 @@ export const newYork: StateModule = {
     // NYC local tax (only if locality is 'NYC')
     let nycTax = 0;
     if (input.locality === 'NYC' && config.localTax?.NYC) {
-      const nycBrackets = config.localTax.NYC.brackets as TaxBracket[];
+      const nycBracketsConfig = config.localTax.NYC.brackets;
+      const nycBrackets = Array.isArray(nycBracketsConfig)
+        ? nycBracketsConfig as TaxBracket[]
+        : ((nycBracketsConfig as Partial<Record<string, TaxBracket[]>>)[input.filingStatus]
+          ?? (nycBracketsConfig as Partial<Record<string, TaxBracket[]>>)['single']
+          ?? []) as TaxBracket[];
       nycTax = computeStateBracketTax(taxableIncome, nycBrackets);
     }
 
@@ -83,7 +101,8 @@ export const newYork: StateModule = {
     let totalCredits = 0;
 
     // NY EITC = 30% of federal EITC (refundable)
-    const eitcPercent = config.credits?.eitc?.percentOfFederal ?? 0;
+    const eitcCfg = config.credits?.eitc;
+    const eitcPercent = eitcCfg?.type === 'percent_of_federal' ? eitcCfg.percentOfFederal : 0;
     const stateEITC = computeStateEITC(input.federalEITC, eitcPercent);
     if (stateEITC > 0) {
       creditBreakdown.eitc = stateEITC;
@@ -91,12 +110,7 @@ export const newYork: StateModule = {
     }
 
     // NY child credit
-    const childCredit = computeNYChildCredit(
-      input.numQualifyingChildren,
-      input.federalAGI,
-      input.filingStatus,
-      config,
-    );
+    const childCredit = computeNYChildCredit(input, config);
     if (childCredit > 0) {
       creditBreakdown.childCredit = childCredit;
       totalCredits += childCredit;

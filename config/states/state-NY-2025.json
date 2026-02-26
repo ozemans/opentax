@@ -75,13 +75,39 @@
   "capitalGainsTreatment": "ordinary",
   "localTax": {
     "NYC": {
-      "brackets": [
-        { "min": 0, "max": 1200000, "rate": 0.03078 },
-        { "min": 1200000, "max": 2500000, "rate": 0.03762 },
-        { "min": 2500000, "max": 5000000, "rate": 0.03819 },
-        { "min": 5000000, "max": null, "rate": 0.03876 }
-      ],
-      "_notes": "NYC brackets shown are for Single/MFS. MFJ brackets differ: $0-$21,600 (3.078%), $21,600-$45,000 (3.762%), $45,000-$90,000 (3.819%), $90,000+ (3.876%)."
+      "brackets": {
+        "single": [
+          { "min": 0, "max": 1200000, "rate": 0.03078 },
+          { "min": 1200000, "max": 2500000, "rate": 0.03762 },
+          { "min": 2500000, "max": 5000000, "rate": 0.03819 },
+          { "min": 5000000, "max": null, "rate": 0.03876 }
+        ],
+        "married_filing_jointly": [
+          { "min": 0, "max": 2160000, "rate": 0.03078 },
+          { "min": 2160000, "max": 4500000, "rate": 0.03762 },
+          { "min": 4500000, "max": 9000000, "rate": 0.03819 },
+          { "min": 9000000, "max": null, "rate": 0.03876 }
+        ],
+        "married_filing_separately": [
+          { "min": 0, "max": 1200000, "rate": 0.03078 },
+          { "min": 1200000, "max": 2500000, "rate": 0.03762 },
+          { "min": 2500000, "max": 5000000, "rate": 0.03819 },
+          { "min": 5000000, "max": null, "rate": 0.03876 }
+        ],
+        "head_of_household": [
+          { "min": 0, "max": 1200000, "rate": 0.03078 },
+          { "min": 1200000, "max": 2500000, "rate": 0.03762 },
+          { "min": 2500000, "max": 5000000, "rate": 0.03819 },
+          { "min": 5000000, "max": null, "rate": 0.03876 }
+        ],
+        "qualifying_surviving_spouse": [
+          { "min": 0, "max": 2160000, "rate": 0.03078 },
+          { "min": 2160000, "max": 4500000, "rate": 0.03762 },
+          { "min": 4500000, "max": 9000000, "rate": 0.03819 },
+          { "min": 9000000, "max": null, "rate": 0.03876 }
+        ]
+      },
+      "_source": "NYC Admin Code §11-1701; 2025 NYC tax rate tables"
     }
   },
   "credits": {

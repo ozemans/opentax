@@ -103,7 +103,8 @@ export const newJersey: StateModule = {
     }
 
     // EITC = 40% of federal EITC (refundable)
-    const eitcPercent = config.credits?.eitc?.percentOfFederal ?? 0;
+    const eitcCfg = config.credits?.eitc;
+    const eitcPercent = eitcCfg?.type === 'percent_of_federal' ? eitcCfg.percentOfFederal : 0;
     const stateEITC = computeStateEITC(input.federalEITC, eitcPercent);
 
     const creditBreakdown: Record<string, number> = {};
