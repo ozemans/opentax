@@ -133,6 +133,14 @@ export function taxReducer(state: TaxInput, action: TaxAction): TaxInput {
     case 'REMOVE_1099_NEC':
       return { ...state, form1099NECs: removeArrayItem(state.form1099NECs, action.index) };
 
+    // --- Bulk imports (append to existing) ---
+    case 'IMPORT_1099_INTS':
+      return { ...state, form1099INTs: [...state.form1099INTs, ...action.payload] };
+    case 'IMPORT_1099_DIVS':
+      return { ...state, form1099DIVs: [...state.form1099DIVs, ...action.payload] };
+    case 'IMPORT_1099_NECS':
+      return { ...state, form1099NECs: [...state.form1099NECs, ...action.payload] };
+
     // --- 1099-G ---
     case 'ADD_1099_G':
       return { ...state, form1099Gs: [...state.form1099Gs, createEmpty1099G()] };

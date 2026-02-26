@@ -102,6 +102,11 @@ export type TaxAction =
   | { type: 'UPDATE_1099_NEC'; index: number; updates: Partial<Form1099NEC> }
   | { type: 'REMOVE_1099_NEC'; index: number }
 
+  // Bulk import operations (append to existing arrays)
+  | { type: 'IMPORT_1099_INTS'; payload: Form1099INT[] }
+  | { type: 'IMPORT_1099_DIVS'; payload: Form1099DIV[] }
+  | { type: 'IMPORT_1099_NECS'; payload: Form1099NEC[] }
+
   // 1099-G operations
   | { type: 'ADD_1099_G' }
   | { type: 'UPDATE_1099_G'; index: number; updates: Partial<Form1099G> }

@@ -3,11 +3,13 @@ import { FormField } from '@/ui/components/FormField';
 import { CurrencyInput } from '@/ui/components/CurrencyInput';
 import { EINInput } from '@/ui/components/EINInput';
 import { IncomeDocumentCard } from '@/ui/components/IncomeDocumentCard';
+import { Document1099Upload } from '@/ui/components/Document1099Upload';
 import { PageContainer } from '@/ui/layouts/PageContainer';
 import { useFocusOnPageChange } from '@/ui/hooks/useFocusOnPageChange';
 import { HELP_TEXTS } from '@/ui/data/helpTexts';
 import { STATE_OPTIONS } from '@/ui/data/stateOptions';
 import { useTaxState } from '@/ui/hooks/useTaxState';
+import type { Parsed1099Result } from '@/utils/1099-parser';
 
 type IncomeSection = 'w2' | '1099int' | '1099div' | '1099nec' | 'other';
 
@@ -35,6 +37,27 @@ export function IncomePage() {
     []
   );
 
+  const handlePdfImport = useCallback(
+    (result: Parsed1099Result) => {
+      if (result.form1099INTs.length > 0) {
+        dispatch({ type: 'IMPORT_1099_INTS', payload: result.form1099INTs });
+      }
+      if (result.form1099DIVs.length > 0) {
+        dispatch({ type: 'IMPORT_1099_DIVS', payload: result.form1099DIVs });
+      }
+      if (result.form1099NECs.length > 0) {
+        dispatch({ type: 'IMPORT_1099_NECS', payload: result.form1099NECs });
+      }
+      if (result.form1099Bs.length > 0) {
+        dispatch({
+          type: 'IMPORT_1099_BS',
+          payload: [...input.form1099Bs, ...result.form1099Bs],
+        });
+      }
+    },
+    [dispatch, input.form1099Bs],
+  );
+
   const stateOptions = STATE_OPTIONS.map((s) => ({ value: s.value, label: s.label }));
 
   const { w2s, form1099INTs, form1099DIVs, form1099NECs } = input;
@@ -57,6 +80,14 @@ export function IncomePage() {
         Income
       </h1>
 
+      {/* 1099 PDF Upload */}
+      <section className="mb-6" aria-label="Upload 1099 PDF">
+        <h2 className="text-base font-display font-semibold text-slate-dark mb-3">
+          Import from 1099 PDF
+        </h2>
+        <Document1099Upload onImport={handlePdfImport} />
+      </section>
+
       {/* Section tabs */}
       <div className="flex flex-wrap gap-2 mb-6" role="tablist" aria-label="Income sections">
         {sections.map((sec) => (
@@ -67,16 +98,16 @@ export function IncomePage() {
             onClick={() => setActiveSection(sec.key)}
             className={`
               rounded-lg px-4 py-2 text-sm font-display font-medium transition-colors
-              focus:outline-none focus:ring-2 focus:ring-lavender focus:ring-offset-1
+              focus:outline-none focus:ring-2 focus:ring-highlight focus:ring-offset-1
               ${activeSection === sec.key
-                ? 'bg-lavender text-slate-dark'
-                : 'bg-surface text-slate hover:bg-lavender-light'}
+                ? 'bg-highlight text-slate-dark'
+                : 'bg-surface text-slate hover:bg-highlight-light'}
             `}
           >
             {sec.label}
             {sec.count > 0 && (
               <span className="ml-1.5 inline-flex items-center justify-center h-5 min-w-5
-                               rounded-full bg-teal/15 text-xs text-teal-dark px-1.5">
+                               rounded-full bg-primary/15 text-xs text-primary-dark px-1.5">
                 {sec.count}
               </span>
             )}
@@ -196,9 +227,9 @@ export function IncomePage() {
             }}
             className="w-full rounded-xl border border-dashed border-slate-light px-6 py-3
                        text-sm font-display font-medium text-slate
-                       hover:border-teal hover:text-teal-dark hover:bg-teal/5
+                       hover:border-primary hover:text-primary-dark hover:bg-primary/5
                        transition-colors focus:outline-none focus:ring-2
-                       focus:ring-lavender focus:ring-offset-1"
+                       focus:ring-highlight focus:ring-offset-1"
           >
             + Add W-2
           </button>
@@ -258,9 +289,9 @@ export function IncomePage() {
             }}
             className="w-full rounded-xl border border-dashed border-slate-light px-6 py-3
                        text-sm font-display font-medium text-slate
-                       hover:border-teal hover:text-teal-dark hover:bg-teal/5
+                       hover:border-primary hover:text-primary-dark hover:bg-primary/5
                        transition-colors focus:outline-none focus:ring-2
-                       focus:ring-lavender focus:ring-offset-1"
+                       focus:ring-highlight focus:ring-offset-1"
           >
             + Add 1099-INT
           </button>
@@ -330,9 +361,9 @@ export function IncomePage() {
             }}
             className="w-full rounded-xl border border-dashed border-slate-light px-6 py-3
                        text-sm font-display font-medium text-slate
-                       hover:border-teal hover:text-teal-dark hover:bg-teal/5
+                       hover:border-primary hover:text-primary-dark hover:bg-primary/5
                        transition-colors focus:outline-none focus:ring-2
-                       focus:ring-lavender focus:ring-offset-1"
+                       focus:ring-highlight focus:ring-offset-1"
           >
             + Add 1099-DIV
           </button>
@@ -392,9 +423,9 @@ export function IncomePage() {
             }}
             className="w-full rounded-xl border border-dashed border-slate-light px-6 py-3
                        text-sm font-display font-medium text-slate
-                       hover:border-teal hover:text-teal-dark hover:bg-teal/5
+                       hover:border-primary hover:text-primary-dark hover:bg-primary/5
                        transition-colors focus:outline-none focus:ring-2
-                       focus:ring-lavender focus:ring-offset-1"
+                       focus:ring-highlight focus:ring-offset-1"
           >
             + Add 1099-NEC
           </button>

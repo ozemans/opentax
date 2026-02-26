@@ -2,10 +2,12 @@ import { useCallback } from 'react';
 import type { Form1099B } from '@/engine/types';
 import { CurrencyInput } from '@/ui/components/CurrencyInput';
 import { CapitalGainsImport } from '@/ui/components/CapitalGainsImport';
+import { Document1099Upload } from '@/ui/components/Document1099Upload';
 import { PageContainer } from '@/ui/layouts/PageContainer';
 import { useFocusOnPageChange } from '@/ui/hooks/useFocusOnPageChange';
 import { HELP_TEXTS } from '@/ui/data/helpTexts';
 import { useTaxState } from '@/ui/hooks/useTaxState';
+import type { Parsed1099Result } from '@/utils/1099-parser';
 
 export function InvestmentsPage() {
   const { input, dispatch } = useTaxState();
@@ -38,6 +40,18 @@ export function InvestmentsPage() {
     dispatch({ type: 'IMPORT_1099_BS', payload: [...input.form1099Bs, ...imported] });
   }, [dispatch, input.form1099Bs]);
 
+  const handlePdfImport = useCallback(
+    (result: Parsed1099Result) => {
+      if (result.form1099Bs.length > 0) {
+        dispatch({
+          type: 'IMPORT_1099_BS',
+          payload: [...input.form1099Bs, ...result.form1099Bs],
+        });
+      }
+    },
+    [dispatch, input.form1099Bs],
+  );
+
   // Compute summary
   const totalST = transactions
     .filter((t) => !t.isLongTerm)
@@ -63,6 +77,17 @@ export function InvestmentsPage() {
       </h1>
 
       <div className="space-y-8">
+        {/* 1099 PDF upload for capital gains */}
+        <section aria-labelledby="pdf-upload-heading">
+          <h2 id="pdf-upload-heading" className="text-lg font-display font-semibold text-slate-dark mb-4">
+            Upload 1099 PDF
+          </h2>
+          <p className="text-sm font-body text-slate mb-3">
+            Upload a consolidated 1099 PDF from your broker to automatically import capital gains transactions.
+          </p>
+          <Document1099Upload onImport={handlePdfImport} />
+        </section>
+
         {/* Capital gains import/entry */}
         <section aria-labelledby="cap-gains-heading">
           <h2 id="cap-gains-heading" className="text-lg font-display font-semibold text-slate-dark mb-4">
@@ -96,7 +121,7 @@ export function InvestmentsPage() {
         {transactions.length > 0 && (
           <section
             aria-labelledby="invest-summary-heading"
-            className="rounded-2xl bg-lavender-light/50 p-5"
+            className="rounded-2xl bg-highlight-light/50 p-5"
           >
             <h2 id="invest-summary-heading" className="text-base font-display font-semibold text-slate-dark mb-3">
               Investment Summary
@@ -104,19 +129,19 @@ export function InvestmentsPage() {
             <div className="space-y-2 text-sm font-body">
               <div className="flex justify-between">
                 <span className="text-slate">Net Short-Term</span>
-                <span className={`font-medium tabular-nums ${totalST >= 0 ? 'text-success' : 'text-coral'}`}>
+                <span className={`font-medium tabular-nums ${totalST >= 0 ? 'text-success' : 'text-accent'}`}>
                   {formatCents(totalST)}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate">Net Long-Term</span>
-                <span className={`font-medium tabular-nums ${totalLT >= 0 ? 'text-success' : 'text-coral'}`}>
+                <span className={`font-medium tabular-nums ${totalLT >= 0 ? 'text-success' : 'text-accent'}`}>
                   {formatCents(totalLT)}
                 </span>
               </div>
-              <div className="border-t border-lavender pt-2 flex justify-between">
+              <div className="border-t border-highlight pt-2 flex justify-between">
                 <span className="font-display font-semibold text-slate-dark">Net Capital Gain/Loss</span>
-                <span className={`font-display font-semibold tabular-nums ${net >= 0 ? 'text-success' : 'text-coral'}`}>
+                <span className={`font-display font-semibold tabular-nums ${net >= 0 ? 'text-success' : 'text-accent'}`}>
                   {formatCents(net)}
                 </span>
               </div>
