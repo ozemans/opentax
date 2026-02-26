@@ -22,8 +22,6 @@
 //
 // NOTE: forms.ts already converts cents to dollars. No transform needed here.
 
-import type { FieldMap } from './types';
-
 const p1 = (name: string) => `topmostSubform[0].Page1[0].${name}`;
 
 // Build interest payer/amount field mappings
