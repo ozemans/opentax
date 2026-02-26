@@ -4,12 +4,14 @@ import { CurrencyInput } from '@/ui/components/CurrencyInput';
 import { EINInput } from '@/ui/components/EINInput';
 import { IncomeDocumentCard } from '@/ui/components/IncomeDocumentCard';
 import { Document1099Upload } from '@/ui/components/Document1099Upload';
+import { DocumentW2Upload } from '@/ui/components/DocumentW2Upload';
 import { PageContainer } from '@/ui/layouts/PageContainer';
 import { useFocusOnPageChange } from '@/ui/hooks/useFocusOnPageChange';
 import { HELP_TEXTS } from '@/ui/data/helpTexts';
 import { STATE_OPTIONS } from '@/ui/data/stateOptions';
 import { useTaxState } from '@/ui/hooks/useTaxState';
 import type { Parsed1099Result } from '@/utils/1099-parser';
+import type { ParsedW2Result } from '@/utils/w2-parser';
 
 type IncomeSection = 'w2' | '1099int' | '1099div' | '1099nec' | 'other';
 
@@ -56,6 +58,15 @@ export function IncomePage() {
       }
     },
     [dispatch, input.form1099Bs],
+  );
+
+  const handleW2PdfImport = useCallback(
+    (result: ParsedW2Result) => {
+      if (result.w2s.length > 0) {
+        dispatch({ type: 'IMPORT_W2S', payload: result.w2s });
+      }
+    },
+    [dispatch],
   );
 
   const stateOptions = STATE_OPTIONS.map((s) => ({ value: s.value, label: s.label }));
@@ -118,6 +129,10 @@ export function IncomePage() {
       {/* W-2 Section */}
       {activeSection === 'w2' && (
         <div className="space-y-4" role="tabpanel" aria-label="W-2 income">
+          {/* W-2 PDF Upload */}
+          <div className="mb-2">
+            <DocumentW2Upload onImport={handleW2PdfImport} />
+          </div>
           {w2s.map((w2, i) => (
             <IncomeDocumentCard
               key={i}

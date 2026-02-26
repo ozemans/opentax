@@ -134,6 +134,8 @@ export function taxReducer(state: TaxInput, action: TaxAction): TaxInput {
       return { ...state, form1099NECs: removeArrayItem(state.form1099NECs, action.index) };
 
     // --- Bulk imports (append to existing) ---
+    case 'IMPORT_W2S':
+      return { ...state, w2s: [...state.w2s, ...action.payload] };
     case 'IMPORT_1099_INTS':
       return { ...state, form1099INTs: [...state.form1099INTs, ...action.payload] };
     case 'IMPORT_1099_DIVS':

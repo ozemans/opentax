@@ -1,37 +1,30 @@
 /**
- * Drag-drop PDF upload component for consolidated 1099 documents.
+ * Drag-drop PDF upload component for W-2 documents.
  *
  * Handles PDF upload, password-protected PDFs, extraction, parsing,
- * and multi-section preview before import.
+ * and preview before import.
  *
  * pdfjs-dist is lazy-loaded to keep the initial bundle small.
  */
 
 import { useState, useRef, useCallback } from 'react';
-import type { Parsed1099Result } from '@/utils/1099-parser';
+import type { ParsedW2Result } from '@/utils/w2-parser';
 import { LoadingSpinner } from '@/ui/components/LoadingSpinner';
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
-interface Document1099UploadProps {
-  onImport: (result: Parsed1099Result) => void;
+interface DocumentW2UploadProps {
+  onImport: (result: ParsedW2Result) => void;
 }
 
 type UploadState =
   | { step: 'idle' }
   | { step: 'password'; fileBytes: ArrayBuffer }
   | { step: 'loading'; message: string }
-  | { step: 'preview'; result: Parsed1099Result; rawText?: string }
+  | { step: 'preview'; result: ParsedW2Result; rawText?: string }
   | { step: 'error'; message: string };
-
-interface SectionSelection {
-  includeINT: boolean;
-  includeDIV: boolean;
-  includeB: boolean;
-  includeNEC: boolean;
-}
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -49,15 +42,9 @@ function formatCentsToDollars(cents: number): string {
 // Component
 // ---------------------------------------------------------------------------
 
-export function Document1099Upload({ onImport }: Document1099UploadProps) {
+export function DocumentW2Upload({ onImport }: DocumentW2UploadProps) {
   const [state, setState] = useState<UploadState>({ step: 'idle' });
   const [isDragging, setIsDragging] = useState(false);
-  const [selection, setSelection] = useState<SectionSelection>({
-    includeINT: true,
-    includeDIV: true,
-    includeB: true,
-    includeNEC: true,
-  });
   const [password, setPassword] = useState('');
   const [showRawText, setShowRawText] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -92,39 +79,24 @@ export function Document1099Upload({ onImport }: Document1099UploadProps) {
       );
       const rawText = `Total items: ${extraction.items.length}\nPages: ${extraction.numPages}\n\n${rawTextLines.join('\n')}`;
 
-      setState({ step: 'loading', message: 'Parsing 1099 data...' });
+      setState({ step: 'loading', message: 'Parsing W-2 data...' });
 
       // Lazy-load the parser
-      const { parse1099Pdf } = await import('@/utils/1099-parser');
-      const result = parse1099Pdf(extraction.items);
+      const { parseW2Pdf } = await import('@/utils/w2-parser');
+      const result = parseW2Pdf(extraction.items);
 
-      const totalSections =
-        result.form1099INTs.length +
-        result.form1099DIVs.length +
-        result.form1099Bs.length +
-        result.form1099NECs.length;
-
-      if (totalSections === 0) {
-        // Log raw text to console for debugging even on failure
-        console.log('1099 Parser Debug — Raw extracted text:\n', rawText);
-        console.log('1099 Parser Debug — Sections detected:', result.warnings);
+      if (result.w2s.length === 0) {
+        console.log('W-2 Parser Debug — Raw extracted text:\n', rawText);
+        console.log('W-2 Parser Debug — Warnings:', result.warnings);
         setState({
           step: 'error',
           message:
             result.warnings.length > 0
               ? result.warnings.join(' ')
-              : 'No 1099 data could be extracted from this PDF.',
+              : 'No W-2 data could be extracted from this PDF.',
         });
         return;
       }
-
-      // Reset selection to include all found sections
-      setSelection({
-        includeINT: result.form1099INTs.length > 0,
-        includeDIV: result.form1099DIVs.length > 0,
-        includeB: result.form1099Bs.length > 0,
-        includeNEC: result.form1099NECs.length > 0,
-      });
 
       setState({ step: 'preview', result, rawText });
     } catch (err: unknown) {
@@ -182,32 +154,14 @@ export function Document1099Upload({ onImport }: Document1099UploadProps) {
 
   const handleImport = useCallback(() => {
     if (state.step !== 'preview') return;
-
-    const result: Parsed1099Result = {
-      ...state.result,
-      form1099INTs: selection.includeINT ? state.result.form1099INTs : [],
-      form1099DIVs: selection.includeDIV ? state.result.form1099DIVs : [],
-      form1099Bs: selection.includeB ? state.result.form1099Bs : [],
-      form1099NECs: selection.includeNEC ? state.result.form1099NECs : [],
-    };
-
-    onImport(result);
+    onImport(state.result);
     setState({ step: 'idle' });
-  }, [state, selection, onImport]);
+  }, [state, onImport]);
 
   const handleCancel = useCallback(() => {
     setState({ step: 'idle' });
     setPassword('');
   }, []);
-
-  // ----- Render helpers -----
-
-  const hasAnySelected =
-    state.step === 'preview' &&
-    ((selection.includeINT && state.result.form1099INTs.length > 0) ||
-      (selection.includeDIV && state.result.form1099DIVs.length > 0) ||
-      (selection.includeB && state.result.form1099Bs.length > 0) ||
-      (selection.includeNEC && state.result.form1099NECs.length > 0));
 
   // ===================================================================
   // RENDER
@@ -240,7 +194,7 @@ export function Document1099Upload({ onImport }: Document1099UploadProps) {
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click();
             }}
-            aria-label="Upload 1099 PDF document"
+            aria-label="Upload W-2 PDF document"
           >
             <svg
               className="mx-auto h-10 w-10 text-slate-light"
@@ -256,10 +210,10 @@ export function Document1099Upload({ onImport }: Document1099UploadProps) {
               <polyline points="9 15 12 12 15 15" />
             </svg>
             <p className="mt-3 text-sm font-display font-medium text-slate-dark">
-              Drop 1099 PDF here or click to browse
+              Drop W-2 PDF here or click to browse
             </p>
             <p className="mt-1 text-xs font-body text-slate">
-              Supports consolidated 1099s from Fidelity, Schwab, Vanguard, and other brokers
+              Supports standard IRS W-2 forms including ADP-generated PDFs
             </p>
             <input
               ref={fileInputRef}
@@ -338,125 +292,86 @@ export function Document1099Upload({ onImport }: Document1099UploadProps) {
           {/* Header */}
           <div>
             <h3 className="text-base font-display font-semibold text-slate-dark">
-              1099 Import Preview
+              W-2 Import Preview
             </h3>
-            {(state.result.brokerName || state.result.taxYear) && (
+            {state.result.w2s.length > 0 && state.result.w2s[0].employerName && (
               <p className="mt-1 text-sm font-body text-slate">
-                {state.result.brokerName}
-                {state.result.brokerName && state.result.taxYear && ' \u2014 '}
-                {state.result.taxYear && `Tax Year ${state.result.taxYear}`}
+                {state.result.w2s[0].employerName}
+                {state.result.w2s[0].employerEIN && (
+                  <> &mdash; EIN: {state.result.w2s[0].employerEIN}</>
+                )}
               </p>
             )}
           </div>
 
-          {/* Section previews */}
-          <div className="space-y-3">
-            {/* 1099-INT */}
-            {state.result.form1099INTs.length > 0 && (
-              <SectionPreview
-                label="1099-INT"
-                checked={selection.includeINT}
-                onToggle={() =>
-                  setSelection((s) => ({ ...s, includeINT: !s.includeINT }))
-                }
-              >
-                {state.result.form1099INTs.map((f, i) => (
-                  <div key={i} className="flex justify-between text-sm font-body">
-                    <span className="text-slate">{f.payerName || 'Interest Income'}</span>
-                    <div className="text-right tabular-nums">
-                      <span className="text-slate-dark">${formatCentsToDollars(f.interest)}</span>
-                      {(f.federalWithheld ?? 0) > 0 && (
-                        <span className="ml-3 text-xs text-slate">
-                          Withheld: ${formatCentsToDollars(f.federalWithheld ?? 0)}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </SectionPreview>
-            )}
-
-            {/* 1099-DIV */}
-            {state.result.form1099DIVs.length > 0 && (
-              <SectionPreview
-                label="1099-DIV"
-                checked={selection.includeDIV}
-                onToggle={() =>
-                  setSelection((s) => ({ ...s, includeDIV: !s.includeDIV }))
-                }
-              >
-                {state.result.form1099DIVs.map((f, i) => (
-                  <div key={i} className="space-y-1">
-                    <p className="text-sm font-body text-slate">
-                      {f.payerName || 'Dividends'}
-                    </p>
-                    <div className="grid grid-cols-2 gap-2 text-sm font-body tabular-nums">
-                      <span className="text-slate">Ordinary: ${formatCentsToDollars(f.ordinaryDividends)}</span>
-                      <span className="text-slate">Qualified: ${formatCentsToDollars(f.qualifiedDividends)}</span>
-                      {f.totalCapitalGain > 0 && (
-                        <span className="text-slate">Cap Gain: ${formatCentsToDollars(f.totalCapitalGain)}</span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </SectionPreview>
-            )}
-
-            {/* 1099-B */}
-            {state.result.form1099Bs.length > 0 && (
-              <SectionPreview
-                label="1099-B"
-                checked={selection.includeB}
-                onToggle={() =>
-                  setSelection((s) => ({ ...s, includeB: !s.includeB }))
-                }
-              >
-                <div className="text-sm font-body">
-                  <p className="text-slate-dark">
-                    {state.result.form1099Bs.length} transaction{state.result.form1099Bs.length !== 1 ? 's' : ''}
-                  </p>
-                  <div className="mt-1 flex gap-4 tabular-nums">
-                    {(() => {
-                      const netGainLoss = state.result.form1099Bs.reduce(
-                        (sum, t) => sum + t.gainLoss,
-                        0,
-                      );
-                      return (
-                        <span
-                          className={
-                            netGainLoss >= 0 ? 'text-success' : 'text-accent'
-                          }
-                        >
-                          Net: {netGainLoss >= 0 ? '+' : ''}$
-                          {formatCentsToDollars(netGainLoss)}
-                        </span>
-                      );
-                    })()}
-                  </div>
+          {/* W-2 data preview */}
+          {state.result.w2s.map((w2, i) => (
+            <div
+              key={i}
+              className="rounded-xl border border-primary/30 bg-primary/5 p-4 space-y-3"
+            >
+              <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm font-body tabular-nums">
+                <div className="flex justify-between">
+                  <span className="text-slate">Wages (Box 1)</span>
+                  <span className="text-slate-dark">${formatCentsToDollars(w2.wages)}</span>
                 </div>
-              </SectionPreview>
-            )}
-
-            {/* 1099-NEC */}
-            {state.result.form1099NECs.length > 0 && (
-              <SectionPreview
-                label="1099-NEC"
-                checked={selection.includeNEC}
-                onToggle={() =>
-                  setSelection((s) => ({ ...s, includeNEC: !s.includeNEC }))
-                }
-              >
-                {state.result.form1099NECs.map((f, i) => (
-                  <div key={i} className="flex justify-between text-sm font-body">
-                    <span className="text-slate">{f.payerName || 'Nonemployee Compensation'}</span>
-                    <span className="text-slate-dark tabular-nums">
-                      ${formatCentsToDollars(f.nonemployeeCompensation)}
-                    </span>
-                  </div>
-                ))}
-              </SectionPreview>
-            )}
-          </div>
+                <div className="flex justify-between">
+                  <span className="text-slate">Federal Withheld (Box 2)</span>
+                  <span className="text-slate-dark">${formatCentsToDollars(w2.federalWithheld)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate">SS Wages (Box 3)</span>
+                  <span className="text-slate-dark">${formatCentsToDollars(w2.socialSecurityWages)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate">SS Withheld (Box 4)</span>
+                  <span className="text-slate-dark">${formatCentsToDollars(w2.socialSecurityWithheld)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate">Medicare Wages (Box 5)</span>
+                  <span className="text-slate-dark">${formatCentsToDollars(w2.medicareWages)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate">Medicare Withheld (Box 6)</span>
+                  <span className="text-slate-dark">${formatCentsToDollars(w2.medicareWithheld)}</span>
+                </div>
+                {w2.stateCode && (
+                  <>
+                    <div className="flex justify-between">
+                      <span className="text-slate">State (Box 15)</span>
+                      <span className="text-slate-dark">{w2.stateCode}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate">State Wages (Box 16)</span>
+                      <span className="text-slate-dark">${formatCentsToDollars(w2.stateWages)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate">State Withheld (Box 17)</span>
+                      <span className="text-slate-dark">${formatCentsToDollars(w2.stateWithheld)}</span>
+                    </div>
+                  </>
+                )}
+                {(w2.localWages ?? 0) > 0 && (
+                  <>
+                    <div className="flex justify-between">
+                      <span className="text-slate">Local Wages (Box 18)</span>
+                      <span className="text-slate-dark">${formatCentsToDollars(w2.localWages ?? 0)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate">Local Withheld (Box 19)</span>
+                      <span className="text-slate-dark">${formatCentsToDollars(w2.localWithheld ?? 0)}</span>
+                    </div>
+                    {w2.locality && (
+                      <div className="flex justify-between col-span-2">
+                        <span className="text-slate">Locality (Box 20)</span>
+                        <span className="text-slate-dark">{w2.locality}</span>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          ))}
 
           {/* Warnings */}
           {state.result.warnings.length > 0 && (
@@ -501,13 +416,11 @@ export function Document1099Upload({ onImport }: Document1099UploadProps) {
             <button
               type="button"
               onClick={handleImport}
-              disabled={!hasAnySelected}
               className="rounded-xl bg-primary px-6 py-3 text-sm font-display font-medium
                          text-white hover:bg-primary-dark transition-colors
-                         focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1
-                         disabled:opacity-50 disabled:cursor-not-allowed"
+                         focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
             >
-              Import Selected
+              Import
             </button>
             <button
               type="button"
@@ -522,43 +435,6 @@ export function Document1099Upload({ onImport }: Document1099UploadProps) {
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Section Preview sub-component
-// ---------------------------------------------------------------------------
-
-interface SectionPreviewProps {
-  label: string;
-  checked: boolean;
-  onToggle: () => void;
-  children: React.ReactNode;
-}
-
-function SectionPreview({ label, checked, onToggle, children }: SectionPreviewProps) {
-  return (
-    <div
-      className={`rounded-xl border p-4 transition-colors ${
-        checked
-          ? 'border-primary/30 bg-primary/5'
-          : 'border-slate-light/30 bg-surface opacity-60'
-      }`}
-    >
-      <label className="flex items-center gap-3 cursor-pointer mb-2">
-        <input
-          type="checkbox"
-          checked={checked}
-          onChange={onToggle}
-          className="h-4 w-4 rounded border-slate-light text-primary
-                     focus:ring-2 focus:ring-primary focus:ring-offset-1"
-        />
-        <span className="text-sm font-display font-semibold text-slate-dark">
-          {label}
-        </span>
-      </label>
-      <div className="ml-7 space-y-1">{children}</div>
     </div>
   );
 }

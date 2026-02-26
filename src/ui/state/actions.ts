@@ -103,6 +103,7 @@ export type TaxAction =
   | { type: 'REMOVE_1099_NEC'; index: number }
 
   // Bulk import operations (append to existing arrays)
+  | { type: 'IMPORT_W2S'; payload: W2[] }
   | { type: 'IMPORT_1099_INTS'; payload: Form1099INT[] }
   | { type: 'IMPORT_1099_DIVS'; payload: Form1099DIV[] }
   | { type: 'IMPORT_1099_NECS'; payload: Form1099NEC[] }
