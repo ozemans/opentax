@@ -177,6 +177,7 @@ async function main() {
       } else if (mapping.type === 'checkbox' && pdfField instanceof PDFCheckBox) {
         if (displayValue === 'X' || displayValue === 'true' || displayValue === '1') {
           pdfField.check();
+          pdfField.defaultUpdateAppearances();
         }
         filled++;
       }

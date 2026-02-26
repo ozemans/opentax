@@ -70,6 +70,9 @@ export async function fillForm(
         } else {
           pdfField.uncheck();
         }
+        // Regenerate appearance stream — needed for XFA-stripped IRS PDFs
+        // where original appearance streams may not render in all viewers.
+        pdfField.defaultUpdateAppearances();
       }
     } catch {
       // PDF field not found in template — warn but don't throw.
