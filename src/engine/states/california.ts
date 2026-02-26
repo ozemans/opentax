@@ -13,7 +13,7 @@
 // All monetary values are integers in CENTS.
 
 import type { StateModule, StateTaxInput, StateTaxResult, StateConfig } from './interface';
-import type { TaxBracket, FilingStatus } from '../types';
+import type { TaxBracket } from '../types';
 import {
   computeStateBracketTax,
   getStateMarginalRate,

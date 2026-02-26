@@ -124,7 +124,7 @@ export interface QDCGTaxParams {
 export function computeQualifiedDividendAndCapGainTax(params: QDCGTaxParams): number {
   const {
     taxableIncome,
-    ordinaryIncome,
+    ordinaryIncome: _ordinaryIncome,
     qualifiedDividends,
     netLTCG,
     collectiblesGain,

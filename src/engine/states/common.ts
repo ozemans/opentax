@@ -351,13 +351,13 @@ export function buildStateTaxInput(
     stateEstimatedPayments: input.estimatedTaxPayments, // Simplified: use total estimated payments
     federalItemizedDeductions,
     usedFederalItemized: federalResult.deductionBreakdown.type === 'itemized',
-    propertyTaxes: input.itemizedDeductions?.stateLocalTaxes ?? 0,
+    propertyTaxes: input.itemizedDeductions?.stateLocalTaxesPaid ?? 0,
     mortgageInterest: input.itemizedDeductions?.mortgageInterest ?? 0,
     charitableContributions:
       (input.itemizedDeductions?.charitableCash ?? 0) +
       (input.itemizedDeductions?.charitableNonCash ?? 0),
     medicalExpenses: input.itemizedDeductions?.medicalExpenses ?? 0,
-    stateLocalTaxesPaid: input.itemizedDeductions?.stateLocalTaxes ?? 0,
+    stateLocalTaxesPaid: input.itemizedDeductions?.stateLocalTaxesPaid ?? 0,
     isRenter: false,
     rentPaid: 0,
     locality,

@@ -75,7 +75,7 @@ function getRequiredForms(result: TaxResult): FormId[] {
  * @returns Single merged PDF as Uint8Array
  */
 export async function generateReturnPackage(
-  input: TaxInput,
+  _input: TaxInput,
   result: TaxResult,
   templateLoader: TemplateLoader = defaultTemplateLoader,
 ): Promise<Uint8Array> {
