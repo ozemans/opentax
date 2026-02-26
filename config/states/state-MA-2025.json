@@ -2,17 +2,20 @@
   "stateCode": "MA",
   "stateName": "Massachusetts",
   "taxYear": 2025,
+  "_source": "M.G.L. c.62 §4 — flat rate 5.0%; STCG rate 8.5% per c.62 §4(b); surtax per Art. XLIV of MA Constitution (https://www.mass.gov/info-details/massachusetts-tax-rates)",
+  "_verifiedDate": "2026-02-25",
+  "_notes": "Short-term capital gains rate reduced from 12% to 8.5% effective Jan 1, 2023. Millionaire surtax threshold inflation-adjusted to $1,083,150 for 2025 (from $1M in 2023).",
   "hasIncomeTax": true,
   "startingPoint": "federal_agi",
   "flatRate": 0.05,
-  "shortTermCapGainsRate": 0.12,
+  "shortTermCapGainsRate": 0.085,
   "surtax": {
     "threshold": {
-      "single": 100000000,
-      "married_filing_jointly": 100000000,
-      "married_filing_separately": 100000000,
-      "head_of_household": 100000000,
-      "qualifying_surviving_spouse": 100000000
+      "single": 108315000,
+      "married_filing_jointly": 108315000,
+      "married_filing_separately": 108315000,
+      "head_of_household": 108315000,
+      "qualifying_surviving_spouse": 108315000
     },
     "rate": 0.04,
     "description": "Massachusetts Millionaire Surtax"

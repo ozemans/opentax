@@ -2,6 +2,9 @@
   "stateCode": "NY",
   "stateName": "New York",
   "taxYear": 2025,
+  "_source": "tax.ny.gov 2025 Tax Tables (https://www.tax.ny.gov/pit/file/tax-tables/2025.htm); NYS Tax Law §601",
+  "_verifiedDate": "2026-02-25",
+  "_notes": "NY brackets differ by filing status — MFJ and HOH have different thresholds from Single/MFS. NYC brackets also differ by filing status; only single brackets included (MFJ NYC brackets: $0-$21,600/$21,600-$45,000/$45,000-$90,000/$90,000+). Empire State Child Credit: $1,000 for children under 4, $330 for ages 4-16 (new for 2025).",
   "hasIncomeTax": true,
   "startingPoint": "federal_agi",
   "brackets": {
@@ -17,13 +20,13 @@
       { "min": 2500000000, "max": null, "rate": 0.109 }
     ],
     "married_filing_jointly": [
-      { "min": 0, "max": 850000, "rate": 0.04 },
-      { "min": 850000, "max": 1170000, "rate": 0.045 },
-      { "min": 1170000, "max": 1390000, "rate": 0.0525 },
-      { "min": 1390000, "max": 8065000, "rate": 0.055 },
-      { "min": 8065000, "max": 21540000, "rate": 0.06 },
-      { "min": 21540000, "max": 107755000, "rate": 0.0685 },
-      { "min": 107755000, "max": 500000000, "rate": 0.0965 },
+      { "min": 0, "max": 1715000, "rate": 0.04 },
+      { "min": 1715000, "max": 2360000, "rate": 0.045 },
+      { "min": 2360000, "max": 2790000, "rate": 0.0525 },
+      { "min": 2790000, "max": 16155000, "rate": 0.055 },
+      { "min": 16155000, "max": 32320000, "rate": 0.06 },
+      { "min": 32320000, "max": 215535000, "rate": 0.0685 },
+      { "min": 215535000, "max": 500000000, "rate": 0.0965 },
       { "min": 500000000, "max": 2500000000, "rate": 0.103 },
       { "min": 2500000000, "max": null, "rate": 0.109 }
     ],
@@ -39,24 +42,24 @@
       { "min": 2500000000, "max": null, "rate": 0.109 }
     ],
     "head_of_household": [
-      { "min": 0, "max": 850000, "rate": 0.04 },
-      { "min": 850000, "max": 1170000, "rate": 0.045 },
-      { "min": 1170000, "max": 1390000, "rate": 0.0525 },
-      { "min": 1390000, "max": 8065000, "rate": 0.055 },
-      { "min": 8065000, "max": 21540000, "rate": 0.06 },
-      { "min": 21540000, "max": 107755000, "rate": 0.0685 },
-      { "min": 107755000, "max": 500000000, "rate": 0.0965 },
+      { "min": 0, "max": 1280000, "rate": 0.04 },
+      { "min": 1280000, "max": 1765000, "rate": 0.045 },
+      { "min": 1765000, "max": 2090000, "rate": 0.0525 },
+      { "min": 2090000, "max": 10765000, "rate": 0.055 },
+      { "min": 10765000, "max": 26930000, "rate": 0.06 },
+      { "min": 26930000, "max": 161645000, "rate": 0.0685 },
+      { "min": 161645000, "max": 500000000, "rate": 0.0965 },
       { "min": 500000000, "max": 2500000000, "rate": 0.103 },
       { "min": 2500000000, "max": null, "rate": 0.109 }
     ],
     "qualifying_surviving_spouse": [
-      { "min": 0, "max": 850000, "rate": 0.04 },
-      { "min": 850000, "max": 1170000, "rate": 0.045 },
-      { "min": 1170000, "max": 1390000, "rate": 0.0525 },
-      { "min": 1390000, "max": 8065000, "rate": 0.055 },
-      { "min": 8065000, "max": 21540000, "rate": 0.06 },
-      { "min": 21540000, "max": 107755000, "rate": 0.0685 },
-      { "min": 107755000, "max": 500000000, "rate": 0.0965 },
+      { "min": 0, "max": 1715000, "rate": 0.04 },
+      { "min": 1715000, "max": 2360000, "rate": 0.045 },
+      { "min": 2360000, "max": 2790000, "rate": 0.0525 },
+      { "min": 2790000, "max": 16155000, "rate": 0.055 },
+      { "min": 16155000, "max": 32320000, "rate": 0.06 },
+      { "min": 32320000, "max": 215535000, "rate": 0.0685 },
+      { "min": 215535000, "max": 500000000, "rate": 0.0965 },
       { "min": 500000000, "max": 2500000000, "rate": 0.103 },
       { "min": 2500000000, "max": null, "rate": 0.109 }
     ]
@@ -65,7 +68,7 @@
     "single": 800000,
     "married_filing_jointly": 1605000,
     "married_filing_separately": 800000,
-    "head_of_household": 1100000,
+    "head_of_household": 1120000,
     "qualifying_surviving_spouse": 1605000
   },
   "socialSecurityExempt": true,
@@ -74,10 +77,11 @@
     "NYC": {
       "brackets": [
         { "min": 0, "max": 1200000, "rate": 0.03078 },
-        { "min": 1200000, "max": 2550000, "rate": 0.03762 },
-        { "min": 2550000, "max": 5000000, "rate": 0.03819 },
+        { "min": 1200000, "max": 2500000, "rate": 0.03762 },
+        { "min": 2500000, "max": 5000000, "rate": 0.03819 },
         { "min": 5000000, "max": null, "rate": 0.03876 }
-      ]
+      ],
+      "_notes": "NYC brackets shown are for Single/MFS. MFJ brackets differ: $0-$21,600 (3.078%), $21,600-$45,000 (3.762%), $45,000-$90,000 (3.819%), $90,000+ (3.876%)."
     }
   },
   "credits": {
@@ -88,13 +92,15 @@
     },
     "childCredit": {
       "amountPerChild": 33000,
+      "amountPerChildUnder4": 100000,
       "agiPhaseOut": {
         "single": 7500000,
         "married_filing_jointly": 11000000,
         "married_filing_separately": 5500000,
         "head_of_household": 7500000,
         "qualifying_surviving_spouse": 11000000
-      }
+      },
+      "_notes": "Empire State Child Credit: $1,000 per qualifying child under age 4, $330 per qualifying child ages 4-16 (enhanced for 2025). Phase-out: $16.50 reduction per $1,000 over threshold."
     }
   },
   "formId": "IT-201",

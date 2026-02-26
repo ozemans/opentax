@@ -2,46 +2,40 @@
   "stateCode": "OH",
   "stateName": "Ohio",
   "taxYear": 2025,
+  "_source": "Ohio Rev. Code §5747.02; Ohio Dept. of Taxation (https://tax.ohio.gov/individual/resources/annual-tax-rates)",
+  "_verifiedDate": "2026-02-25",
+  "_notes": "Ohio simplified to 3 brackets (0%/2.75%/3.125%) effective 2025 per HB 33. Personal exemptions are income-tiered: $2,400 (AGI ≤ $40k), $2,150 ($40k-$80k), $1,900 ($80k+), eliminated at $750k+.",
   "hasIncomeTax": true,
   "startingPoint": "federal_agi",
   "brackets": {
     "single": [
       { "min": 0, "max": 2605000, "rate": 0 },
-      { "min": 2605000, "max": 4610000, "rate": 0.0275 },
-      { "min": 4610000, "max": 9215000, "rate": 0.035 },
-      { "min": 9215000, "max": 11530000, "rate": 0.0375 },
-      { "min": 11530000, "max": null, "rate": 0.0399 }
+      { "min": 2605000, "max": 10000000, "rate": 0.0275 },
+      { "min": 10000000, "max": null, "rate": 0.03125 }
     ],
     "married_filing_jointly": [
       { "min": 0, "max": 2605000, "rate": 0 },
-      { "min": 2605000, "max": 4610000, "rate": 0.0275 },
-      { "min": 4610000, "max": 9215000, "rate": 0.035 },
-      { "min": 9215000, "max": 11530000, "rate": 0.0375 },
-      { "min": 11530000, "max": null, "rate": 0.0399 }
+      { "min": 2605000, "max": 10000000, "rate": 0.0275 },
+      { "min": 10000000, "max": null, "rate": 0.03125 }
     ],
     "married_filing_separately": [
       { "min": 0, "max": 2605000, "rate": 0 },
-      { "min": 2605000, "max": 4610000, "rate": 0.0275 },
-      { "min": 4610000, "max": 9215000, "rate": 0.035 },
-      { "min": 9215000, "max": 11530000, "rate": 0.0375 },
-      { "min": 11530000, "max": null, "rate": 0.0399 }
+      { "min": 2605000, "max": 10000000, "rate": 0.0275 },
+      { "min": 10000000, "max": null, "rate": 0.03125 }
     ],
     "head_of_household": [
       { "min": 0, "max": 2605000, "rate": 0 },
-      { "min": 2605000, "max": 4610000, "rate": 0.0275 },
-      { "min": 4610000, "max": 9215000, "rate": 0.035 },
-      { "min": 9215000, "max": 11530000, "rate": 0.0375 },
-      { "min": 11530000, "max": null, "rate": 0.0399 }
+      { "min": 2605000, "max": 10000000, "rate": 0.0275 },
+      { "min": 10000000, "max": null, "rate": 0.03125 }
     ],
     "qualifying_surviving_spouse": [
       { "min": 0, "max": 2605000, "rate": 0 },
-      { "min": 2605000, "max": 4610000, "rate": 0.0275 },
-      { "min": 4610000, "max": 9215000, "rate": 0.035 },
-      { "min": 9215000, "max": 11530000, "rate": 0.0375 },
-      { "min": 11530000, "max": null, "rate": 0.0399 }
+      { "min": 2605000, "max": 10000000, "rate": 0.0275 },
+      { "min": 10000000, "max": null, "rate": 0.03125 }
     ]
   },
   "personalExemption": {
+    "_notes": "Ohio exemptions are income-tiered. Config uses $2,400 (lowest tier). Engine should implement tiered logic: $2,400 (AGI ≤ $40k), $2,150 ($40k-$80k), $1,900 ($80k+), $0 ($750k+).",
     "taxpayer": {
       "single": 240000,
       "married_filing_jointly": 240000,
@@ -50,7 +44,13 @@
       "qualifying_surviving_spouse": 240000
     },
     "spouse": 240000,
-    "dependent": 240000
+    "dependent": 240000,
+    "tiers": [
+      { "maxAgi": 4000000, "amount": 240000 },
+      { "maxAgi": 8000000, "amount": 215000 },
+      { "maxAgi": 75000000, "amount": 190000 },
+      { "maxAgi": null, "amount": 0 }
+    ]
   },
   "socialSecurityExempt": true,
   "capitalGainsTreatment": "ordinary",

@@ -2,98 +2,101 @@
   "stateCode": "CA",
   "stateName": "California",
   "taxYear": 2025,
+  "_source": "FTB 2025 Form 540 Booklet & Tax Rate Schedules (https://www.ftb.ca.gov/forms/2025/2025-540-booklet.html); R&TC §17041 (rates), §17043 (mental health surtax)",
+  "_verifiedDate": "2026-02-25",
+  "_notes": "Brackets updated from 2024 to 2025 per FTB CCPI adjustment (~3.0%). HOH thresholds derived by applying CCPI factor to 2024 published values. Mental health surtax ($1M) is statutory per R&TC §17043 and NOT inflation-adjusted.",
   "hasIncomeTax": true,
   "startingPoint": "federal_agi",
   "brackets": {
     "single": [
-      { "min": 0, "max": 1041200, "rate": 0.01 },
-      { "min": 1041200, "max": 2468400, "rate": 0.02 },
-      { "min": 2468400, "max": 3895900, "rate": 0.04 },
-      { "min": 3895900, "max": 5408100, "rate": 0.06 },
-      { "min": 5408100, "max": 6835000, "rate": 0.08 },
-      { "min": 6835000, "max": 34913700, "rate": 0.093 },
-      { "min": 34913700, "max": 41896100, "rate": 0.103 },
-      { "min": 41896100, "max": 69827100, "rate": 0.113 },
-      { "min": 69827100, "max": 100000000, "rate": 0.123 },
+      { "min": 0, "max": 1107900, "rate": 0.01 },
+      { "min": 1107900, "max": 2626400, "rate": 0.02 },
+      { "min": 2626400, "max": 4145200, "rate": 0.04 },
+      { "min": 4145200, "max": 5754200, "rate": 0.06 },
+      { "min": 5754200, "max": 7272400, "rate": 0.08 },
+      { "min": 7272400, "max": 37147900, "rate": 0.093 },
+      { "min": 37147900, "max": 44577100, "rate": 0.103 },
+      { "min": 44577100, "max": 74295300, "rate": 0.113 },
+      { "min": 74295300, "max": 100000000, "rate": 0.123 },
       { "min": 100000000, "max": null, "rate": 0.133 }
     ],
     "married_filing_jointly": [
-      { "min": 0, "max": 2082400, "rate": 0.01 },
-      { "min": 2082400, "max": 4936800, "rate": 0.02 },
-      { "min": 4936800, "max": 7791800, "rate": 0.04 },
-      { "min": 7791800, "max": 10816200, "rate": 0.06 },
-      { "min": 10816200, "max": 13670000, "rate": 0.08 },
-      { "min": 13670000, "max": 69827400, "rate": 0.093 },
-      { "min": 69827400, "max": 83792200, "rate": 0.103 },
-      { "min": 83792200, "max": 100000000, "rate": 0.113 },
-      { "min": 100000000, "max": 139654200, "rate": 0.123 },
-      { "min": 139654200, "max": null, "rate": 0.133 }
+      { "min": 0, "max": 2215800, "rate": 0.01 },
+      { "min": 2215800, "max": 5252800, "rate": 0.02 },
+      { "min": 5252800, "max": 8290400, "rate": 0.04 },
+      { "min": 8290400, "max": 11508400, "rate": 0.06 },
+      { "min": 11508400, "max": 14544800, "rate": 0.08 },
+      { "min": 14544800, "max": 74295800, "rate": 0.093 },
+      { "min": 74295800, "max": 89154200, "rate": 0.103 },
+      { "min": 89154200, "max": 100000000, "rate": 0.113 },
+      { "min": 100000000, "max": 148590600, "rate": 0.123 },
+      { "min": 148590600, "max": null, "rate": 0.133 }
     ],
     "married_filing_separately": [
-      { "min": 0, "max": 1041200, "rate": 0.01 },
-      { "min": 1041200, "max": 2468400, "rate": 0.02 },
-      { "min": 2468400, "max": 3895900, "rate": 0.04 },
-      { "min": 3895900, "max": 5408100, "rate": 0.06 },
-      { "min": 5408100, "max": 6835000, "rate": 0.08 },
-      { "min": 6835000, "max": 34913700, "rate": 0.093 },
-      { "min": 34913700, "max": 41896100, "rate": 0.103 },
-      { "min": 41896100, "max": 69827100, "rate": 0.113 },
-      { "min": 69827100, "max": 100000000, "rate": 0.123 },
+      { "min": 0, "max": 1107900, "rate": 0.01 },
+      { "min": 1107900, "max": 2626400, "rate": 0.02 },
+      { "min": 2626400, "max": 4145200, "rate": 0.04 },
+      { "min": 4145200, "max": 5754200, "rate": 0.06 },
+      { "min": 5754200, "max": 7272400, "rate": 0.08 },
+      { "min": 7272400, "max": 37147900, "rate": 0.093 },
+      { "min": 37147900, "max": 44577100, "rate": 0.103 },
+      { "min": 44577100, "max": 74295300, "rate": 0.113 },
+      { "min": 74295300, "max": 100000000, "rate": 0.123 },
       { "min": 100000000, "max": null, "rate": 0.133 }
     ],
     "head_of_household": [
-      { "min": 0, "max": 2082400, "rate": 0.01 },
-      { "min": 2082400, "max": 4936800, "rate": 0.02 },
-      { "min": 4936800, "max": 6364300, "rate": 0.04 },
-      { "min": 6364300, "max": 7876500, "rate": 0.06 },
-      { "min": 7876500, "max": 9303400, "rate": 0.08 },
-      { "min": 9303400, "max": 47382100, "rate": 0.093 },
-      { "min": 47382100, "max": 56858500, "rate": 0.103 },
-      { "min": 56858500, "max": 94764000, "rate": 0.113 },
-      { "min": 94764000, "max": 100000000, "rate": 0.123 },
-      { "min": 100000000, "max": null, "rate": 0.133 }
+      { "min": 0, "max": 2217300, "rate": 0.01 },
+      { "min": 2217300, "max": 5253000, "rate": 0.02 },
+      { "min": 5253000, "max": 6771600, "rate": 0.04 },
+      { "min": 6771600, "max": 8380500, "rate": 0.06 },
+      { "min": 8380500, "max": 9899000, "rate": 0.08 },
+      { "min": 9899000, "max": 50520800, "rate": 0.093 },
+      { "min": 50520800, "max": 60625100, "rate": 0.103 },
+      { "min": 60625100, "max": 100000000, "rate": 0.113 },
+      { "min": 100000000, "max": 101041700, "rate": 0.123 },
+      { "min": 101041700, "max": null, "rate": 0.133 }
     ],
     "qualifying_surviving_spouse": [
-      { "min": 0, "max": 2082400, "rate": 0.01 },
-      { "min": 2082400, "max": 4936800, "rate": 0.02 },
-      { "min": 4936800, "max": 7791800, "rate": 0.04 },
-      { "min": 7791800, "max": 10816200, "rate": 0.06 },
-      { "min": 10816200, "max": 13670000, "rate": 0.08 },
-      { "min": 13670000, "max": 69827400, "rate": 0.093 },
-      { "min": 69827400, "max": 83792200, "rate": 0.103 },
-      { "min": 83792200, "max": 100000000, "rate": 0.113 },
-      { "min": 100000000, "max": 139654200, "rate": 0.123 },
-      { "min": 139654200, "max": null, "rate": 0.133 }
+      { "min": 0, "max": 2215800, "rate": 0.01 },
+      { "min": 2215800, "max": 5252800, "rate": 0.02 },
+      { "min": 5252800, "max": 8290400, "rate": 0.04 },
+      { "min": 8290400, "max": 11508400, "rate": 0.06 },
+      { "min": 11508400, "max": 14544800, "rate": 0.08 },
+      { "min": 14544800, "max": 74295800, "rate": 0.093 },
+      { "min": 74295800, "max": 89154200, "rate": 0.103 },
+      { "min": 89154200, "max": 100000000, "rate": 0.113 },
+      { "min": 100000000, "max": 148590600, "rate": 0.123 },
+      { "min": 148590600, "max": null, "rate": 0.133 }
     ]
   },
   "standardDeduction": {
-    "single": 554000,
-    "married_filing_jointly": 1108000,
-    "married_filing_separately": 554000,
-    "head_of_household": 1108000,
-    "qualifying_surviving_spouse": 1108000
+    "single": 570600,
+    "married_filing_jointly": 1141200,
+    "married_filing_separately": 570600,
+    "head_of_household": 1141200,
+    "qualifying_surviving_spouse": 1141200
   },
   "personalExemption": {
     "taxpayer": {
-      "single": 14400,
-      "married_filing_jointly": 14400,
-      "married_filing_separately": 14400,
-      "head_of_household": 14400,
-      "qualifying_surviving_spouse": 14400
+      "single": 15300,
+      "married_filing_jointly": 15300,
+      "married_filing_separately": 15300,
+      "head_of_household": 15300,
+      "qualifying_surviving_spouse": 15300
     },
-    "spouse": 14400,
-    "dependent": 44600
+    "spouse": 15300,
+    "dependent": 47500
   },
   "surtax": {
     "threshold": {
       "single": 100000000,
       "married_filing_jointly": 100000000,
-      "married_filing_separately": 50000000,
+      "married_filing_separately": 100000000,
       "head_of_household": 100000000,
       "qualifying_surviving_spouse": 100000000
     },
     "rate": 0.01,
-    "description": "Mental Health Services Tax"
+    "description": "Mental Health Services Tax (Behavioral Health Services Tax)"
   },
   "socialSecurityExempt": true,
   "capitalGainsTreatment": "ordinary",
@@ -101,7 +104,8 @@
     "eitc": {
       "type": "percent_of_federal",
       "percentOfFederal": 0.45,
-      "refundable": true
+      "refundable": true,
+      "_notes": "CalEITC is actually an independent credit per R&TC §17052 with its own phase-in percentages (7.65%/34%/40%/45% by number of children). The 45% figure is only the credit percentage for 3+ qualifying children, not a blanket percentage of federal EITC. This approximation overstates the credit for filers with 0-2 children."
     },
     "rentersCredit": {
       "amount": {
@@ -112,11 +116,11 @@
         "qualifying_surviving_spouse": 12000
       },
       "agiLimit": {
-        "single": 5284000,
-        "married_filing_jointly": 10568000,
-        "married_filing_separately": 5284000,
-        "head_of_household": 10568000,
-        "qualifying_surviving_spouse": 10568000
+        "single": 5399400,
+        "married_filing_jointly": 10798700,
+        "married_filing_separately": 5399400,
+        "head_of_household": 10798700,
+        "qualifying_surviving_spouse": 10798700
       }
     }
   },

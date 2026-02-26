@@ -109,12 +109,12 @@ describe('New York (NY) — progressive + NYC local', () => {
     const input = makeInput({ locality: 'NYC' });
     const result = newYork.compute(input, nyConfig);
     expect(result.localTax).toBeGreaterThan(0);
-    // NYC tax should be computed on same taxable income
+    // NYC tax should be computed on same taxable income ($67,000)
     const taxable = 7_500_000 - 800_000;
     const expectedNYC = Math.round(
       1_200_000 * 0.03078 +
-      1_350_000 * 0.03762 +
-      2_450_000 * 0.03819 +
+      1_300_000 * 0.03762 +
+      2_500_000 * 0.03819 +
       1_700_000 * 0.03876,
     );
     expect(result.localTax).toBe(expectedNYC);
@@ -210,12 +210,12 @@ describe('California (CA) — 10 brackets + surtax + CalEITC + renter\'s credit'
   });
 
   it('computes basic tax with standard deduction and exemption', () => {
-    // AGI $75,000 - std ded $5,540 - exemption $144 = $69,316 taxable
+    // AGI $75,000 - std ded $5,706 - exemption $153 = $69,141 taxable
     const result = california.compute(makeInput(), caConfig);
-    const taxable = 7_500_000 - 554_000 - 14_400;
+    const taxable = 7_500_000 - 570_600 - 15_300;
     expect(result.stateTaxableIncome).toBe(taxable);
-    expect(result.stateDeduction).toBe(554_000);
-    expect(result.stateExemptions).toBe(14_400);
+    expect(result.stateDeduction).toBe(570_600);
+    expect(result.stateExemptions).toBe(15_300);
   });
 
   it('taxes capital gains as ordinary income', () => {
@@ -232,22 +232,17 @@ describe('California (CA) — 10 brackets + surtax + CalEITC + renter\'s credit'
   });
 
   it('computes bracket tax spanning multiple brackets', () => {
-    // Taxable: $69,316 (6_931_600)
-    // 1% on $10,412 = $104.12
-    // 2% on $14,272 = $285.44
-    // 4% on $14,275 = $571.00
-    // 6% on $15,122 = $907.32
-    // 8% on $14,269 = $1,141.52
-    // 9.3% on $966 = $89.84 (6_931_600 - 6_835_000 = 96_600)
+    // Taxable: $69,141 (6_914_100) = $75,000 - $5,706 - $153
+    // 1% on $11,079, 2% on ($26,264-$11,079), 4% on ($41,452-$26,264),
+    // 6% on ($57,542-$41,452), 8% on ($69,141-$57,542)
     const result = california.compute(makeInput(), caConfig);
-    const taxable = 6_931_600;
+    const taxable = 6_914_100;
     const expected = Math.round(
-      1_041_200 * 0.01 +
-      (2_468_400 - 1_041_200) * 0.02 +
-      (3_895_900 - 2_468_400) * 0.04 +
-      (5_408_100 - 3_895_900) * 0.06 +
-      (6_835_000 - 5_408_100) * 0.08 +
-      (6_931_600 - 6_835_000) * 0.093,
+      1_107_900 * 0.01 +
+      (2_626_400 - 1_107_900) * 0.02 +
+      (4_145_200 - 2_626_400) * 0.04 +
+      (5_754_200 - 4_145_200) * 0.06 +
+      (6_914_100 - 5_754_200) * 0.08,
     );
     expect(result.stateTaxBeforeCredits).toBe(expected); // No surtax for this income
   });
@@ -347,20 +342,20 @@ describe('California (CA) — 10 brackets + surtax + CalEITC + renter\'s credit'
     expect(result.creditBreakdown.rentersCredit).toBe(12_000);
   });
 
-  it('MFJ standard deduction is $11,080', () => {
+  it('MFJ standard deduction is $11,412', () => {
     const input = makeInput({
       filingStatus: 'married_filing_jointly',
       federalAGI: 15_000_000,
     });
     const result = california.compute(input, caConfig);
-    expect(result.stateDeduction).toBe(1_108_000);
+    expect(result.stateDeduction).toBe(1_141_200);
   });
 
   it('includes dependent exemptions', () => {
     const input = makeInput({ numDependents: 2 });
     const result = california.compute(input, caConfig);
-    // taxpayer $144 + 2 deps * $446 = $1,036 (103_600)
-    expect(result.stateExemptions).toBe(14_400 + 2 * 44_600);
+    // taxpayer $153 + 2 deps * $475 = $1,103 (110_300)
+    expect(result.stateExemptions).toBe(15_300 + 2 * 47_500);
   });
 
   it('Social Security is exempt', () => {

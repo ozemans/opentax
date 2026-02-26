@@ -1,4 +1,7 @@
-// Tests for self-employment tax computation module
+// Source: IRC §1401, §1402(a)(12) — SE tax rates and 92.35% factor
+// Source: SSA Contribution and Benefit Base for 2025 — $176,100 wage base
+// Source: IRC §164(f) — deduction for 50% of SE tax
+// Verified: 2026-02-25
 // All monetary values are in CENTS (integers)
 
 import { describe, it, expect } from 'vitest';

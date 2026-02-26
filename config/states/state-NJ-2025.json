@@ -2,6 +2,9 @@
   "stateCode": "NJ",
   "stateName": "New Jersey",
   "taxYear": 2025,
+  "_source": "N.J.S.A. 54A:2-1; NJ Division of Taxation (https://www.nj.gov/treasury/taxation/taxtables.shtml)",
+  "_verifiedDate": "2026-02-25",
+  "_notes": "NJ MFJ has 8 brackets (includes 2.45% bracket), while Single/MFS/HOH have 7. QSS uses MFJ brackets.",
   "hasIncomeTax": true,
   "startingPoint": "own_computation",
   "brackets": {
@@ -16,10 +19,11 @@
     ],
     "married_filing_jointly": [
       { "min": 0, "max": 2000000, "rate": 0.014 },
-      { "min": 2000000, "max": 3500000, "rate": 0.0175 },
-      { "min": 3500000, "max": 4000000, "rate": 0.035 },
-      { "min": 4000000, "max": 7500000, "rate": 0.05525 },
-      { "min": 7500000, "max": 50000000, "rate": 0.0637 },
+      { "min": 2000000, "max": 5000000, "rate": 0.0175 },
+      { "min": 5000000, "max": 7000000, "rate": 0.0245 },
+      { "min": 7000000, "max": 8000000, "rate": 0.035 },
+      { "min": 8000000, "max": 15000000, "rate": 0.05525 },
+      { "min": 15000000, "max": 50000000, "rate": 0.0637 },
       { "min": 50000000, "max": 100000000, "rate": 0.0897 },
       { "min": 100000000, "max": null, "rate": 0.1075 }
     ],
@@ -43,10 +47,11 @@
     ],
     "qualifying_surviving_spouse": [
       { "min": 0, "max": 2000000, "rate": 0.014 },
-      { "min": 2000000, "max": 3500000, "rate": 0.0175 },
-      { "min": 3500000, "max": 4000000, "rate": 0.035 },
-      { "min": 4000000, "max": 7500000, "rate": 0.05525 },
-      { "min": 7500000, "max": 50000000, "rate": 0.0637 },
+      { "min": 2000000, "max": 5000000, "rate": 0.0175 },
+      { "min": 5000000, "max": 7000000, "rate": 0.0245 },
+      { "min": 7000000, "max": 8000000, "rate": 0.035 },
+      { "min": 8000000, "max": 15000000, "rate": 0.05525 },
+      { "min": 15000000, "max": 50000000, "rate": 0.0637 },
       { "min": 50000000, "max": 100000000, "rate": 0.0897 },
       { "min": 100000000, "max": null, "rate": 0.1075 }
     ]

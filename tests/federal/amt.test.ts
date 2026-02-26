@@ -1,3 +1,7 @@
+// Source: Rev. Proc. 2024-40 §3.01(3) — AMT exemption, phase-out, and 26%/28% breakpoint
+// Source: IRC §55–§59 — alternative minimum tax computation
+// Verified: 2026-02-25
+
 import { describe, it, expect } from 'vitest';
 import { computeAMT } from '../../src/engine/federal/amt';
 import type { FederalConfig, FilingStatus } from '../../src/engine/types';

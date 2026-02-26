@@ -2,6 +2,9 @@
   "stateCode": "VA",
   "stateName": "Virginia",
   "taxYear": 2025,
+  "_source": "Va. Code §58.1-320 (rates), §58.1-322.03 (standard deduction); Virginia Tax (https://www.tax.virginia.gov/individual-income-tax)",
+  "_verifiedDate": "2026-02-25",
+  "_notes": "Standard deduction increased to $8,750/$17,500 effective 2025. VA EITC increased to 20% of federal (from 15%) for tax years beginning Jan 1, 2025.",
   "hasIncomeTax": true,
   "startingPoint": "federal_agi",
   "brackets": {
@@ -37,11 +40,11 @@
     ]
   },
   "standardDeduction": {
-    "single": 800000,
-    "married_filing_jointly": 1600000,
-    "married_filing_separately": 800000,
-    "head_of_household": 800000,
-    "qualifying_surviving_spouse": 1600000
+    "single": 875000,
+    "married_filing_jointly": 1750000,
+    "married_filing_separately": 875000,
+    "head_of_household": 875000,
+    "qualifying_surviving_spouse": 1750000
   },
   "personalExemption": {
     "taxpayer": {

@@ -2,6 +2,8 @@
   "stateCode": "PA",
   "stateName": "Pennsylvania",
   "taxYear": 2025,
+  "_source": "72 P.S. §7302 — flat rate 3.07%; PA DOR (https://www.revenue.pa.gov/TaxTypes/PIT/Pages/default.aspx)",
+  "_verifiedDate": "2026-02-25",
   "hasIncomeTax": true,
   "startingPoint": "own_computation",
   "flatRate": 0.0307,

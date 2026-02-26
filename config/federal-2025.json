@@ -1,17 +1,35 @@
 {
   "taxYear": 2025,
+  "_source": "Rev. Proc. 2024-40 (https://www.irs.gov/pub/irs-drop/rp-24-40.pdf) as amended by the One Big Beautiful Bill Act (signed July 4, 2025)",
+  "_verifiedDate": "2026-02-25",
+  "_notes": "Standard deduction, senior deduction, SALT cap, and CTC reflect OBBBA amendments. Brackets, AMT, cap gains, EITC, and other constants from Rev. Proc. 2024-40.",
   "standardDeduction": {
-    "single": 1500000,
-    "married_filing_jointly": 3000000,
-    "married_filing_separately": 1500000,
-    "head_of_household": 2250000,
-    "qualifying_surviving_spouse": 3000000
+    "_source": "OBBBA §70101 — increased standard deduction for 2025",
+    "single": 1575000,
+    "married_filing_jointly": 3150000,
+    "married_filing_separately": 1575000,
+    "head_of_household": 2362500,
+    "qualifying_surviving_spouse": 3150000
   },
   "additionalStandardDeduction": {
+    "_source": "Rev. Proc. 2024-40 §3.01(1)(b)",
     "married": 160000,
     "single": 200000
   },
+  "seniorDeduction": {
+    "_source": "OBBBA §70102 — additional deduction for seniors age 65+, effective 2025-2028",
+    "amount": 600000,
+    "phaseOut": {
+      "single": { "begin": 7500000, "end": 17500000 },
+      "married_filing_jointly": { "begin": 15000000, "end": 25000000 },
+      "married_filing_separately": { "begin": 7500000, "end": 17500000 },
+      "head_of_household": { "begin": 7500000, "end": 17500000 },
+      "qualifying_surviving_spouse": { "begin": 15000000, "end": 25000000 }
+    },
+    "phaseOutRate": 0.06
+  },
   "brackets": {
+    "_source": "Rev. Proc. 2024-40 §3.01(1)(a) — Table 1 through Table 5",
     "single": [
       { "min": 0, "max": 1192500, "rate": 0.10 },
       { "min": 1192500, "max": 4847500, "rate": 0.12 },
@@ -59,6 +77,7 @@
     ]
   },
   "capitalGainsRates": {
+    "_source": "Rev. Proc. 2024-40 §3.01(1)(g) — adjusted net capital gain brackets",
     "single": [
       { "max": 4835000, "rate": 0.00 },
       { "max": 53340000, "rate": 0.15 },
@@ -88,11 +107,13 @@
   "collectiblesRate": 0.28,
   "section1250Rate": 0.25,
   "socialSecurity": {
+    "_source": "SSA Contribution and Benefit Base for 2025 (https://www.ssa.gov/oact/cola/cbb.html)",
     "wageBase": 17610000,
     "employeeRate": 0.062,
     "selfEmployedRate": 0.124
   },
   "medicare": {
+    "_source": "IRC §3101(b), §3103; additional Medicare tax per IRC §3103(b)(2) and IRS Topic 560",
     "rate": 0.0145,
     "selfEmployedRate": 0.029,
     "additionalRate": 0.009,
@@ -105,6 +126,7 @@
     }
   },
   "amt": {
+    "_source": "Rev. Proc. 2024-40 §3.01(3) — AMT exemption, phase-out, and 26%/28% breakpoint",
     "exemption": {
       "single": 8810000,
       "married_filing_jointly": 13700000,
@@ -132,6 +154,7 @@
     }
   },
   "niit": {
+    "_source": "IRC §1411 — net investment income tax; thresholds not inflation-adjusted",
     "rate": 0.038,
     "threshold": {
       "single": 20000000,
@@ -142,6 +165,7 @@
     }
   },
   "ctc": {
+    "_source": "OBBBA §70201 — CTC raised to $2,200/$1,700 refundable; earned income threshold $2,500; phase-out per IRC §24(b)",
     "maxCreditPerChild": 220000,
     "refundablePerChild": 170000,
     "earnedIncomeThreshold": 250000,
@@ -156,9 +180,11 @@
     "phaseOutRate": 0.05
   },
   "odc": {
+    "_source": "IRC §24(h)(4) — other dependent credit; not inflation-adjusted",
     "creditPerDependent": 50000
   },
   "eitc": {
+    "_source": "Rev. Proc. 2024-40 §3.01(2) — EITC parameters for 2025",
     "0": {
       "phaseInRate": 0.0765,
       "phaseOutRate": 0.0765,
@@ -202,6 +228,7 @@
   },
   "eitcInvestmentIncomeLimit": 1195000,
   "educationCredits": {
+    "_source": "IRC §25A; AOTC phase-outs per §25A(i)(4) not inflation-adjusted; LLC phase-outs per §25A(d)(2) as amended by SECURE 2.0",
     "aotc": {
       "maxCredit": 250000,
       "firstTierExpenses": 200000,
@@ -224,6 +251,7 @@
     }
   },
   "saversCredit": {
+    "_source": "Rev. Proc. 2024-40 §3.01(4) — retirement savings contribution credit AGI limits",
     "maxContribution": {
       "single": 200000,
       "married_filing_jointly": 400000,
@@ -238,6 +266,7 @@
     ]
   },
   "childCareCredit": {
+    "_source": "IRC §21 — child and dependent care credit; not inflation-adjusted",
     "maxExpensesOneChild": 300000,
     "maxExpensesTwoPlus": 600000,
     "minRate": 0.20,
@@ -247,6 +276,7 @@
     "incomeThreshold": 1500000
   },
   "salt": {
+    "_source": "OBBBA §70301 — SALT cap raised to $40,000 with phase-down for high earners; floor $10,000",
     "baseCap": {
       "single": 4000000,
       "married_filing_jointly": 4000000,
@@ -271,12 +301,16 @@
     }
   },
   "charitableLimits": {
+    "_source": "IRC §170(b)(1)(G) — TCJA 60% AGI limit for cash; 30% for non-cash per §170(b)(1)(C)",
     "cashPercentAGI": 0.60,
     "nonCashPercentAGI": 0.30
   },
+  "_medicalSource": "IRC §213(a) — 7.5% AGI floor made permanent by CAA 2021",
   "medicalExpenseThreshold": 0.075,
+  "_mortgageSource": "IRC §163(h)(3)(F) — TCJA $750,000 limit through 2025",
   "mortgageInterestDebtLimit": 75000000,
   "capitalLossLimit": {
+    "_source": "IRC §1211(b) — $3,000 limit ($1,500 MFS); not inflation-adjusted",
     "single": 300000,
     "married_filing_jointly": 300000,
     "married_filing_separately": 150000,
@@ -284,19 +318,23 @@
     "qualifying_surviving_spouse": 300000
   },
   "studentLoanInterest": {
+    "_source": "Rev. Proc. 2024-40 §3.01(5) — student loan interest deduction phase-out",
     "maxDeduction": 250000,
     "phaseOut": {
       "single": { "begin": 8500000, "end": 10000000 },
       "mfj": { "begin": 17000000, "end": 20000000 }
     }
   },
+  "_educatorSource": "IRC §62(a)(2)(D) — $300 educator expenses; not inflation-adjusted",
   "educatorExpensesMax": 30000,
   "hsaLimits": {
+    "_source": "Rev. Proc. 2024-23 — HSA contribution limits for 2025",
     "selfOnly": 430000,
     "family": 860000,
     "catchUp55": 100000
   },
   "selfEmployment": {
+    "_source": "IRC §1401, §1402(a)(12) — SE tax rates; wage base per SSA; simplified home office per Rev. Proc. 2013-13",
     "seTaxableRate": 0.9235,
     "socialSecurityRate": 0.124,
     "medicareRate": 0.029,
@@ -306,6 +344,7 @@
     "homeOfficeMaxSqFt": 300
   },
   "qbi": {
+    "_source": "Rev. Proc. 2024-40 §3.01(7) — QBI deduction phase-out thresholds for 2025",
     "deductionRate": 0.20,
     "phaseOut": {
       "single": { "begin": 19730000, "end": 24730000 },

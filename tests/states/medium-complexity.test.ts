@@ -1,6 +1,6 @@
 // Tests for medium complexity states: Massachusetts (MA) and New Jersey (NJ)
 //
-// MA: 5% flat + 12% STCG + 4% millionaire surtax + 40% EITC
+// MA: 5% flat + 8.5% STCG + 4% surtax above $1,083,150 + 40% EITC
 // NJ: Progressive brackets (1.4%–10.75%), property tax deduction vs credit, 40% EITC
 //
 // All monetary values are in CENTS.
@@ -59,7 +59,7 @@ const makeInput = (overrides: Partial<StateTaxInput> = {}): StateTaxInput => ({
 // ===========================================================================
 // Massachusetts (MA)
 // ===========================================================================
-describe('Massachusetts (MA) — 5% flat + 12% STCG + surtax', () => {
+describe('Massachusetts (MA) — 5% flat + 8.5% STCG + surtax', () => {
   it('has correct module metadata', () => {
     expect(massachusetts.stateCode).toBe('MA');
     expect(massachusetts.stateName).toBe('Massachusetts');
@@ -75,7 +75,7 @@ describe('Massachusetts (MA) — 5% flat + 12% STCG + surtax', () => {
     expect(result.stateTaxBeforeCredits).toBe(Math.round(expectedTaxable * 0.05));
   });
 
-  it('taxes short-term capital gains at 12%', () => {
+  it('taxes short-term capital gains at 8.5%', () => {
     const input = makeInput({
       wages: 5_000_000,
       federalAGI: 6_000_000,
@@ -84,13 +84,13 @@ describe('Massachusetts (MA) — 5% flat + 12% STCG + surtax', () => {
     });
     const result = massachusetts.compute(input, maConfig);
     // Total income: $60,000 - exemption $4,400 = $55,600
-    // STCG: $10,000 at 12% = $1,200 (120_000)
+    // STCG: $10,000 at 8.5% = $850 (85_000)
     // Ordinary: $45,600 at 5% = $2,280 (228_000)
-    // Total = $3,480 (348_000)
+    // Total = $3,130 (313_000)
     const totalTaxable = 6_000_000 - 440_000;
     const stcgPortion = Math.min(1_000_000, totalTaxable);
     const ordinaryPortion = totalTaxable - stcgPortion;
-    const expectedTax = Math.round(ordinaryPortion * 0.05) + Math.round(stcgPortion * 0.12);
+    const expectedTax = Math.round(ordinaryPortion * 0.05) + Math.round(stcgPortion * 0.085);
     expect(result.stateTaxBeforeCredits).toBe(expectedTax);
   });
 
@@ -103,15 +103,15 @@ describe('Massachusetts (MA) — 5% flat + 12% STCG + surtax', () => {
     expect(result.stateSurtax).toBe(0);
   });
 
-  it('applies 4% surtax above $1M threshold', () => {
+  it('applies 4% surtax above $1,083,150 threshold', () => {
     const input = makeInput({
       wages: 120_000_000, // $1,200,000
       federalAGI: 120_000_000,
       federalTotalIncome: 120_000_000,
     });
     const result = massachusetts.compute(input, maConfig);
-    // Surtax: ($1,200,000 - $1,000,000) * 4% = $8,000 (800_000)
-    expect(result.stateSurtax).toBe(800_000);
+    // Surtax: ($1,200,000 - $1,083,150) * 4% = $4,674 (467_400)
+    expect(result.stateSurtax).toBe(467_400);
   });
 
   it('surtax is exactly $0 at $1M threshold', () => {
@@ -123,14 +123,14 @@ describe('Massachusetts (MA) — 5% flat + 12% STCG + surtax', () => {
     expect(result.stateSurtax).toBe(0);
   });
 
-  it('applies surtax just above $1M', () => {
+  it('no surtax just above $1M but below $1,083,150', () => {
     const input = makeInput({
       wages: 100_100_000, // $1,001,000
       federalAGI: 100_100_000,
     });
     const result = massachusetts.compute(input, maConfig);
-    // Surtax: $1,000 * 4% = $40 (4_000)
-    expect(result.stateSurtax).toBe(4_000);
+    // $1,001,000 < $1,083,150 threshold → no surtax
+    expect(result.stateSurtax).toBe(0);
   });
 
   it('computes MA EITC as 40% of federal', () => {

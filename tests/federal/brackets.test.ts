@@ -3,6 +3,10 @@
 //
 // All monetary values are in CENTS. $50,000 = 5_000_000 cents.
 // Hand-computed expected values verified against IRS 2025 tax tables.
+//
+// Source: Rev. Proc. 2024-40 §3.01(1)(a) — 2025 bracket thresholds
+// Source: IRS.gov/filing/federal-income-tax-rates-and-brackets
+// Verified: 2026-02-25
 
 import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';

@@ -10,49 +10,57 @@ import config from '../../config/federal-2025.json';
 
 const cfg = config as unknown as FederalConfig;
 
+// Source: OBBBA §70101 — increased standard deduction for 2025
+// Additional: Rev. Proc. 2024-40 §3.01(1)(b) — age 65+/blind additional amounts
+// Verified: 2026-02-25
 describe('computeStandardDeduction', () => {
-  it('should return $15,000 for single filer', () => {
-    expect(computeStandardDeduction('single', cfg, false, false, false, false)).toBe(1500000);
+  it('should return $15,750 for single filer', () => {
+    expect(computeStandardDeduction('single', cfg, false, false, false, false)).toBe(1575000);
   });
 
-  it('should return $30,000 for MFJ filer', () => {
-    expect(computeStandardDeduction('married_filing_jointly', cfg, false, false, false, false)).toBe(3000000);
+  it('should return $31,500 for MFJ filer', () => {
+    expect(computeStandardDeduction('married_filing_jointly', cfg, false, false, false, false)).toBe(3150000);
   });
 
-  it('should return $15,000 for MFS filer', () => {
-    expect(computeStandardDeduction('married_filing_separately', cfg, false, false, false, false)).toBe(1500000);
+  it('should return $15,750 for MFS filer', () => {
+    expect(computeStandardDeduction('married_filing_separately', cfg, false, false, false, false)).toBe(1575000);
   });
 
-  it('should return $22,500 for HoH filer', () => {
-    expect(computeStandardDeduction('head_of_household', cfg, false, false, false, false)).toBe(2250000);
+  it('should return $23,625 for HoH filer', () => {
+    expect(computeStandardDeduction('head_of_household', cfg, false, false, false, false)).toBe(2362500);
   });
 
-  it('should return $30,000 for QSS filer', () => {
-    expect(computeStandardDeduction('qualifying_surviving_spouse', cfg, false, false, false, false)).toBe(3000000);
+  it('should return $31,500 for QSS filer', () => {
+    expect(computeStandardDeduction('qualifying_surviving_spouse', cfg, false, false, false, false)).toBe(3150000);
   });
 
   it('should add $2,000 for single filer age 65+', () => {
-    expect(computeStandardDeduction('single', cfg, true, false, false, false)).toBe(1700000);
+    // $15,750 + $2,000 = $17,750
+    expect(computeStandardDeduction('single', cfg, true, false, false, false)).toBe(1775000);
   });
 
   it('should add $2,000 for single filer who is blind', () => {
-    expect(computeStandardDeduction('single', cfg, false, true, false, false)).toBe(1700000);
+    expect(computeStandardDeduction('single', cfg, false, true, false, false)).toBe(1775000);
   });
 
   it('should add $4,000 for single filer age 65+ AND blind', () => {
-    expect(computeStandardDeduction('single', cfg, true, true, false, false)).toBe(1900000);
+    // $15,750 + $2,000 + $2,000 = $19,750
+    expect(computeStandardDeduction('single', cfg, true, true, false, false)).toBe(1975000);
   });
 
   it('should add $1,600 for MFJ taxpayer age 65+', () => {
-    expect(computeStandardDeduction('married_filing_jointly', cfg, true, false, false, false)).toBe(3160000);
+    // $31,500 + $1,600 = $33,100
+    expect(computeStandardDeduction('married_filing_jointly', cfg, true, false, false, false)).toBe(3310000);
   });
 
   it('should add $3,200 for MFJ both spouses age 65+', () => {
-    expect(computeStandardDeduction('married_filing_jointly', cfg, true, false, true, false)).toBe(3320000);
+    // $31,500 + $1,600 + $1,600 = $34,700
+    expect(computeStandardDeduction('married_filing_jointly', cfg, true, false, true, false)).toBe(3470000);
   });
 
   it('should add $6,400 for MFJ both spouses 65+ and blind', () => {
-    expect(computeStandardDeduction('married_filing_jointly', cfg, true, true, true, true)).toBe(3640000);
+    // $31,500 + $1,600 * 4 = $37,900
+    expect(computeStandardDeduction('married_filing_jointly', cfg, true, true, true, true)).toBe(3790000);
   });
 });
 
@@ -237,7 +245,7 @@ describe('computeDeductions', () => {
       false, false, false, false,
     );
     expect(result.type).toBe('standard');
-    expect(result.amount).toBe(1500000);
+    expect(result.amount).toBe(1575000);
   });
 
   it('should use itemized when chosen and itemized is provided', () => {
@@ -274,12 +282,12 @@ describe('computeDeductions', () => {
       cfg,
       false, false, false, false,
     );
-    expect(result.standardAmount).toBe(1500000);
+    expect(result.standardAmount).toBe(1575000);
     expect(result.itemizedAmount).toBe(0);
   });
 
   it('should compute taxable income correctly', () => {
-    // AGI $52,000, standard deduction $15,000 → taxable $37,000
+    // AGI $52,000, standard deduction $15,750 → taxable $36,250
     const result = computeDeductions(
       'single',
       5200000,
@@ -288,6 +296,6 @@ describe('computeDeductions', () => {
       cfg,
       false, false, false, false,
     );
-    expect(result.amount).toBe(1500000);
+    expect(result.amount).toBe(1575000);
   });
 });

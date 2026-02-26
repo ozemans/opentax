@@ -162,10 +162,10 @@ describe('Illinois (IL) — 4.95% flat tax', () => {
   });
 
   it('computes tax on W-2 wages with personal exemption', () => {
-    // Federal AGI $75,000 - exemption $2,625 = $72,375 taxable
-    // $72,375 * 0.0495 = $3,582.5625 → 358_256 cents
+    // Federal AGI $75,000 - exemption $2,850 = $72,150 taxable
+    // $72,150 * 0.0495 = $3,582.5625 → 358_256 cents
     const result = illinois.compute(makeInput(), ilConfig);
-    const expectedTaxable = 7_500_000 - 262_500;
+    const expectedTaxable = 7_500_000 - 285_000;
     expect(result.stateTaxableIncome).toBe(expectedTaxable);
     expect(result.stateTaxBeforeCredits).toBe(Math.round(expectedTaxable * 0.0495));
   });
@@ -176,8 +176,8 @@ describe('Illinois (IL) — 4.95% flat tax', () => {
       federalAGI: 8_500_000,
     });
     const result = illinois.compute(input, ilConfig);
-    // AGI $85,000 - retirement $10,000 - exemption $2,625 = $72,375
-    const expectedTaxable = 8_500_000 - 1_000_000 - 262_500;
+    // AGI $85,000 - retirement $10,000 - exemption $2,850 = $72,150
+    const expectedTaxable = 8_500_000 - 1_000_000 - 285_000;
     expect(result.stateTaxableIncome).toBe(expectedTaxable);
   });
 
@@ -187,24 +187,24 @@ describe('Illinois (IL) — 4.95% flat tax', () => {
       federalAGI: 8_000_000,
     });
     const result = illinois.compute(input, ilConfig);
-    const expectedTaxable = 8_000_000 - 500_000 - 262_500;
+    const expectedTaxable = 8_000_000 - 500_000 - 285_000;
     expect(result.stateTaxableIncome).toBe(expectedTaxable);
   });
 
   it('adds spouse exemption for MFJ', () => {
     const input = makeInput({ filingStatus: 'married_filing_jointly' });
     const result = illinois.compute(input, ilConfig);
-    // Exemptions: taxpayer $2,625 + spouse $2,625 = $5,250 (525_000)
-    const expectedTaxable = 7_500_000 - 525_000;
-    expect(result.stateExemptions).toBe(525_000);
+    // Exemptions: taxpayer $2,850 + spouse $2,850 = $5,700 (570_000)
+    const expectedTaxable = 7_500_000 - 570_000;
+    expect(result.stateExemptions).toBe(570_000);
     expect(result.stateTaxableIncome).toBe(expectedTaxable);
   });
 
   it('adds dependent exemptions', () => {
     const input = makeInput({ numDependents: 3 });
     const result = illinois.compute(input, ilConfig);
-    // taxpayer $2,625 + 3 deps * $2,625 = $10,500 (1_050_000)
-    const expectedExemptions = 262_500 + 3 * 262_500;
+    // taxpayer $2,850 + 3 deps * $2,850 = $11,400 (1_140_000)
+    const expectedExemptions = 285_000 + 3 * 285_000;
     expect(result.stateExemptions).toBe(expectedExemptions);
   });
 
@@ -227,7 +227,7 @@ describe('Illinois (IL) — 4.95% flat tax', () => {
       federalTotalIncome: 100_000,
     });
     const result = illinois.compute(input, ilConfig);
-    // AGI $1,000 - exemption $2,625 = -$1,625 → 0
+    // AGI $1,000 - exemption $2,850 = -$1,850 → 0
     expect(result.stateTaxableIncome).toBe(0);
     expect(result.stateTaxBeforeCredits).toBe(0);
   });
@@ -247,7 +247,7 @@ describe('Illinois (IL) — 4.95% flat tax', () => {
     });
     const result = illinois.compute(input, ilConfig);
     const stateEITC = Math.round(300_000 * 0.20); // 60_000
-    const taxable = Math.max(0, 1_500_000 - 262_500);
+    const taxable = Math.max(0, 1_500_000 - 285_000);
     const tax = Math.round(taxable * 0.0495);
     const refundableCredits = Math.max(0, stateEITC - tax);
     const taxAfterCredits = Math.max(0, tax - stateEITC);

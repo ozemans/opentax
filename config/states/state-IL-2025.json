@@ -2,6 +2,9 @@
   "stateCode": "IL",
   "stateName": "Illinois",
   "taxYear": 2025,
+  "_source": "35 ILCS 5/201(b)(5.4) — flat rate 4.95%; personal exemption per IL Dept. of Revenue FY 2026-15 Bulletin",
+  "_verifiedDate": "2026-02-25",
+  "_notes": "Personal exemption increased to $2,850 for 2025 (from $2,775 in 2024). Exemption disallowed if federal AGI exceeds $500k (MFJ) or $250k (all others).",
   "hasIncomeTax": true,
   "startingPoint": "federal_agi",
   "flatRate": 0.0495,
@@ -9,14 +12,14 @@
   "capitalGainsTreatment": "ordinary",
   "personalExemption": {
     "taxpayer": {
-      "single": 262500,
-      "married_filing_jointly": 262500,
-      "married_filing_separately": 262500,
-      "head_of_household": 262500,
-      "qualifying_surviving_spouse": 262500
+      "single": 285000,
+      "married_filing_jointly": 285000,
+      "married_filing_separately": 285000,
+      "head_of_household": 285000,
+      "qualifying_surviving_spouse": 285000
     },
-    "spouse": 262500,
-    "dependent": 262500
+    "spouse": 285000,
+    "dependent": 285000
   },
   "credits": {
     "eitc": {

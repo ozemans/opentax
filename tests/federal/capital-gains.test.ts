@@ -1,3 +1,8 @@
+// Source: Rev. Proc. 2024-40 §3.01(1)(g) — 2025 capital gains thresholds
+// Source: IRC §1(h) — qualified dividends and capital gain tax computation
+// Source: IRC §1211(b) — $3,000/$1,500 capital loss limitation
+// Verified: 2026-02-25
+
 import { describe, it, expect } from 'vitest';
 import type {
   Form1099B,

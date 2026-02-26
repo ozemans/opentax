@@ -2,6 +2,8 @@
   "stateCode": "FL",
   "stateName": "Florida",
   "taxYear": 2025,
+  "_source": "Florida Constitution Art. VII §5(a) — no state personal income tax",
+  "_verifiedDate": "2026-02-25",
   "hasIncomeTax": false,
   "startingPoint": "federal_agi",
   "socialSecurityExempt": true,

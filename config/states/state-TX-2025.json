@@ -2,6 +2,8 @@
   "stateCode": "TX",
   "stateName": "Texas",
   "taxYear": 2025,
+  "_source": "Texas Constitution Art. VIII §24-a — no state personal income tax",
+  "_verifiedDate": "2026-02-25",
   "hasIncomeTax": false,
   "startingPoint": "federal_agi",
   "socialSecurityExempt": true,

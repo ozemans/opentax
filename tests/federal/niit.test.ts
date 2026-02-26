@@ -1,3 +1,7 @@
+// Source: IRC §1411 — net investment income tax; thresholds not inflation-adjusted
+// Source: IRS Topic 559 — NIIT computation and thresholds
+// Verified: 2026-02-25
+
 import { describe, it, expect } from 'vitest';
 import { computeNIIT, computeInvestmentIncome } from '../../src/engine/federal/niit';
 import type { FederalConfig, FilingStatus, TaxInput } from '../../src/engine/types';

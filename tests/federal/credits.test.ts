@@ -1,3 +1,10 @@
+// Source: OBBBA §70201 — CTC $2,200/$1,700 refundable for 2025
+// Source: Rev. Proc. 2024-40 §3.01(2) — EITC parameters for 2025
+// Source: Rev. Proc. 2024-40 §3.01(4) — Saver's Credit income limits
+// Source: IRC §25A — education credits (AOTC/LLC)
+// Source: IRC §21 — child and dependent care credit
+// Verified: 2026-02-25
+
 import { describe, it, expect } from 'vitest';
 import {
   computeChildTaxCredit,

@@ -86,21 +86,21 @@ describe('Scenario 1: Simple W-2 single filer ($75k)', () => {
     expect(result.adjustedGrossIncome).toBe(7_500_000);
   });
 
-  it('uses standard deduction ($15,000 for single)', () => {
+  it('uses standard deduction ($15,750 for single)', () => {
     expect(result.deductionBreakdown.type).toBe('standard');
-    expect(result.deductionBreakdown.amount).toBe(1_500_000);
+    expect(result.deductionBreakdown.amount).toBe(1_575_000);
   });
 
-  it('computes taxable income = $60,000', () => {
-    expect(result.taxableIncome).toBe(6_000_000);
+  it('computes taxable income = $59,250', () => {
+    expect(result.taxableIncome).toBe(5_925_000);
   });
 
   it('computes reasonable ordinary tax', () => {
-    // $60,000 taxable: 10% on $11,925 + 12% on ($48,475 - $11,925) + 22% on ($60,000 - $48,475)
-    // = $1,192.50 + $4,386 + $2,535.50 = ~$8,114
+    // $59,250 taxable: 10% on $11,925 + 12% on ($48,475 - $11,925) + 22% on ($59,250 - $48,475)
+    // = $1,192.50 + $4,386 + $2,370.50 = ~$7,949
     // All at ordinary rates, no capital gains
-    expect(result.taxBreakdown.ordinaryIncomeTax).toBeGreaterThan(800_000);
-    expect(result.taxBreakdown.ordinaryIncomeTax).toBeLessThan(820_000);
+    expect(result.taxBreakdown.ordinaryIncomeTax).toBeGreaterThan(790_000);
+    expect(result.taxBreakdown.ordinaryIncomeTax).toBeLessThan(800_000);
     expect(result.taxBreakdown.capitalGainsTax).toBe(0);
   });
 
@@ -139,7 +139,7 @@ describe('Scenario 1: Simple W-2 single filer ($75k)', () => {
   it('generates Form 1040 field mappings', () => {
     expect(result.forms.f1040).toBeDefined();
     expect(result.forms.f1040['line1']).toBe(75000); // Wages in dollars
-    expect(result.forms.f1040['line15']).toBe(60000); // Taxable income
+    expect(result.forms.f1040['line15']).toBe(59250); // Taxable income
   });
 });
 
@@ -223,13 +223,13 @@ describe('Scenario 2: MFJ with 2 kids ($120k combined)', () => {
     expect(result.adjustedGrossIncome).toBe(12_000_000);
   });
 
-  it('uses MFJ standard deduction ($30,000)', () => {
+  it('uses MFJ standard deduction ($31,500)', () => {
     expect(result.deductionBreakdown.type).toBe('standard');
-    expect(result.deductionBreakdown.amount).toBe(3_000_000);
+    expect(result.deductionBreakdown.amount).toBe(3_150_000);
   });
 
-  it('computes taxable income = $90,000', () => {
-    expect(result.taxableIncome).toBe(9_000_000);
+  it('computes taxable income = $88,500', () => {
+    expect(result.taxableIncome).toBe(8_850_000);
   });
 
   it('gets Child Tax Credit for 2 children ($2,200 each = $4,400 max)', () => {
@@ -465,8 +465,8 @@ describe('Scenario 5: Capital loss limitation and carryforward', () => {
   });
 
   it('taxable income reflects the limited loss', () => {
-    // AGI = $57,000, standard deduction $15,000, taxable = $42,000
-    expect(result.taxableIncome).toBe(4_200_000);
+    // AGI = $57,000, standard deduction $15,750, taxable = $41,250
+    expect(result.taxableIncome).toBe(4_125_000);
   });
 });
 
@@ -736,7 +736,7 @@ describe('Scenario 9: Zero income', () => {
   });
 
   it('standard deduction is still computed', () => {
-    expect(result.deductionBreakdown.standardAmount).toBe(1_500_000);
+    expect(result.deductionBreakdown.standardAmount).toBe(1_575_000);
   });
 });
 
@@ -970,8 +970,8 @@ describe('Scenario 12: Head of Household filer', () => {
 
   const result = computeFederalTax(input, config);
 
-  it('uses HoH standard deduction ($22,500)', () => {
-    expect(result.deductionBreakdown.amount).toBe(2_250_000);
+  it('uses HoH standard deduction ($23,625)', () => {
+    expect(result.deductionBreakdown.amount).toBe(2_362_500);
   });
 
   it('uses HoH tax brackets', () => {
@@ -1005,8 +1005,8 @@ describe('Scenario 13: Married Filing Separately', () => {
 
   const result = computeFederalTax(input, config);
 
-  it('uses MFS standard deduction ($15,000)', () => {
-    expect(result.deductionBreakdown.amount).toBe(1_500_000);
+  it('uses MFS standard deduction ($15,750)', () => {
+    expect(result.deductionBreakdown.amount).toBe(1_575_000);
   });
 
   it('uses MFS brackets', () => {
@@ -1068,13 +1068,13 @@ describe('Scenario 15: Age 65+ additional standard deduction', () => {
   const result = computeFederalTax(input, config);
 
   it('gets additional standard deduction for age 65+', () => {
-    // Single standard = $15,000 + additional $2,000 for 65+ = $17,000
-    expect(result.deductionBreakdown.amount).toBe(1_700_000);
+    // Single standard = $15,750 + additional $2,000 for 65+ = $17,750
+    expect(result.deductionBreakdown.amount).toBe(1_775_000);
   });
 
   it('taxable income is lower due to additional deduction', () => {
-    // $40k - $17k = $23k
-    expect(result.taxableIncome).toBe(2_300_000);
+    // $40k - $17.75k = $22.25k
+    expect(result.taxableIncome).toBe(2_225_000);
   });
 });
 

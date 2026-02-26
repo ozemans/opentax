@@ -1,7 +1,7 @@
 // Tests for bracket states: Virginia (VA) and Ohio (OH)
 //
 // VA: Progressive brackets (2%/3%/5%/5.75%), std deduction, personal exemptions, EITC
-// OH: Progressive brackets (0%/2.75%/3.5%/3.75%/3.99%), exemption credits
+// OH: Progressive brackets (0%/2.75%/3.125%), exemption credits
 //
 // All monetary values are in CENTS.
 
@@ -75,31 +75,23 @@ describe('Virginia (VA) — progressive brackets', () => {
   });
 
   it('applies standard deduction and personal exemption', () => {
-    // AGI $50,000 - std deduction $8,000 - exemption $930 = $41,070 (4_107_000)
+    // AGI $50,000 - std deduction $8,750 - exemption $930 = $40,320 (4_032_000)
     const result = virginia.compute(makeInput(), vaConfig);
-    expect(result.stateDeduction).toBe(800_000);
+    expect(result.stateDeduction).toBe(875_000);
     expect(result.stateExemptions).toBe(93_000);
-    expect(result.stateTaxableIncome).toBe(5_000_000 - 800_000 - 93_000);
+    expect(result.stateTaxableIncome).toBe(5_000_000 - 875_000 - 93_000);
   });
 
   it('computes bracket tax spanning multiple brackets', () => {
-    // Taxable income: $41,070 (4_107_000)
+    // Taxable income: $40,320 (4_032_000)
     // $3,000 at 2% = $60 (6_000)
     // $2,000 at 3% = $60 (6_000)
     // $12,000 at 5% = $600 (60_000)
-    // $24,070 at 5.75% = $1,384.025 → 138_403
-    // Total = $2,104.025 → let's verify via computation
+    // $23,320 at 5.75% = $1,340.90
     const result = virginia.compute(makeInput(), vaConfig);
-    const taxable = 4_107_000;
-    const expected =
-      Math.round(300_000 * 0.02) +      // 6_000
-      Math.round(200_000 * 0.03) +      // 6_000
-      Math.round(1_200_000 * 0.05) +    // 60_000
-      Math.round(2_407_000 * 0.0575);   // 138_403 (rounded)
-    // Note: bracket computation rounds at the end, so we compute the full thing
     expect(result.stateTaxBeforeCredits).toBe(
       Math.round(
-        300_000 * 0.02 + 200_000 * 0.03 + 1_200_000 * 0.05 + 2_407_000 * 0.0575,
+        300_000 * 0.02 + 200_000 * 0.03 + 1_200_000 * 0.05 + 2_332_000 * 0.0575,
       ),
     );
   });
@@ -107,8 +99,8 @@ describe('Virginia (VA) — progressive brackets', () => {
   it('applies MFJ standard deduction and spouse exemption', () => {
     const input = makeInput({ filingStatus: 'married_filing_jointly', federalAGI: 10_000_000 });
     const result = virginia.compute(input, vaConfig);
-    // MFJ std deduction: $16,000 (1_600_000), exemptions: $930 * 2 = $1,860 (186_000)
-    expect(result.stateDeduction).toBe(1_600_000);
+    // MFJ std deduction: $17,500 (1_750_000), exemptions: $930 * 2 = $1,860 (186_000)
+    expect(result.stateDeduction).toBe(1_750_000);
     expect(result.stateExemptions).toBe(186_000);
   });
 
@@ -170,7 +162,7 @@ describe('Virginia (VA) — progressive brackets', () => {
       federalTotalIncome: 900_000,
     });
     const result = virginia.compute(input, vaConfig);
-    // AGI $9,000 - std ded $8,000 - exemption $930 = $70 → in 2% bracket
+    // AGI $9,000 - std ded $8,750 - exemption $930 = -$680 → 0 taxable
     expect(result.marginalRate).toBeCloseTo(2, 2);
   });
 });
@@ -216,8 +208,7 @@ describe('Ohio (OH) — progressive brackets with exemption credits', () => {
   it('computes tax spanning multiple brackets', () => {
     // AGI $75,000 (7_500_000)
     // 0% on $26,050 = $0
-    // 2.75% on $20,050 ($46,100 - $26,050) = $551.375
-    // 3.50% on $28,900 ($75,000 - $46,100) = $1,011.50
+    // 2.75% on $48,950 ($75,000 - $26,050) = $1,346.125
     const input = makeInput({
       wages: 7_500_000,
       federalAGI: 7_500_000,
@@ -225,7 +216,7 @@ describe('Ohio (OH) — progressive brackets with exemption credits', () => {
     });
     const result = ohio.compute(input, ohConfig);
     const expectedTax = Math.round(
-      0 + (4_610_000 - 2_605_000) * 0.0275 + (7_500_000 - 4_610_000) * 0.035,
+      0 + (7_500_000 - 2_605_000) * 0.0275,
     );
     expect(result.stateTaxBeforeCredits).toBe(expectedTax);
   });
@@ -264,6 +255,7 @@ describe('Ohio (OH) — progressive brackets with exemption credits', () => {
 
   it('computes tax for high income in top bracket', () => {
     // AGI $200,000 (20_000_000)
+    // 0% on $26,050, 2.75% on $73,950 ($100k-$26,050), 3.125% on $100,000 ($200k-$100k)
     const input = makeInput({
       wages: 20_000_000,
       federalAGI: 20_000_000,
@@ -272,13 +264,11 @@ describe('Ohio (OH) — progressive brackets with exemption credits', () => {
     const result = ohio.compute(input, ohConfig);
     const expectedTax = Math.round(
       0 +
-      (4_610_000 - 2_605_000) * 0.0275 +
-      (9_215_000 - 4_610_000) * 0.035 +
-      (11_530_000 - 9_215_000) * 0.0375 +
-      (20_000_000 - 11_530_000) * 0.0399,
+      (10_000_000 - 2_605_000) * 0.0275 +
+      (20_000_000 - 10_000_000) * 0.03125,
     );
     expect(result.stateTaxBeforeCredits).toBe(expectedTax);
-    expect(result.marginalRate).toBeCloseTo(3.99, 2);
+    expect(result.marginalRate).toBeCloseTo(3.125, 2);
   });
 
   it('returns zero tax for zero income', () => {
