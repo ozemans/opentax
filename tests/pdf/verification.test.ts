@@ -363,11 +363,13 @@ describe('PDF Verification: MFJ with 2 dependents', () => {
   });
 
   it('dependent rows populated', () => {
-    expect(forms.f1040.dependent1_name).toBe('Charlie Smith');
-    expect(forms.f1040.dependent1_ssn).toBe('777-88-9999');
+    expect(forms.f1040.dependent1_firstName).toBe('Charlie');
+    expect(forms.f1040.dependent1_lastName).toBe('Smith');
+    expect(forms.f1040.dependent1_ssn).toBe('777889999');
     expect(forms.f1040.dependent1_relationship).toBe('son');
     expect(forms.f1040.dependent1_ctc).toBe('X');
-    expect(forms.f1040.dependent2_name).toBe('Diana Smith');
+    expect(forms.f1040.dependent2_firstName).toBe('Diana');
+    expect(forms.f1040.dependent2_lastName).toBe('Smith');
     expect(forms.f1040.dependent2_ctc).toBe('X');
   });
 

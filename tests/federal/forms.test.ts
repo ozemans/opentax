@@ -208,8 +208,9 @@ describe('mapForm1040 (via generateFormMappings)', () => {
     });
     const forms = generateFormMappings(input, makeResult());
 
-    expect(forms.f1040['dependent1_name']).toBe('Child Doe');
-    expect(forms.f1040['dependent1_ssn']).toBe('111-22-3333');
+    expect(forms.f1040['dependent1_firstName']).toBe('Child');
+    expect(forms.f1040['dependent1_lastName']).toBe('Doe');
+    expect(forms.f1040['dependent1_ssn']).toBe('111223333');
     expect(forms.f1040['dependent1_relationship']).toBe('son');
     expect(forms.f1040['dependent1_ctc']).toBe('X');
   });

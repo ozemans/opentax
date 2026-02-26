@@ -105,28 +105,32 @@ export const f1040FieldMap: FieldMap = {
   state:   { pdfFieldName: p1Addr('f1_23[0]'), type: 'text' },
   zip:     { pdfFieldName: p1Addr('f1_24[0]'), type: 'text' },
 
-  // ── Dependents (up to 4 rows) ──
-  // Row1: f1_31 = name, f1_32 = SSN, f1_33 = relationship, f1_34 = (4th column)
-  // Row2: f1_35 = name, f1_36 = SSN, f1_37 = relationship, f1_38 = (4th column)
-  // Row3: f1_39 = name (maxLen=9), f1_40 = SSN, f1_41 = relationship, f1_42 = (4th column)
-  // Row4: f1_43 = name, f1_44 = SSN, f1_45 = relationship, f1_46 = (4th column)
-  // Note: Row3 fields have maxLen=9 which is unusual for names — but they still work.
-  // Row7 checkboxes: Dependent1.c1_28[0] = CTC, c1_28[1] = credit for other dependents
-  dependent1_name:         { pdfFieldName: p1Dep('Row1[0]', 'f1_31[0]'), type: 'text' },
-  dependent1_ssn:          { pdfFieldName: p1Dep('Row1[0]', 'f1_32[0]'), type: 'text' },
-  dependent1_relationship: { pdfFieldName: p1Dep('Row1[0]', 'f1_33[0]'), type: 'text' },
+  // ── Dependents (up to 4) ──
+  // The IRS f1040 dependent table uses a COLUMN-based AcroForm layout:
+  //   Row1 = First name column (f1_31=dep1, f1_32=dep2, f1_33=dep3, f1_34=dep4)
+  //   Row2 = Last name column  (f1_35=dep1, f1_36=dep2, f1_37=dep3, f1_38=dep4)
+  //   Row3 = SSN column        (f1_39=dep1, f1_40=dep2, f1_41=dep3, f1_42=dep4) — all maxLen=9
+  //   Row4 = Relationship col  (f1_43=dep1, f1_44=dep2, f1_45=dep3, f1_46=dep4)
+  // Checkboxes: Row7.DependentN.c1_28-31[0] = CTC, [1] = credit for other dependents
+  dependent1_firstName:    { pdfFieldName: p1Dep('Row1[0]', 'f1_31[0]'), type: 'text' },
+  dependent1_lastName:     { pdfFieldName: p1Dep('Row2[0]', 'f1_35[0]'), type: 'text' },
+  dependent1_ssn:          { pdfFieldName: p1Dep('Row3[0]', 'f1_39[0]'), type: 'text', transform: ssnDigitsOnly },
+  dependent1_relationship: { pdfFieldName: p1Dep('Row4[0]', 'f1_43[0]'), type: 'text' },
   dependent1_ctc:          { pdfFieldName: p1DepChk('Row7[0]', 'Dependent1[0]', 'c1_28[0]'), type: 'checkbox' },
-  dependent2_name:         { pdfFieldName: p1Dep('Row2[0]', 'f1_35[0]'), type: 'text' },
-  dependent2_ssn:          { pdfFieldName: p1Dep('Row2[0]', 'f1_36[0]'), type: 'text' },
-  dependent2_relationship: { pdfFieldName: p1Dep('Row2[0]', 'f1_37[0]'), type: 'text' },
+  dependent2_firstName:    { pdfFieldName: p1Dep('Row1[0]', 'f1_32[0]'), type: 'text' },
+  dependent2_lastName:     { pdfFieldName: p1Dep('Row2[0]', 'f1_36[0]'), type: 'text' },
+  dependent2_ssn:          { pdfFieldName: p1Dep('Row3[0]', 'f1_40[0]'), type: 'text', transform: ssnDigitsOnly },
+  dependent2_relationship: { pdfFieldName: p1Dep('Row4[0]', 'f1_44[0]'), type: 'text' },
   dependent2_ctc:          { pdfFieldName: p1DepChk('Row7[0]', 'Dependent2[0]', 'c1_29[0]'), type: 'checkbox' },
-  dependent3_name:         { pdfFieldName: p1Dep('Row3[0]', 'f1_39[0]'), type: 'text' },
-  dependent3_ssn:          { pdfFieldName: p1Dep('Row3[0]', 'f1_40[0]'), type: 'text' },
-  dependent3_relationship: { pdfFieldName: p1Dep('Row3[0]', 'f1_41[0]'), type: 'text' },
+  dependent3_firstName:    { pdfFieldName: p1Dep('Row1[0]', 'f1_33[0]'), type: 'text' },
+  dependent3_lastName:     { pdfFieldName: p1Dep('Row2[0]', 'f1_37[0]'), type: 'text' },
+  dependent3_ssn:          { pdfFieldName: p1Dep('Row3[0]', 'f1_41[0]'), type: 'text', transform: ssnDigitsOnly },
+  dependent3_relationship: { pdfFieldName: p1Dep('Row4[0]', 'f1_45[0]'), type: 'text' },
   dependent3_ctc:          { pdfFieldName: p1DepChk('Row7[0]', 'Dependent3[0]', 'c1_30[0]'), type: 'checkbox' },
-  dependent4_name:         { pdfFieldName: p1Dep('Row4[0]', 'f1_43[0]'), type: 'text' },
-  dependent4_ssn:          { pdfFieldName: p1Dep('Row4[0]', 'f1_44[0]'), type: 'text' },
-  dependent4_relationship: { pdfFieldName: p1Dep('Row4[0]', 'f1_45[0]'), type: 'text' },
+  dependent4_firstName:    { pdfFieldName: p1Dep('Row1[0]', 'f1_34[0]'), type: 'text' },
+  dependent4_lastName:     { pdfFieldName: p1Dep('Row2[0]', 'f1_38[0]'), type: 'text' },
+  dependent4_ssn:          { pdfFieldName: p1Dep('Row3[0]', 'f1_42[0]'), type: 'text', transform: ssnDigitsOnly },
+  dependent4_relationship: { pdfFieldName: p1Dep('Row4[0]', 'f1_46[0]'), type: 'text' },
   dependent4_ctc:          { pdfFieldName: p1DepChk('Row7[0]', 'Dependent4[0]', 'c1_31[0]'), type: 'checkbox' },
 
   // ── Income Section (Page 1) ──
@@ -134,54 +138,40 @@ export const f1040FieldMap: FieldMap = {
   line1:  { pdfFieldName: p1('f1_47[0]'), type: 'text' },
 
   // Lines 2a/2b: Interest
-  // Looking at the form: Line 2a (tax-exempt interest) and Line 2b (taxable interest)
-  // The fields between 1z and 3a are: f1_56 = 1z, f1_57 = 2a, f1_58 = 2b
-  line2b: { pdfFieldName: p1('f1_58[0]'), type: 'text' },
+  // LEFT column (x=252) = "a" sub-line (informational), RIGHT column (x=504) = "b" sub-line (main)
+  // f1_57 = Line 2a (tax-exempt interest, LEFT), f1_58 = Line 1z (wages total, RIGHT)
+  // f1_59 = Line 2b (taxable interest, RIGHT at y=210)
+  line2b: { pdfFieldName: p1('f1_59[0]'), type: 'text' },
 
   // Lines 3a/3b: Dividends
-  // f1_59 = 3a (qualified dividends), f1_60 = 3b (ordinary dividends)
-  line3a: { pdfFieldName: p1('f1_59[0]'), type: 'text' },
-  line3b: { pdfFieldName: p1('f1_60[0]'), type: 'text' },
+  // f1_60 = Line 3a (qualified dividends, LEFT at y=198)
+  // f1_61 = Line 3b (ordinary dividends, RIGHT at y=198)
+  line3a: { pdfFieldName: p1('f1_60[0]'), type: 'text' },
+  line3b: { pdfFieldName: p1('f1_61[0]'), type: 'text' },
 
   // Lines 4-6: IRA/pensions/SS distributions
-  // f1_61 = Line 4a (IRA distributions)
-  // Then checkboxes c1_33, c1_34
-  // f1_62 = Line 4b (taxable amount)
-  // f1_63 = Line 5a (pensions and annuities)
-  // c1_35-c1_37 = checkboxes for line 5
-  // f1_64 = Line 5b (taxable amount)
-  // f1_65 = Line 6a (social security benefits)
-  // f1_66 = Line 6b (taxable amount)
-  // c1_38-c1_40 = checkboxes for line 6
+  // f1_62 = Line 4a (IRA distributions, LEFT x=252 y=174)
+  // f1_63 = Line 4b (taxable IRA, RIGHT x=504 y=174)
+  // f1_64 = Line 4c? (supplementary field, NARROW x=439 y=162 w=36)
+  // f1_65 = Line 5a (pensions, LEFT x=252 y=150)
+  // f1_66 = Line 5b (taxable pensions, RIGHT x=504 y=150)
+  // f1_67 = Line 5c? (supplementary field, NARROW x=439 y=138 w=36)
+  // f1_68 = Line 6a (social security, LEFT x=252 y=126)
+  // f1_69 = Line 6b (taxable SS, RIGHT x=504 y=126)
 
-  // Line 7a: Capital gain or (loss)
-  // f1_67 = Line 7a
-  line7:  { pdfFieldName: p1('f1_67[0]'), type: 'text' },
+  // Line 7: Capital gain or (loss)
+  // NO fillable text field exists for Line 7 on the 2025 IRS f1040.pdf.
+  // Capital gains are reported on Schedule D; Line 7 is auto-calculated.
 
-  // f1_68 = Line 7b? (child's capital gain inclusion)
-  // f1_69 = something else
-
-  // Line 8: Additional income from Schedule 1, line 10
-  // f1_73 is far down. Let me count:
-  // After line 7: f1_67 = 7a, f1_68 = ?, f1_69 = ?
-  // c1_41, c1_42 = checkboxes (Schedule D not required / child's CG)
-  // f1_70 = Line 8 (additional income from Schedule 1)
+  // Line 8: Other income from Schedule 1, line 10
+  // f1_70 = Line 8 (RIGHT x=504 y=90)
   line8:  { pdfFieldName: p1('f1_70[0]'), type: 'text' },
 
-  // c1_43, c1_44 = more checkboxes
-  // f1_71 = Line 9 (total income: add lines 1z, 2b, 3b, 4b, 5b, 6b, 7a, and 8)
+  // f1_71 = Line 9 (total income, x=403 y=78, wider field)
   line9:  { pdfFieldName: p1('f1_71[0]'), type: 'text' },
 
-  // f1_72 = Line 10 (adjustments to income from Schedule 1, line 26)
-  // f1_73 = ?
-  // f1_74 = ?
-  // f1_75 = Line 11a (AGI, last line on page 1)
-
-  // Actually: after line 9 (f1_71), there's line 10 and line 11a.
-  // f1_72 = Line 10 (adjustments from Schedule 1)
-  // f1_73 = Line 11a (AGI = line 9 minus line 10)
-  // But wait, there are 75 total text fields on page 1, with f1_75 being the last.
-  // Let me re-examine: f1_71 = 9, f1_72 = 10, f1_73 = 11a
+  // f1_72 = Line 10 (adjustments to income, x=504 y=66)
+  // f1_73 = Line 11 (AGI, x=504 y=54) — confirmed by Wilson family value $129,050
 
   line11: { pdfFieldName: p1('f1_73[0]'), type: 'text' },
 
@@ -202,36 +192,37 @@ export const f1040FieldMap: FieldMap = {
   line15: { pdfFieldName: p2('f2_06[0]'), type: 'text' },
 
   // c2_9, c2_10, c2_11 = Line 16 checkboxes (8814, 4972, other)
-  // f2_07 = Line 16 (tax)
-  line16: { pdfFieldName: p2('f2_07[0]'), type: 'text' },
+  // f2_07 = Line 16 "other form" description text (NARROW x=439 w=36) — NOT the tax amount
+  // f2_08 = Line 16 (tax amount)
+  line16: { pdfFieldName: p2('f2_08[0]'), type: 'text' },
 
-  // f2_08 = Line 17 (amount from Schedule 2, line 3)
-  line17: { pdfFieldName: p2('f2_08[0]'), type: 'text' },
+  // f2_09 = Line 17 (amount from Schedule 2, line 3)
+  line17: { pdfFieldName: p2('f2_09[0]'), type: 'text' },
 
-  // f2_09 = Line 18 (add lines 16 and 17)
-  // f2_10 = Line 19 (child tax credit or credit for other dependents from 8812)
-  line19: { pdfFieldName: p2('f2_10[0]'), type: 'text' },
+  // f2_10 = Line 18 (add lines 16 and 17)
+  // f2_11 = Line 19 (child tax credit or credit for other dependents from 8812)
+  line19: { pdfFieldName: p2('f2_11[0]'), type: 'text' },
 
-  // f2_11 = Line 20 (amount from Schedule 3, line 8)
-  // f2_12 = Line 21 (add lines 19 and 20)
-  // f2_13 = Line 22 (subtract line 21 from line 18)
-  // f2_14 = Line 23 (other taxes from Schedule 2, line 21)
-  line23: { pdfFieldName: p2('f2_14[0]'), type: 'text' },
+  // f2_12 = Line 20 (amount from Schedule 3, line 8)
+  // f2_13 = Line 21 (add lines 19 and 20)
+  // f2_14 = Line 22 (subtract line 21 from line 18)
+  // f2_15 = Line 23 (other taxes from Schedule 2, line 21)
+  line23: { pdfFieldName: p2('f2_15[0]'), type: 'text' },
 
-  // f2_15 = Line 24 (total tax = add lines 22 and 23)
-  line24: { pdfFieldName: p2('f2_15[0]'), type: 'text' },
+  // f2_16 = Line 24 (total tax = add lines 22 and 23)
+  line24: { pdfFieldName: p2('f2_16[0]'), type: 'text' },
 
   // Lines 25a-25d: Federal income tax withheld
-  // f2_16 = Line 25a (from Form(s) W-2)
-  // f2_17 = Line 25b (from Form(s) 1099)
-  // f2_18 = Line 25c (other forms)
-  // f2_19 = Line 25d (total = add lines 25a through 25c)
-  line25: { pdfFieldName: p2('f2_19[0]'), type: 'text' },
+  // f2_17 = Line 25a (from Form(s) W-2)
+  // f2_18 = Line 25b (from Form(s) 1099)
+  // f2_19 = Line 25c (other forms)
+  // f2_20 = Line 25d (total = add lines 25a through 25c)
+  line25a: { pdfFieldName: p2('f2_17[0]'), type: 'text' },
+  line25:  { pdfFieldName: p2('f2_20[0]'), type: 'text' },
 
-  // f2_20 = Line 26 (estimated tax payments)
-  line26: { pdfFieldName: p2('f2_20[0]'), type: 'text' },
+  // f2_21 = Line 26 (estimated tax payments)
+  line26: { pdfFieldName: p2('f2_21[0]'), type: 'text' },
 
-  // f2_21 = Line 26 extra text? (estimated payments with former spouse)
   // SSN_ReadOrder -> f2_22 = SSN at top of page 2
   // f2_23 = Line 27a (earned income credit)
   line27: { pdfFieldName: p2('f2_23[0]'), type: 'text' },

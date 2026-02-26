@@ -61,18 +61,6 @@ function buildRowFields(): FieldMap {
   return fields;
 }
 
-// Base row fields (used by f8949-handler for per-row lookups)
-// These are not directly used but provide the base field definitions
-const baseRowFields: FieldMap = {
-  description:  { pdfFieldName: 'f8949_description', type: 'text' },
-  dateAcquired: { pdfFieldName: 'f8949_dateAcquired', type: 'text' },
-  dateSold:     { pdfFieldName: 'f8949_dateSold', type: 'text' },
-  proceeds:     { pdfFieldName: 'f8949_proceeds', type: 'text' },
-  basis:        { pdfFieldName: 'f8949_basis', type: 'text' },
-  gainLoss:     { pdfFieldName: 'f8949_gainLoss', type: 'text' },
-  category:     { pdfFieldName: 'f8949_category', type: 'text' },
-};
-
 const rowFields = buildRowFields();
 
 // Page totals
@@ -83,7 +71,6 @@ const totalFields: FieldMap = {
 };
 
 export const f8949FieldMap: FieldMap = {
-  ...baseRowFields,
   ...rowFields,
   ...totalFields,
 };

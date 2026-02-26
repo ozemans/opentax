@@ -50,10 +50,11 @@ function mapForm1040(input: TaxInput, result: TaxResult): Record<string, string 
     fields['spouseSSN'] = formatSSN(input.spouse.ssn);
   }
 
-  // Dependents
+  // Dependents (IRS form has separate first name / last name columns)
   input.dependents.forEach((dep, i) => {
-    fields[`dependent${i + 1}_name`] = `${dep.firstName} ${dep.lastName}`;
-    fields[`dependent${i + 1}_ssn`] = formatSSN(dep.ssn);
+    fields[`dependent${i + 1}_firstName`] = dep.firstName;
+    fields[`dependent${i + 1}_lastName`] = dep.lastName;
+    fields[`dependent${i + 1}_ssn`] = dep.ssn;
     fields[`dependent${i + 1}_relationship`] = dep.relationship;
     if (dep.qualifiesForCTC) fields[`dependent${i + 1}_ctc`] = 'X';
   });
@@ -68,11 +69,17 @@ function mapForm1040(input: TaxInput, result: TaxResult): Record<string, string 
   fields['line3a'] = toDollars(result.incomeBreakdown.qualifiedDividends);
   // Line 3b: Ordinary dividends
   fields['line3b'] = toDollars(result.incomeBreakdown.ordinaryDividends);
-  // Line 7: Capital gain or loss
-  const netCapGain = result.capitalGainsResult.deductibleLoss !== 0
-    ? -toDollars(Math.abs(result.capitalGainsResult.deductibleLoss))
-    : toDollars(result.capitalGainsResult.netCapitalGainLoss);
-  fields['line7'] = netCapGain;
+  // Line 7: Capital gain or loss (only if there are actual capital gains/losses)
+  // Note: Line 7 has no fillable text field on the 2025 f1040.pdf — value goes on Schedule D.
+  // We still generate the field for completeness / other form consumers.
+  const cgDeductibleLoss = result.capitalGainsResult?.deductibleLoss ?? 0;
+  const cgNetGainLoss = result.capitalGainsResult?.netCapitalGainLoss ?? 0;
+  if (cgDeductibleLoss !== 0 || cgNetGainLoss !== 0) {
+    const netCapGain = cgDeductibleLoss !== 0
+      ? -toDollars(Math.abs(cgDeductibleLoss))
+      : toDollars(cgNetGainLoss);
+    fields['line7'] = netCapGain;
+  }
   // Line 8: Other income from Schedule 1
   if (result.needsSchedule1) {
     fields['line8'] = toDollars(
@@ -121,7 +128,10 @@ function mapForm1040(input: TaxInput, result: TaxResult): Record<string, string 
   );
   // Line 24: Total tax
   fields['line24'] = toDollars(result.totalTax);
-  // Line 25: Federal withholding
+  // Line 25a: W-2 withholding (for the 25a sub-line on the form)
+  const w2Withholding = input.w2s.reduce((sum, w2) => sum + w2.federalWithheld, 0);
+  fields['line25a'] = toDollars(w2Withholding);
+  // Line 25: Total federal withholding (Line 25d = sum of 25a through 25c)
   fields['line25'] = toDollars(result.totalPayments - input.estimatedTaxPayments);
   // Line 26: Estimated tax payments
   if (input.estimatedTaxPayments > 0) {
