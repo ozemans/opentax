@@ -14,7 +14,7 @@ export function LoadingSpinner({ message, size = 'md' }: LoadingSpinnerProps) {
     <div className="flex flex-col items-center justify-center gap-3" role="status">
       <div
         className={`${sizeMap[size]} animate-spin rounded-full
-                    border-lavender border-t-teal`}
+                    border-highlight border-t-primary`}
         aria-hidden="true"
       />
       {message && (

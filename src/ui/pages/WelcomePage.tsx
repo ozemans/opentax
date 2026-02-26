@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
 import { PrivacyBadge } from '@/ui/components/PrivacyBadge';
+import { AmericanFlagLogo } from '@/ui/components/AmericanFlagLogo';
 import { PasswordDialog } from '@/ui/components/PasswordDialog';
 import { useFocusOnPageChange } from '@/ui/hooks/useFocusOnPageChange';
 import { useTaxState } from '@/ui/hooks/useTaxState';
@@ -98,14 +99,17 @@ export function WelcomePage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
       >
-        <h1
-          ref={headingRef}
-          tabIndex={-1}
-          className="text-4xl sm:text-5xl font-display font-bold text-slate-dark
-                     focus:outline-none"
-        >
-          OpenTax
-        </h1>
+        <div className="flex items-center justify-center gap-4">
+          <AmericanFlagLogo className="h-10 sm:h-12" />
+          <h1
+            ref={headingRef}
+            tabIndex={-1}
+            className="text-4xl sm:text-5xl font-display font-bold text-navy
+                       focus:outline-none"
+          >
+            OpenTax
+          </h1>
+        </div>
         <p className="mt-3 text-lg font-body text-slate">
           Privacy-first tax filing. Free, open source, and entirely in your browser.
         </p>
@@ -127,7 +131,7 @@ export function WelcomePage() {
                        hover:shadow-card-hover transition-shadow duration-200"
           >
             <div className="mx-auto flex h-14 w-14 items-center justify-center
-                            rounded-full bg-lavender-light text-teal-dark">
+                            rounded-full bg-highlight-light text-primary-dark">
               {feature.icon}
             </div>
             <h2 className="mt-4 text-base font-display font-semibold text-slate-dark">
@@ -150,10 +154,10 @@ export function WelcomePage() {
         <button
           type="button"
           onClick={() => navigate('/filing-status')}
-          className="w-full sm:w-auto rounded-xl bg-teal px-8 py-4 text-base
+          className="w-full sm:w-auto rounded-xl bg-primary px-8 py-4 text-base
                      font-display font-semibold text-white
-                     hover:bg-teal-dark transition-colors
-                     focus:outline-none focus:ring-2 focus:ring-teal focus:ring-offset-2
+                     hover:bg-primary-dark transition-colors
+                     focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
                      shadow-card hover:shadow-card-hover"
         >
           Start Your Return
@@ -164,7 +168,7 @@ export function WelcomePage() {
           className="w-full sm:w-auto rounded-xl border border-slate-light px-8 py-4
                      text-base font-display font-medium text-slate-dark
                      hover:bg-surface transition-colors
-                     focus:outline-none focus:ring-2 focus:ring-lavender focus:ring-offset-2"
+                     focus:outline-none focus:ring-2 focus:ring-highlight focus:ring-offset-2"
         >
           Import .opentax file
         </button>

@@ -129,7 +129,7 @@ export function StatePage() {
                       {stateInfo.highlights.map((h, i) => (
                         <li key={i} className="flex items-start gap-2 text-sm font-body text-slate-dark">
                           <svg
-                            className="h-4 w-4 text-teal flex-shrink-0 mt-0.5"
+                            className="h-4 w-4 text-primary flex-shrink-0 mt-0.5"
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
@@ -147,14 +147,14 @@ export function StatePage() {
 
                 {/* NYC prompt for NY */}
                 {stateCode === 'NY' && (
-                  <div className="rounded-xl bg-lavender-light p-4">
+                  <div className="rounded-xl bg-highlight-light p-4">
                     <label className="flex items-center gap-3 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={isNYC}
                         onChange={(e) => handleNYCToggle(e.target.checked)}
-                        className="h-5 w-5 rounded border-slate-light text-teal
-                                   focus:ring-lavender focus:ring-2"
+                        className="h-5 w-5 rounded border-slate-light text-primary
+                                   focus:ring-highlight focus:ring-2"
                       />
                       <div>
                         <p className="text-sm font-display font-semibold text-slate-dark">
@@ -199,14 +199,14 @@ export function StatePage() {
 
         {/* Supported states overview */}
         {!stateCode && (
-          <div className="rounded-2xl bg-lavender-light/50 p-5">
+          <div className="rounded-2xl bg-highlight-light/50 p-5">
             <h3 className="text-sm font-display font-semibold text-slate-dark mb-3">
               Supported States
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm font-body">
               {STATE_OPTIONS.filter((s) => s.supported).map((s) => (
                 <div key={s.value} className="flex items-center gap-1.5 text-slate-dark">
-                  <svg className="h-3.5 w-3.5 text-teal" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden="true">
+                  <svg className="h-3.5 w-3.5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden="true">
                     <path d="M20 6L9 17l-5-5" />
                   </svg>
                   {s.label}

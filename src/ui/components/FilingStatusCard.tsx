@@ -36,10 +36,10 @@ export function FilingStatusCard({
       className={`
         relative flex items-start gap-4 rounded-2xl border-2 p-5 cursor-pointer
         min-h-[64px] transition-all duration-200
-        focus:outline-none focus:ring-2 focus:ring-lavender focus:ring-offset-2
+        focus:outline-none focus:ring-2 focus:ring-highlight focus:ring-offset-2
         ${
           isSelected
-            ? 'border-lavender bg-lavender-light shadow-card'
+            ? 'border-highlight bg-highlight-light shadow-card'
             : 'border-slate-light/50 bg-white hover:shadow-card-hover hover:border-slate-light'
         }
       `}
@@ -63,7 +63,7 @@ export function FilingStatusCard({
       {isSelected && (
         <span className="flex-shrink-0 mt-0.5" aria-hidden="true">
           <svg
-            className="h-6 w-6 text-teal"
+            className="h-6 w-6 text-primary"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"

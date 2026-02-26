@@ -147,14 +147,14 @@ export function PasswordDialog({
                 autoComplete="off"
                 className="w-full rounded-lg border border-slate-light px-3 py-2.5 pr-10
                            font-body text-slate-dark
-                           focus:outline-none focus:ring-2 focus:ring-lavender focus:border-lavender"
+                           focus:outline-none focus:ring-2 focus:ring-highlight focus:border-highlight"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((p) => !p)}
                 className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate
                            hover:text-slate-dark focus:outline-none focus:ring-2
-                           focus:ring-lavender rounded"
+                           focus:ring-highlight rounded"
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? (
@@ -189,7 +189,7 @@ export function PasswordDialog({
                 autoComplete="off"
                 className="w-full rounded-lg border border-slate-light px-3 py-2.5
                            font-body text-slate-dark
-                           focus:outline-none focus:ring-2 focus:ring-lavender focus:border-lavender"
+                           focus:outline-none focus:ring-2 focus:ring-highlight focus:border-highlight"
               />
             </div>
           )}
@@ -208,7 +208,7 @@ export function PasswordDialog({
               className="rounded-xl border border-slate-light px-6 py-3 text-sm
                          font-display font-medium text-slate-dark
                          hover:bg-surface transition-colors
-                         focus:outline-none focus:ring-2 focus:ring-lavender focus:ring-offset-1
+                         focus:outline-none focus:ring-2 focus:ring-highlight focus:ring-offset-1
                          disabled:opacity-50"
             >
               Cancel
@@ -216,9 +216,9 @@ export function PasswordDialog({
             <button
               type="submit"
               disabled={isLoading}
-              className="rounded-xl bg-teal px-6 py-3 text-sm font-display font-medium
-                         text-white hover:bg-teal-dark transition-colors
-                         focus:outline-none focus:ring-2 focus:ring-teal focus:ring-offset-1
+              className="rounded-xl bg-primary px-6 py-3 text-sm font-display font-medium
+                         text-white hover:bg-primary-dark transition-colors
+                         focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1
                          disabled:opacity-50"
             >
               {isLoading ? 'Processing...' : mode === 'export' ? 'Encrypt & Download' : 'Decrypt & Import'}

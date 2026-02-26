@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router';
 import { AnimatePresence, motion } from 'motion/react';
 import { SkipLink } from '@/ui/components/SkipLink';
+import { AmericanFlagLogo } from '@/ui/components/AmericanFlagLogo';
 import { InterviewNav } from '@/ui/components/InterviewNav';
 import { RefundTracker } from '@/ui/components/RefundTracker';
 import { PrivacyBadge } from '@/ui/components/PrivacyBadge';
@@ -76,6 +77,11 @@ export function InterviewLayout() {
       {/* Navigation */}
       <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b border-slate-light/20 shadow-card">
         <div className="max-w-7xl mx-auto">
+          {/* Brand */}
+          <div className="flex items-center gap-2.5 px-4 pt-3 lg:px-6 lg:pt-4">
+            <AmericanFlagLogo className="h-6" />
+            <span className="text-lg font-display font-bold text-navy">OpenTax</span>
+          </div>
           <InterviewNav
             currentStep={currentStep}
             totalSteps={totalSteps}

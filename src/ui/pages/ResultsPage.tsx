@@ -178,7 +178,7 @@ export function ResultsPage() {
           </p>
           <p
             className={`text-5xl sm:text-6xl font-display font-bold tabular-nums
-                        ${isRefund ? 'text-success' : 'text-coral'}`}
+                        ${isRefund ? 'text-success' : 'text-accent'}`}
           >
             {isRefund ? '' : '-'}${displayAmount}
           </p>
@@ -224,7 +224,7 @@ export function ResultsPage() {
           aria-labelledby="rates-heading"
         >
           <h2 id="rates-heading" className="sr-only">Tax Rates</h2>
-          <div className="rounded-2xl bg-lavender-light/50 p-5 text-center">
+          <div className="rounded-2xl bg-highlight-light/50 p-5 text-center">
             <p className="text-xs font-body text-slate">Effective Rate</p>
             <p className="text-3xl font-display font-bold text-slate-dark mt-1">
               {effectiveTaxRate.toFixed(1)}%
@@ -233,7 +233,7 @@ export function ResultsPage() {
               Actual % of income paid in tax
             </p>
           </div>
-          <div className="rounded-2xl bg-lavender-light/50 p-5 text-center">
+          <div className="rounded-2xl bg-highlight-light/50 p-5 text-center">
             <p className="text-xs font-body text-slate">Marginal Rate</p>
             <p className="text-3xl font-display font-bold text-slate-dark mt-1">
               {marginalTaxRate.toFixed(0)}%
@@ -258,7 +258,7 @@ export function ResultsPage() {
           <ol className="space-y-3 text-sm font-body text-slate-dark">
             <li className="flex gap-3">
               <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full
-                              bg-teal/15 text-xs font-display font-semibold text-teal-dark">
+                              bg-primary/15 text-xs font-display font-semibold text-primary-dark">
                 1
               </span>
               <span>
@@ -267,7 +267,7 @@ export function ResultsPage() {
             </li>
             <li className="flex gap-3">
               <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full
-                              bg-teal/15 text-xs font-display font-semibold text-teal-dark">
+                              bg-primary/15 text-xs font-display font-semibold text-primary-dark">
                 2
               </span>
               <span>
@@ -276,7 +276,7 @@ export function ResultsPage() {
             </li>
             <li className="flex gap-3">
               <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full
-                              bg-teal/15 text-xs font-display font-semibold text-teal-dark">
+                              bg-primary/15 text-xs font-display font-semibold text-primary-dark">
                 3
               </span>
               <span>
@@ -285,7 +285,7 @@ export function ResultsPage() {
             </li>
             <li className="flex gap-3">
               <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full
-                              bg-teal/15 text-xs font-display font-semibold text-teal-dark">
+                              bg-primary/15 text-xs font-display font-semibold text-primary-dark">
                 4
               </span>
               <span>
@@ -301,9 +301,9 @@ export function ResultsPage() {
             type="button"
             onClick={handleDownloadPDF}
             disabled={isDownloading || !result}
-            className="w-full rounded-xl bg-teal px-6 py-4 text-base font-display
-                       font-semibold text-white hover:bg-teal-dark transition-colors
-                       focus:outline-none focus:ring-2 focus:ring-teal focus:ring-offset-2
+            className="w-full rounded-xl bg-primary px-6 py-4 text-base font-display
+                       font-semibold text-white hover:bg-primary-dark transition-colors
+                       focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
                        shadow-card hover:shadow-card-hover disabled:opacity-50"
           >
             {isDownloading ? 'Generating PDF...' : 'Download PDF Return'}
@@ -315,7 +315,7 @@ export function ResultsPage() {
             className="w-full rounded-xl border border-slate-light px-6 py-3 text-sm
                        font-display font-medium text-slate-dark hover:bg-surface
                        transition-colors focus:outline-none focus:ring-2
-                       focus:ring-lavender focus:ring-offset-1"
+                       focus:ring-highlight focus:ring-offset-1"
           >
             Export Encrypted Backup
           </button>
@@ -326,7 +326,7 @@ export function ResultsPage() {
             className="w-full rounded-xl border border-slate-light/50 px-6 py-3 text-sm
                        font-display font-medium text-slate hover:bg-surface
                        transition-colors focus:outline-none focus:ring-2
-                       focus:ring-lavender focus:ring-offset-1"
+                       focus:ring-highlight focus:ring-offset-1"
           >
             Start New Return
           </button>

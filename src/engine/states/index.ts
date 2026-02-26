@@ -119,6 +119,8 @@ export function computeStateTaxes(
   }
   if (input.additionalStates) {
     for (const s of input.additionalStates) {
+      // NYC is a locality within NY, not a separate state module
+      if (s === 'NYC') continue;
       stateCodes.add(s.toUpperCase());
     }
   }

@@ -10,7 +10,7 @@ export function PageContainer({ title, description, children }: PageContainerPro
       <div className="rounded-2xl bg-white shadow-card p-5 md:p-8">
         <h1
           tabIndex={-1}
-          className="text-2xl font-display font-bold text-slate-dark
+          className="text-2xl font-display font-bold text-navy
                      focus:outline-none"
         >
           {title}

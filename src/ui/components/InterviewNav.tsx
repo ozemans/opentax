@@ -32,7 +32,7 @@ export function InterviewNav({
           <div className="absolute top-5 left-0 right-0 h-0.5 bg-slate-light/30" aria-hidden="true" />
           {/* Progress line (filled) */}
           <div
-            className="absolute top-5 left-0 h-0.5 bg-teal transition-all duration-500 ease-smooth"
+            className="absolute top-5 left-0 h-0.5 bg-primary transition-all duration-500 ease-smooth"
             style={{ width: `${(currentStep / Math.max(totalSteps - 1, 1)) * 100}%` }}
             aria-hidden="true"
           />
@@ -52,7 +52,7 @@ export function InterviewNav({
                 aria-label={`${step.label}${isCompleted ? ' (completed)' : isCurrent ? ' (current)' : ''}`}
                 className={`
                   relative z-10 flex flex-col items-center gap-1.5
-                  focus:outline-none focus:ring-2 focus:ring-lavender focus:ring-offset-2 rounded-lg p-1
+                  focus:outline-none focus:ring-2 focus:ring-highlight focus:ring-offset-2 rounded-lg p-1
                   ${isClickable ? 'cursor-pointer' : 'cursor-default'}
                 `}
               >
@@ -62,9 +62,9 @@ export function InterviewNav({
                     flex h-10 w-10 items-center justify-center rounded-full
                     text-sm font-display font-semibold transition-all duration-300
                     ${isCompleted
-                      ? 'bg-teal text-white'
+                      ? 'bg-primary text-white'
                       : isCurrent
-                        ? 'bg-lavender text-slate-dark ring-2 ring-lavender ring-offset-2'
+                        ? 'bg-highlight text-slate-dark ring-2 ring-highlight ring-offset-2'
                         : 'bg-white border-2 border-slate-light/50 text-slate-light'}
                   `}
                 >
@@ -77,7 +77,7 @@ export function InterviewNav({
                   )}
                   {/* Pulse animation for current step */}
                   {isCurrent && (
-                    <span className="absolute inset-0 animate-ping rounded-full bg-lavender/30" aria-hidden="true" />
+                    <span className="absolute inset-0 animate-ping rounded-full bg-highlight/30" aria-hidden="true" />
                   )}
                 </div>
 
@@ -108,7 +108,7 @@ export function InterviewNav({
         {/* Progress bar */}
         <div className="h-1.5 w-full rounded-full bg-slate-light/30 overflow-hidden" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
           <div
-            className="h-full rounded-full bg-teal transition-all duration-500 ease-smooth"
+            className="h-full rounded-full bg-primary transition-all duration-500 ease-smooth"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -123,7 +123,7 @@ export function InterviewNav({
           className="rounded-xl border border-slate-light px-6 py-3 text-sm
                      font-display font-medium text-slate-dark
                      hover:bg-surface transition-colors
-                     focus:outline-none focus:ring-2 focus:ring-lavender focus:ring-offset-1
+                     focus:outline-none focus:ring-2 focus:ring-highlight focus:ring-offset-1
                      disabled:opacity-30 disabled:cursor-not-allowed"
         >
           Back
@@ -132,9 +132,9 @@ export function InterviewNav({
           type="button"
           onClick={onNext}
           disabled={!canGoNext}
-          className="rounded-xl bg-teal px-6 py-3 text-sm font-display font-medium
-                     text-white hover:bg-teal-dark transition-colors
-                     focus:outline-none focus:ring-2 focus:ring-teal focus:ring-offset-1
+          className="rounded-xl bg-primary px-6 py-3 text-sm font-display font-medium
+                     text-white hover:bg-primary-dark transition-colors
+                     focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1
                      disabled:opacity-30 disabled:cursor-not-allowed"
         >
           Next

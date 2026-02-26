@@ -65,9 +65,9 @@ export function DeductionsPage() {
             aria-pressed={!useItemized}
             className={`
               rounded-2xl border-2 p-5 text-left transition-all duration-200
-              focus:outline-none focus:ring-2 focus:ring-lavender focus:ring-offset-2
+              focus:outline-none focus:ring-2 focus:ring-highlight focus:ring-offset-2
               ${!useItemized
-                ? 'border-lavender bg-lavender-light shadow-card'
+                ? 'border-highlight bg-highlight-light shadow-card'
                 : 'border-slate-light/50 bg-white hover:shadow-card-hover'}
             `}
           >
@@ -76,7 +76,7 @@ export function DeductionsPage() {
                 Standard Deduction
               </h3>
               {standardIsLarger && !useItemized && (
-                <span className="rounded-full bg-teal/15 px-2.5 py-0.5 text-xs font-display font-medium text-teal-dark">
+                <span className="rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-display font-medium text-primary-dark">
                   Recommended
                 </span>
               )}
@@ -96,9 +96,9 @@ export function DeductionsPage() {
             aria-pressed={useItemized}
             className={`
               rounded-2xl border-2 p-5 text-left transition-all duration-200
-              focus:outline-none focus:ring-2 focus:ring-lavender focus:ring-offset-2
+              focus:outline-none focus:ring-2 focus:ring-highlight focus:ring-offset-2
               ${useItemized
-                ? 'border-lavender bg-lavender-light shadow-card'
+                ? 'border-highlight bg-highlight-light shadow-card'
                 : 'border-slate-light/50 bg-white hover:shadow-card-hover'}
             `}
           >
@@ -107,7 +107,7 @@ export function DeductionsPage() {
                 Itemized Deductions
               </h3>
               {!standardIsLarger && useItemized && (
-                <span className="rounded-full bg-teal/15 px-2.5 py-0.5 text-xs font-display font-medium text-teal-dark">
+                <span className="rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-display font-medium text-primary-dark">
                   Better Value
                 </span>
               )}

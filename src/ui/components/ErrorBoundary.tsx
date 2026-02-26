@@ -42,7 +42,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
         >
           <div className="rounded-2xl bg-white p-8 shadow-card max-w-md">
             <svg
-              className="mx-auto h-12 w-12 text-coral"
+              className="mx-auto h-12 w-12 text-accent"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -62,9 +62,9 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
             <button
               type="button"
               onClick={this.handleReset}
-              className="mt-6 rounded-xl bg-teal px-6 py-3 text-sm font-display
-                         font-medium text-white hover:bg-teal-dark transition-colors
-                         focus:outline-none focus:ring-2 focus:ring-teal focus:ring-offset-1"
+              className="mt-6 rounded-xl bg-primary px-6 py-3 text-sm font-display
+                         font-medium text-white hover:bg-primary-dark transition-colors
+                         focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
             >
               Try Again
             </button>

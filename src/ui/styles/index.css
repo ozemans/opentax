@@ -1,26 +1,41 @@
 @import "tailwindcss";
 
 @theme {
-  --color-lavender: #E8E0F0;
-  --color-lavender-light: #F3EFF8;
-  --color-lavender-dark: #C9B8DB;
+  /* Primary (blue) */
+  --color-primary: #2563EB;
+  --color-primary-dark: #1E40AF;
+  --color-primary-light: #3B82F6;
+
+  /* Navy (headings) */
+  --color-navy: #1B3A6B;
+
+  /* Accent (red) */
+  --color-accent: #DC2626;
+  --color-accent-dark: #B91C1C;
+
+  /* Highlight (light blue) */
+  --color-highlight: #EFF6FF;
+  --color-highlight-light: #F0F7FF;
+  --color-highlight-dark: #BFDBFE;
+
+  /* Neutrals */
   --color-slate: #64748B;
   --color-slate-light: #94A3B8;
   --color-slate-dark: #475569;
   --color-surface: #FAFAFA;
   --color-surface-card: #FFFFFF;
-  --color-coral: #F87171;
-  --color-coral-dark: #DC2626;
-  --color-teal: #2DD4BF;
-  --color-teal-dark: #0D9488;
+
+  /* Status */
   --color-success: #22C55E;
   --color-warning: #F59E0B;
   --color-error: #EF4444;
 
+  /* Fonts */
   --font-display: "General Sans", system-ui, sans-serif;
   --font-body: "Literata", Georgia, serif;
   --font-mono: "JetBrains Mono", monospace;
 
+  /* Shadows */
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
   --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
 

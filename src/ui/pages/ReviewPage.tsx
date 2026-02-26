@@ -193,7 +193,7 @@ export function ReviewPage() {
                     value="checking"
                     checked={(input.directDeposit?.accountType ?? 'checking') === 'checking'}
                     onChange={() => dispatch({ type: 'SET_FIELD', path: 'directDeposit.accountType', value: 'checking' })}
-                    className="h-4 w-4 border-slate-light text-teal focus:ring-lavender"
+                    className="h-4 w-4 border-slate-light text-primary focus:ring-highlight"
                   />
                   Checking
                 </label>
@@ -204,7 +204,7 @@ export function ReviewPage() {
                     value="savings"
                     checked={(input.directDeposit?.accountType ?? 'checking') === 'savings'}
                     onChange={() => dispatch({ type: 'SET_FIELD', path: 'directDeposit.accountType', value: 'savings' })}
-                    className="h-4 w-4 border-slate-light text-teal focus:ring-lavender"
+                    className="h-4 w-4 border-slate-light text-primary focus:ring-highlight"
                   />
                   Savings
                 </label>
@@ -219,9 +219,9 @@ export function ReviewPage() {
             type="button"
             onClick={handleDownloadPDF}
             disabled={isDownloading || !result}
-            className="w-full rounded-xl bg-teal px-6 py-4 text-base font-display
-                       font-semibold text-white hover:bg-teal-dark transition-colors
-                       focus:outline-none focus:ring-2 focus:ring-teal focus:ring-offset-2
+            className="w-full rounded-xl bg-primary px-6 py-4 text-base font-display
+                       font-semibold text-white hover:bg-primary-dark transition-colors
+                       focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
                        shadow-card hover:shadow-card-hover disabled:opacity-50"
           >
             {isDownloading ? 'Generating PDF...' : 'Download PDF Return'}
@@ -233,7 +233,7 @@ export function ReviewPage() {
             className="w-full rounded-xl border border-slate-light px-6 py-3 text-sm
                        font-display font-medium text-slate-dark hover:bg-surface
                        transition-colors focus:outline-none focus:ring-2
-                       focus:ring-lavender focus:ring-offset-1"
+                       focus:ring-highlight focus:ring-offset-1"
           >
             Export .opentax Backup
           </button>
@@ -241,10 +241,10 @@ export function ReviewPage() {
           <button
             type="button"
             onClick={() => setShowClearConfirm(true)}
-            className="w-full rounded-xl border border-coral/30 px-6 py-3 text-sm
-                       font-display font-medium text-coral hover:bg-coral/5
+            className="w-full rounded-xl border border-accent/30 px-6 py-3 text-sm
+                       font-display font-medium text-accent hover:bg-accent/5
                        transition-colors focus:outline-none focus:ring-2
-                       focus:ring-coral focus:ring-offset-1"
+                       focus:ring-accent focus:ring-offset-1"
           >
             Clear All Data
           </button>

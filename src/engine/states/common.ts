@@ -317,6 +317,13 @@ export function buildStateTaxInput(
     (w) => w.stateCode === stateCode,
   )?.locality;
 
+  // If user explicitly declared NYC residency via UI checkbox (additionalStates),
+  // override the W-2-derived locality so the NY module computes NYC local tax.
+  let resolvedLocality = locality;
+  if (stateCode === 'NY' && input.additionalStates?.includes('NYC')) {
+    resolvedLocality = 'NYC';
+  }
+
   return {
     federalAGI: federalResult.adjustedGrossIncome,
     federalTaxableIncome: federalResult.taxableIncome,
@@ -360,6 +367,6 @@ export function buildStateTaxInput(
     stateLocalTaxesPaid: input.itemizedDeductions?.stateLocalTaxesPaid ?? 0,
     isRenter: false,
     rentPaid: 0,
-    locality,
+    locality: resolvedLocality,
   };
 }

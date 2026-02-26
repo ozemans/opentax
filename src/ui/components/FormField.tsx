@@ -43,7 +43,7 @@ export function FormField({
     w-full rounded-lg border px-3 py-2.5 font-body text-slate-dark
     placeholder:text-slate-light
     transition-colors duration-150
-    focus:outline-none focus:ring-2 focus:ring-lavender focus:border-lavender
+    focus:outline-none focus:ring-2 focus:ring-highlight focus:border-highlight
     disabled:opacity-50 disabled:cursor-not-allowed
     ${error ? 'border-error ring-1 ring-error/30' : 'border-slate-light'}
   `.trim();

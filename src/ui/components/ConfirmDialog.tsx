@@ -77,8 +77,8 @@ export function ConfirmDialog({
 
   const confirmClasses =
     confirmVariant === 'danger'
-      ? 'bg-coral text-white hover:bg-coral-dark'
-      : 'bg-teal text-white hover:bg-teal-dark';
+      ? 'bg-accent text-white hover:bg-accent-dark'
+      : 'bg-primary text-white hover:bg-primary-dark';
 
   return (
     <div
@@ -122,7 +122,7 @@ export function ConfirmDialog({
             className="rounded-xl border border-slate-light px-6 py-3 text-sm
                        font-display font-medium text-slate-dark
                        hover:bg-surface transition-colors
-                       focus:outline-none focus:ring-2 focus:ring-lavender focus:ring-offset-1"
+                       focus:outline-none focus:ring-2 focus:ring-highlight focus:ring-offset-1"
           >
             Cancel
           </button>
@@ -133,7 +133,7 @@ export function ConfirmDialog({
             className={`rounded-xl px-6 py-3 text-sm font-display font-medium
                         transition-colors focus:outline-none focus:ring-2
                         focus:ring-offset-1 ${confirmClasses}
-                        ${confirmVariant === 'danger' ? 'focus:ring-coral' : 'focus:ring-teal'}`}
+                        ${confirmVariant === 'danger' ? 'focus:ring-accent' : 'focus:ring-primary'}`}
           >
             {confirmLabel}
           </button>

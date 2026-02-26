@@ -161,8 +161,8 @@ export function CapitalGainsImport({
           cursor-pointer rounded-2xl border-2 border-dashed p-8 text-center
           transition-colors duration-200
           ${isDragging
-            ? 'border-teal bg-teal/5'
-            : 'border-slate-light hover:border-lavender hover:bg-lavender-light/30'}
+            ? 'border-primary bg-primary/5'
+            : 'border-slate-light hover:border-highlight hover:bg-highlight-light/30'}
         `}
         role="button"
         tabIndex={0}
@@ -228,7 +228,7 @@ export function CapitalGainsImport({
                     <td className="px-3 py-2 text-slate">{row.dateSold || '-'}</td>
                     <td className="px-3 py-2 text-right text-slate-dark tabular-nums">${formatCentsToDollars(row.proceeds)}</td>
                     <td className="px-3 py-2 text-right text-slate-dark tabular-nums">${formatCentsToDollars(row.costBasis)}</td>
-                    <td className={`px-3 py-2 text-right tabular-nums ${row.gainLoss >= 0 ? 'text-success' : 'text-coral'}`}>
+                    <td className={`px-3 py-2 text-right tabular-nums ${row.gainLoss >= 0 ? 'text-success' : 'text-accent'}`}>
                       {row.gainLoss >= 0 ? '+' : ''}${formatCentsToDollars(row.gainLoss)}
                     </td>
                     <td className="px-3 py-2 text-slate">{row.isLongTerm ? 'LT' : 'ST'}</td>
@@ -241,9 +241,9 @@ export function CapitalGainsImport({
             <button
               type="button"
               onClick={handleConfirmImport}
-              className="rounded-xl bg-teal px-6 py-3 text-sm font-display font-medium
-                         text-white hover:bg-teal-dark transition-colors
-                         focus:outline-none focus:ring-2 focus:ring-teal focus:ring-offset-1"
+              className="rounded-xl bg-primary px-6 py-3 text-sm font-display font-medium
+                         text-white hover:bg-primary-dark transition-colors
+                         focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
             >
               Confirm Import ({preview.length})
             </button>
@@ -253,7 +253,7 @@ export function CapitalGainsImport({
               className="rounded-xl border border-slate-light px-6 py-3 text-sm
                          font-display font-medium text-slate-dark hover:bg-surface
                          transition-colors focus:outline-none focus:ring-2
-                         focus:ring-lavender focus:ring-offset-1"
+                         focus:ring-highlight focus:ring-offset-1"
             >
               Cancel
             </button>
@@ -282,7 +282,7 @@ export function CapitalGainsImport({
                     <td className="px-3 py-2 text-slate-dark">{t.description || `Transaction ${i + 1}`}</td>
                     <td className="px-3 py-2 text-right text-slate-dark tabular-nums">${formatCentsToDollars(t.proceeds)}</td>
                     <td className="px-3 py-2 text-right text-slate-dark tabular-nums">${formatCentsToDollars(t.costBasis)}</td>
-                    <td className={`px-3 py-2 text-right tabular-nums ${t.gainLoss >= 0 ? 'text-success' : 'text-coral'}`}>
+                    <td className={`px-3 py-2 text-right tabular-nums ${t.gainLoss >= 0 ? 'text-success' : 'text-accent'}`}>
                       {t.gainLoss >= 0 ? '+' : ''}${formatCentsToDollars(t.gainLoss)}
                     </td>
                     <td className="px-3 py-2 text-slate">{t.isLongTerm ? 'LT' : 'ST'}</td>
@@ -290,8 +290,8 @@ export function CapitalGainsImport({
                       <button
                         type="button"
                         onClick={() => onRemove(i)}
-                        className="text-xs font-display text-coral hover:text-coral-dark
-                                   focus:outline-none focus:ring-2 focus:ring-coral rounded px-1"
+                        className="text-xs font-display text-accent hover:text-accent-dark
+                                   focus:outline-none focus:ring-2 focus:ring-accent rounded px-1"
                         aria-label={`Remove ${t.description || `transaction ${i + 1}`}`}
                       >
                         Remove
@@ -311,7 +311,7 @@ export function CapitalGainsImport({
             </div>
             <div className="rounded-lg bg-surface p-3">
               <p className="text-xs text-slate">ST Losses</p>
-              <p className="font-medium text-coral tabular-nums">${formatCentsToDollars(stLosses)}</p>
+              <p className="font-medium text-accent tabular-nums">${formatCentsToDollars(stLosses)}</p>
             </div>
             <div className="rounded-lg bg-surface p-3">
               <p className="text-xs text-slate">LT Gains</p>
@@ -319,10 +319,10 @@ export function CapitalGainsImport({
             </div>
             <div className="rounded-lg bg-surface p-3">
               <p className="text-xs text-slate">LT Losses</p>
-              <p className="font-medium text-coral tabular-nums">${formatCentsToDollars(ltLosses)}</p>
+              <p className="font-medium text-accent tabular-nums">${formatCentsToDollars(ltLosses)}</p>
             </div>
           </div>
-          <div className={`text-sm font-display font-semibold ${net >= 0 ? 'text-success' : 'text-coral'}`}>
+          <div className={`text-sm font-display font-semibold ${net >= 0 ? 'text-success' : 'text-accent'}`}>
             Net Capital Gain/Loss: {net >= 0 ? '+' : ''}${formatCentsToDollars(net)}
           </div>
         </div>
@@ -334,9 +334,9 @@ export function CapitalGainsImport({
         onClick={onAdd}
         className="rounded-xl border border-dashed border-slate-light px-6 py-3
                    w-full text-sm font-display font-medium text-slate
-                   hover:border-teal hover:text-teal-dark hover:bg-teal/5
+                   hover:border-primary hover:text-primary-dark hover:bg-primary/5
                    transition-colors focus:outline-none focus:ring-2
-                   focus:ring-lavender focus:ring-offset-1"
+                   focus:ring-highlight focus:ring-offset-1"
       >
         + Add Transaction Manually
       </button>

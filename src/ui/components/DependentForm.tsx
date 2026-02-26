@@ -68,9 +68,9 @@ export function DependentForm({
           <button
             type="button"
             onClick={() => setShowConfirm(true)}
-            className="text-sm font-display text-coral hover:text-coral-dark
+            className="text-sm font-display text-accent hover:text-accent-dark
                        transition-colors focus:outline-none focus:ring-2
-                       focus:ring-coral rounded px-2 py-1"
+                       focus:ring-accent rounded px-2 py-1"
             aria-label={`Remove dependent ${index + 1}`}
           >
             Remove
@@ -143,8 +143,8 @@ export function DependentForm({
               type="checkbox"
               checked={dependent.isStudent}
               onChange={(e) => handleChange('isStudent', e.target.checked)}
-              className="h-4 w-4 rounded border-slate-light text-teal
-                         focus:ring-lavender focus:ring-2"
+              className="h-4 w-4 rounded border-slate-light text-primary
+                         focus:ring-highlight focus:ring-2"
             />
             Full-time student
           </label>
@@ -153,8 +153,8 @@ export function DependentForm({
               type="checkbox"
               checked={dependent.isDisabled}
               onChange={(e) => handleChange('isDisabled', e.target.checked)}
-              className="h-4 w-4 rounded border-slate-light text-teal
-                         focus:ring-lavender focus:ring-2"
+              className="h-4 w-4 rounded border-slate-light text-primary
+                         focus:ring-highlight focus:ring-2"
             />
             Permanently disabled
           </label>

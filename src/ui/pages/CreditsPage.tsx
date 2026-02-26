@@ -54,7 +54,7 @@ export function CreditsPage() {
           <h2 id="auto-credits-heading" className="text-lg font-display font-semibold text-slate-dark mb-4">
             Auto-Calculated Credits
           </h2>
-          <div className="rounded-2xl bg-lavender-light/50 p-5 space-y-3">
+          <div className="rounded-2xl bg-highlight-light/50 p-5 space-y-3">
             <div className="flex justify-between items-baseline text-sm font-body">
               <span className="text-slate">Child Tax Credit</span>
               <span className="font-medium text-slate-dark tabular-nums">{formatCents(ctc)}</span>
@@ -107,9 +107,9 @@ export function CreditsPage() {
                   <button
                     type="button"
                     onClick={() => handleRemoveEducation(i)}
-                    className="text-sm font-display text-coral hover:text-coral-dark
+                    className="text-sm font-display text-accent hover:text-accent-dark
                                transition-colors focus:outline-none focus:ring-2
-                               focus:ring-coral rounded px-2 py-1"
+                               focus:ring-accent rounded px-2 py-1"
                   >
                     Remove
                   </button>
@@ -133,7 +133,7 @@ export function CreditsPage() {
                       className={`
                         flex-1 rounded-xl border-2 p-3 cursor-pointer transition-colors
                         ${entry.type === 'american_opportunity'
-                          ? 'border-lavender bg-lavender-light'
+                          ? 'border-highlight bg-highlight-light'
                           : 'border-slate-light/50 bg-white hover:border-slate-light'}
                       `}
                     >
@@ -156,7 +156,7 @@ export function CreditsPage() {
                       className={`
                         flex-1 rounded-xl border-2 p-3 cursor-pointer transition-colors
                         ${entry.type === 'lifetime_learning'
-                          ? 'border-lavender bg-lavender-light'
+                          ? 'border-highlight bg-highlight-light'
                           : 'border-slate-light/50 bg-white hover:border-slate-light'}
                       `}
                     >
@@ -195,9 +195,9 @@ export function CreditsPage() {
               onClick={handleAddEducation}
               className="w-full rounded-xl border border-dashed border-slate-light px-6 py-3
                          text-sm font-display font-medium text-slate
-                         hover:border-teal hover:text-teal-dark hover:bg-teal/5
+                         hover:border-primary hover:text-primary-dark hover:bg-primary/5
                          transition-colors focus:outline-none focus:ring-2
-                         focus:ring-lavender focus:ring-offset-1"
+                         focus:ring-highlight focus:ring-offset-1"
             >
               + Add Student
             </button>

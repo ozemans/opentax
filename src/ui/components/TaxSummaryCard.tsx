@@ -37,7 +37,7 @@ export function TaxSummaryCard({
     <div
       className={`rounded-2xl p-6 ${
         highlight
-          ? 'bg-lavender-light border-2 border-lavender shadow-card-hover'
+          ? 'bg-highlight-light border-2 border-highlight shadow-card-hover'
           : 'bg-white border border-slate-light/30 shadow-card'
       }`}
     >
@@ -49,9 +49,9 @@ export function TaxSummaryCard({
           <button
             type="button"
             onClick={() => navigate(editPath)}
-            className="text-sm font-display text-teal hover:text-teal-dark
+            className="text-sm font-display text-primary hover:text-primary-dark
                        transition-colors focus:outline-none focus:ring-2
-                       focus:ring-lavender rounded px-2 py-1"
+                       focus:ring-highlight rounded px-2 py-1"
           >
             Edit
           </button>

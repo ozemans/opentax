@@ -49,8 +49,8 @@ export function HelpTooltip({ content, irsReference }: HelpTooltipProps) {
         aria-expanded={isOpen}
         aria-describedby={isOpen ? tooltipId : undefined}
         className="ml-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full
-                   bg-lavender-light text-slate text-xs font-display font-semibold
-                   hover:bg-lavender focus:outline-none focus:ring-2 focus:ring-lavender
+                   bg-highlight-light text-slate text-xs font-display font-semibold
+                   hover:bg-highlight focus:outline-none focus:ring-2 focus:ring-highlight
                    focus:ring-offset-1 transition-colors"
         aria-label="Help"
       >

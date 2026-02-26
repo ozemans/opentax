@@ -55,11 +55,11 @@ export function RefundTracker() {
 
             <p
               className={`mt-2 text-4xl font-display font-bold tabular-nums
-                          ${isRefund ? 'text-success' : 'text-coral'}`}
+                          ${isRefund ? 'text-success' : 'text-accent'}`}
             >
               {isComputing ? (
                 <span className="inline-block h-8 w-8 animate-spin rounded-full
-                                 border-2 border-lavender border-t-teal" />
+                                 border-2 border-highlight border-t-primary" />
               ) : (
                 <>
                   {isRefund ? '' : '-'}$<span ref={amountRef}>{displayAmount}</span>
@@ -88,11 +88,11 @@ export function RefundTracker() {
           </p>
           <p
             className={`text-xl font-display font-bold tabular-nums
-                        ${isRefund ? 'text-success' : 'text-coral'}`}
+                        ${isRefund ? 'text-success' : 'text-accent'}`}
           >
             {isComputing ? (
               <span className="inline-block h-5 w-5 animate-spin rounded-full
-                               border-2 border-lavender border-t-teal" />
+                               border-2 border-highlight border-t-primary" />
             ) : (
               <>
                 {isRefund ? '' : '-'}${displayAmount}

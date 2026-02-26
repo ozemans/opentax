@@ -25,12 +25,12 @@ export function PrivacyBadge({ variant = 'inline' }: PrivacyBadgeProps) {
     return (
       <div
         className="fixed bottom-4 left-4 z-40 hidden md:flex items-center gap-2
-                    rounded-full bg-lavender-light/90 backdrop-blur-sm
+                    rounded-full bg-highlight-light/90 backdrop-blur-sm
                     px-4 py-2 shadow-card"
         role="status"
         aria-label="Privacy status"
       >
-        <ShieldIcon className="h-4 w-4 text-teal-dark" />
+        <ShieldIcon className="h-4 w-4 text-primary-dark" />
         <span className="text-xs font-body text-slate-dark">
           Your data stays on this device
         </span>
@@ -40,12 +40,12 @@ export function PrivacyBadge({ variant = 'inline' }: PrivacyBadgeProps) {
 
   return (
     <div
-      className="inline-flex items-center gap-2 rounded-full bg-lavender-light
+      className="inline-flex items-center gap-2 rounded-full bg-highlight-light
                   px-4 py-2"
       role="status"
       aria-label="Privacy status"
     >
-      <ShieldIcon className="h-5 w-5 text-teal-dark" />
+      <ShieldIcon className="h-5 w-5 text-primary-dark" />
       <span className="text-sm font-body text-slate-dark">
         Your data stays on this device
       </span>

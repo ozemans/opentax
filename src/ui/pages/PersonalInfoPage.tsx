@@ -93,7 +93,7 @@ export function PersonalInfoPage() {
                   type="checkbox"
                   checked={input.taxpayerAge65OrOlder ?? false}
                   onChange={(e) => dispatch({ type: 'SET_FIELD', path: 'taxpayerAge65OrOlder', value: e.target.checked })}
-                  className="h-4 w-4 rounded border-slate-light text-teal focus:ring-lavender focus:ring-2"
+                  className="h-4 w-4 rounded border-slate-light text-primary focus:ring-highlight focus:ring-2"
                 />
                 Age 65 or older
               </label>
@@ -102,7 +102,7 @@ export function PersonalInfoPage() {
                   type="checkbox"
                   checked={input.taxpayerBlind ?? false}
                   onChange={(e) => dispatch({ type: 'SET_FIELD', path: 'taxpayerBlind', value: e.target.checked })}
-                  className="h-4 w-4 rounded border-slate-light text-teal focus:ring-lavender focus:ring-2"
+                  className="h-4 w-4 rounded border-slate-light text-primary focus:ring-highlight focus:ring-2"
                 />
                 Legally blind
               </label>
@@ -155,7 +155,7 @@ export function PersonalInfoPage() {
                     type="checkbox"
                     checked={input.spouseAge65OrOlder ?? false}
                     onChange={(e) => dispatch({ type: 'SET_FIELD', path: 'spouseAge65OrOlder', value: e.target.checked })}
-                    className="h-4 w-4 rounded border-slate-light text-teal focus:ring-lavender focus:ring-2"
+                    className="h-4 w-4 rounded border-slate-light text-primary focus:ring-highlight focus:ring-2"
                   />
                   Age 65 or older
                 </label>
@@ -164,7 +164,7 @@ export function PersonalInfoPage() {
                     type="checkbox"
                     checked={input.spouseBlind ?? false}
                     onChange={(e) => dispatch({ type: 'SET_FIELD', path: 'spouseBlind', value: e.target.checked })}
-                    className="h-4 w-4 rounded border-slate-light text-teal focus:ring-lavender focus:ring-2"
+                    className="h-4 w-4 rounded border-slate-light text-primary focus:ring-highlight focus:ring-2"
                   />
                   Legally blind
                 </label>
@@ -243,9 +243,9 @@ export function PersonalInfoPage() {
             onClick={handleAddDependent}
             className="mt-4 w-full rounded-xl border border-dashed border-slate-light
                        px-6 py-3 text-sm font-display font-medium text-slate
-                       hover:border-teal hover:text-teal-dark hover:bg-teal/5
+                       hover:border-primary hover:text-primary-dark hover:bg-primary/5
                        transition-colors focus:outline-none focus:ring-2
-                       focus:ring-lavender focus:ring-offset-1"
+                       focus:ring-highlight focus:ring-offset-1"
           >
             + Add Dependent
           </button>

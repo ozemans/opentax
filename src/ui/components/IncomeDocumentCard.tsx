@@ -32,7 +32,7 @@ export function IncomeDocumentCard({
             aria-expanded={isExpanded}
             aria-controls={contentId}
             className="flex flex-1 items-center gap-3 text-left
-                       focus:outline-none focus:ring-2 focus:ring-lavender rounded-lg p-1 -m-1"
+                       focus:outline-none focus:ring-2 focus:ring-highlight rounded-lg p-1 -m-1"
           >
             {/* Chevron */}
             <svg
@@ -65,9 +65,9 @@ export function IncomeDocumentCard({
           <button
             type="button"
             onClick={() => setShowConfirm(true)}
-            className="ml-4 flex-shrink-0 text-sm font-display text-coral
-                       hover:text-coral-dark transition-colors
-                       focus:outline-none focus:ring-2 focus:ring-coral rounded px-2 py-1"
+            className="ml-4 flex-shrink-0 text-sm font-display text-accent
+                       hover:text-accent-dark transition-colors
+                       focus:outline-none focus:ring-2 focus:ring-accent rounded px-2 py-1"
             aria-label={`Remove ${title}`}
           >
             Remove
