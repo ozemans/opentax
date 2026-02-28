@@ -38,7 +38,9 @@ type ScalarFieldPath =
   | 'taxpayerAge65OrOlder'
   | 'taxpayerBlind'
   | 'spouseAge65OrOlder'
-  | 'spouseBlind';
+  | 'spouseBlind'
+  | 'nyResidencyType'
+  | 'hasWorkplaceRetirementPlan';
 
 /** Dotted paths for nested objects */
 type TaxpayerFieldPath =

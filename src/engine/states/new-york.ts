@@ -66,12 +66,19 @@ export const newYork: StateModule = {
       throw new Error(`No NY brackets configured for filing status: ${input.filingStatus}`);
     }
 
-    // Start from federal AGI
-    let income = input.federalAGI;
+    const isNonResident = input.residencyType === 'nonresident';
 
-    // Subtract Social Security (exempt in NY)
-    const ssSubtraction = input.socialSecurityIncome;
-    income -= ssSubtraction;
+    // Non-residents (IT-203): tax applies only to NY-sourced income.
+    // If stateWages from NY-coded W-2s are available, use that; otherwise fall back to federalAGI.
+    const baseIncome = isNonResident
+      ? (input.nySourceIncome != null && input.nySourceIncome > 0
+          ? input.nySourceIncome
+          : input.federalAGI)
+      : input.federalAGI;
+
+    // Social Security exempt in NY — only subtract for residents (non-residents likely have $0 SS)
+    const ssSubtraction = isNonResident ? 0 : input.socialSecurityIncome;
+    let income = baseIncome - ssSubtraction;
 
     // Standard deduction
     const standardDeduction = computeStateStandardDeduction(input.filingStatus, config);
@@ -82,9 +89,9 @@ export const newYork: StateModule = {
     // NYS bracket tax
     const nysTax = computeStateBracketTax(taxableIncome, brackets);
 
-    // NYC local tax (only if locality is 'NYC')
+    // NYC local tax — non-residents do NOT owe NYC resident tax (IT-203 filers only owe NYS tax)
     let nycTax = 0;
-    if (input.locality === 'NYC' && config.localTax?.NYC) {
+    if (!isNonResident && input.locality === 'NYC' && config.localTax?.NYC) {
       const nycBracketsConfig = config.localTax.NYC.brackets;
       const nycBrackets = Array.isArray(nycBracketsConfig)
         ? nycBracketsConfig as TaxBracket[]
@@ -133,7 +140,7 @@ export const newYork: StateModule = {
       stateCode: 'NY',
       stateName: 'New York',
       hasIncomeTax: true,
-      stateAGI: input.federalAGI,
+      stateAGI: baseIncome,
       stateAdditions: 0,
       stateSubtractions: ssSubtraction,
       stateDeduction: standardDeduction,
@@ -156,6 +163,7 @@ export const newYork: StateModule = {
       creditBreakdown,
       formData: {
         federalAGI: input.federalAGI,
+        nySourceIncome: baseIncome,
         ssSubtraction,
         standardDeduction,
         taxableIncome,
@@ -164,8 +172,10 @@ export const newYork: StateModule = {
         stateEITC,
         childCredit,
         locality: input.locality ?? '',
+        residencyType: input.residencyType ?? 'resident',
       },
-      formId: config.formId,
+      // Non-residents file IT-203; residents file IT-201
+      formId: isNonResident ? 'IT-203' : config.formId,
     };
   },
 };

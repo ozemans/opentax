@@ -166,10 +166,11 @@ export function computeEducationCredits(
   agi: number,
   filingStatus: FilingStatus,
   config: FederalConfig,
-): number {
-  if (!expenses || expenses.length === 0) return 0;
+): { total: number; aotcCredit: number } {
+  if (!expenses || expenses.length === 0) return { total: 0, aotcCredit: 0 };
 
   let totalCredit = 0;
+  let aotcCredit = 0;
 
   const isMFJ = filingStatus === 'married_filing_jointly' ||
                 filingStatus === 'qualifying_surviving_spouse';
@@ -191,6 +192,7 @@ export function computeEducationCredits(
       // Phase-out
       credit = applyPhaseOut(credit, agi, phaseOut.begin, phaseOut.end);
       totalCredit += credit;
+      aotcCredit += credit;
     } else {
       // Lifetime Learning Credit
       const llcConfig = config.educationCredits.llc;
@@ -206,7 +208,7 @@ export function computeEducationCredits(
     }
   }
 
-  return totalCredit;
+  return { total: totalCredit, aotcCredit };
 }
 
 /**
@@ -296,12 +298,18 @@ export function computeAllCredits(params: {
   const ctc = computeChildTaxCredit(dependents, agi, filingStatus, taxLiability, earnedIncome, config);
   const odc = computeOtherDependentCredit(dependents, agi, filingStatus, config);
   const childCare = computeChildCareCredit(childCareExpenses, numChildCareQualifying, agi, config);
-  const education = computeEducationCredits(educationExpenses, agi, filingStatus, config);
+  const { total: educationTotal, aotcCredit } = computeEducationCredits(educationExpenses, agi, filingStatus, config);
   const savers = computeSaversCredit(saversContributions, agi, filingStatus, config);
   const eitc = computeEITC(earnedIncome, agi, numQualifyingChildrenForEITC, filingStatus, investmentIncome, config);
 
-  const nonrefundable = ctc.nonrefundable + odc + childCare + education + savers;
-  const refundable = ctc.refundable + eitc;
+  // AOTC: 40% of the credit is refundable (IRC §25A(i)(1)), up to $1,000 max
+  const aotcRefundable = Math.min(
+    Math.round(aotcCredit * config.educationCredits.aotc.refundableRate),
+    config.educationCredits.aotc.maxRefundable ?? 100000,
+  );
+
+  const nonrefundable = ctc.nonrefundable + odc + childCare + (educationTotal - aotcRefundable) + savers;
+  const refundable = ctc.refundable + eitc + aotcRefundable;
 
   return {
     nonrefundable,
@@ -311,7 +319,7 @@ export function computeAllCredits(params: {
     otherDependentCredit: odc,
     earnedIncomeCredit: eitc,
     childCareCareCredit: childCare,
-    educationCredits: education,
+    educationCredits: educationTotal,
     saversCredit: savers,
   };
 }

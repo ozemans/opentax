@@ -245,6 +245,12 @@ export interface TaxInput {
   taxpayerBlind?: boolean;
   spouseAge65OrOlder?: boolean;
   spouseBlind?: boolean;
+
+  // NY residency type — used to generate correct IT-201 (resident) or IT-203 (non-resident)
+  nyResidencyType?: 'resident' | 'nonresident' | 'part_year';
+
+  // Workplace retirement plan flag — affects Traditional IRA deduction phase-out
+  hasWorkplaceRetirementPlan?: boolean;
 }
 
 export interface IncomeBreakdown {
@@ -480,6 +486,7 @@ export interface FederalConfig {
       secondTierExpenses: number;
       secondTierRate: number;
       refundableRate: number;
+      maxRefundable?: number;
       phaseOut: {
         single: { begin: number; end: number };
         mfj: { begin: number; end: number };
@@ -538,6 +545,15 @@ export interface FederalConfig {
     selfOnly: number;
     family: number;
     catchUp55: number;
+  };
+
+  iraDeduction?: {
+    maxContribution: number;       // (cents) $7,000 for 2025
+    phaseOut: {
+      coveredSingle: { begin: number; end: number };
+      coveredMFJ: { begin: number; end: number };
+      notCoveredSpouseCoveredMFJ: { begin: number; end: number };
+    };
   };
 
   selfEmployment: {

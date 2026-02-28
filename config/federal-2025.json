@@ -235,6 +235,7 @@
       "secondTierExpenses": 200000,
       "secondTierRate": 0.25,
       "refundableRate": 0.40,
+      "maxRefundable": 100000,
       "phaseOut": {
         "single": { "begin": 8000000, "end": 9000000 },
         "mfj": { "begin": 16000000, "end": 18000000 }
@@ -332,6 +333,15 @@
     "selfOnly": 430000,
     "family": 860000,
     "catchUp55": 100000
+  },
+  "iraDeduction": {
+    "_source": "IRC §219; Rev. Proc. 2024-40 §3.23 — IRA deduction phase-outs for 2025",
+    "maxContribution": 700000,
+    "phaseOut": {
+      "coveredSingle": { "begin": 7900000, "end": 8900000 },
+      "coveredMFJ": { "begin": 12600000, "end": 14600000 },
+      "notCoveredSpouseCoveredMFJ": { "begin": 23600000, "end": 24600000 }
+    }
   },
   "selfEmployment": {
     "_source": "IRC §1401, §1402(a)(12) — SE tax rates; wage base per SSA; simplified home office per Rev. Proc. 2013-13",

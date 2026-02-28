@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { motion, animate } from 'motion/react';
 import { useEffect } from 'react';
@@ -8,6 +8,7 @@ import { PageContainer } from '@/ui/layouts/PageContainer';
 import { useFocusOnPageChange } from '@/ui/hooks/useFocusOnPageChange';
 import { useTaxState } from '@/ui/hooks/useTaxState';
 import { useEncryptedExport } from '@/ui/hooks/useEncryptedExport';
+import { computeOpportunities } from '@/engine/federal/optimizer';
 import { generateReturnPackage } from '@/pdf/generator';
 
 function formatCents(cents: number): string {
@@ -107,6 +108,12 @@ export function ResultsPage() {
   const taxBreakdown = result?.taxBreakdown;
 
   const isRefund = refundOrOwed >= 0;
+
+  // Tax opportunities
+  const opportunities = useMemo(
+    () => (result ? computeOpportunities(input, result) : []),
+    [input, result],
+  );
 
   // State results
   const stateResults = result?.stateResults ?? {};
@@ -364,6 +371,52 @@ export function ResultsPage() {
                 </p>
               </div>
             )}
+          </motion.section>
+        )}
+
+        {/* Tax Opportunities */}
+        {opportunities.length > 0 && (
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.55 }}
+            aria-labelledby="opportunities-heading"
+            className="rounded-2xl border border-amber-200 bg-amber-50/60 p-6 shadow-card"
+          >
+            <h2 id="opportunities-heading" className="text-lg font-display font-semibold text-slate-dark mb-1">
+              Tax Opportunities
+            </h2>
+            <p className="text-xs font-body text-slate mb-4">
+              Based on your return, you may be able to reduce your tax bill. These are suggestions — consult a tax professional for your specific situation.
+            </p>
+            <div className="space-y-3">
+              {opportunities.map((op) => (
+                <div key={op.id} className="rounded-xl bg-white border border-amber-100 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="text-sm font-display font-semibold text-slate-dark">{op.title}</p>
+                        {op.estimatedSavings > 0 && (
+                          <span className="rounded-full bg-success/15 px-2 py-0.5 text-xs font-body font-semibold text-success tabular-nums">
+                            save up to ${(op.estimatedSavings / 100).toLocaleString()}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs font-body text-slate mt-1 leading-relaxed">{op.description}</p>
+                    </div>
+                  </div>
+                  {op.actionPage && (
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/${op.actionPage}`)}
+                      className="mt-2 text-xs font-body font-medium text-highlight hover:text-highlight/80 transition-colors"
+                    >
+                      {op.actionLabel ?? 'Go there'} →
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
           </motion.section>
         )}
 

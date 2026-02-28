@@ -225,26 +225,30 @@ describe('computeEducationCredits', () => {
     const expenses = [{ type: 'american_opportunity' as const, qualifiedExpenses: 400000, studentSSN: '111-22-3333' }];
     const result = computeEducationCredits(expenses, 5000000, 'single', cfg);
     // 100% * $2,000 + 25% * $2,000 = $2,500
-    expect(result).toBe(250000);
+    expect(result.total).toBe(250000);
+    expect(result.aotcCredit).toBe(250000);
   });
 
   it('should cap AOTC at $2,500 for expenses over $4,000', () => {
     const expenses = [{ type: 'american_opportunity' as const, qualifiedExpenses: 600000, studentSSN: '111-22-3333' }];
     const result = computeEducationCredits(expenses, 5000000, 'single', cfg);
-    expect(result).toBe(250000);
+    expect(result.total).toBe(250000);
+    expect(result.aotcCredit).toBe(250000);
   });
 
   it('should compute LLC: 20% of up to $10,000', () => {
     const expenses = [{ type: 'lifetime_learning' as const, qualifiedExpenses: 500000, studentSSN: '111-22-3333' }];
     const result = computeEducationCredits(expenses, 5000000, 'single', cfg);
     // 20% * $5,000 = $1,000
-    expect(result).toBe(100000);
+    expect(result.total).toBe(100000);
+    expect(result.aotcCredit).toBe(0); // LLC is not AOTC
   });
 
   it('should cap LLC at $2,000', () => {
     const expenses = [{ type: 'lifetime_learning' as const, qualifiedExpenses: 1500000, studentSSN: '111-22-3333' }];
     const result = computeEducationCredits(expenses, 5000000, 'single', cfg);
-    expect(result).toBe(200000);
+    expect(result.total).toBe(200000);
+    expect(result.aotcCredit).toBe(0);
   });
 
   it('should phase out education credits above MAGI threshold', () => {
@@ -252,18 +256,81 @@ describe('computeEducationCredits', () => {
     const expenses = [{ type: 'american_opportunity' as const, qualifiedExpenses: 400000, studentSSN: '111-22-3333' }];
     const result = computeEducationCredits(expenses, 8500000, 'single', cfg);
     // $2,500 * 50% = $1,250
-    expect(result).toBe(125000);
+    expect(result.total).toBe(125000);
+    expect(result.aotcCredit).toBe(125000);
   });
 
   it('should return 0 above phase-out end', () => {
     const expenses = [{ type: 'american_opportunity' as const, qualifiedExpenses: 400000, studentSSN: '111-22-3333' }];
     const result = computeEducationCredits(expenses, 9000000, 'single', cfg);
-    expect(result).toBe(0);
+    expect(result.total).toBe(0);
   });
 
   it('should return 0 with no education expenses', () => {
-    expect(computeEducationCredits([], 5000000, 'single', cfg)).toBe(0);
-    expect(computeEducationCredits(undefined, 5000000, 'single', cfg)).toBe(0);
+    expect(computeEducationCredits([], 5000000, 'single', cfg).total).toBe(0);
+    expect(computeEducationCredits(undefined, 5000000, 'single', cfg).total).toBe(0);
+  });
+
+  it('AOTC: 40% should be refundable (up to $1,000) via computeAllCredits', () => {
+    // Single filer, $4,000+ AOTC expenses, $0 tax liability → refundable = $1,000
+    const input: Parameters<typeof computeAllCredits>[0] = {
+      dependents: [],
+      agi: 3000000,
+      filingStatus: 'single',
+      taxLiability: 0,
+      earnedIncome: 3000000,
+      investmentIncome: 0,
+      numQualifyingChildrenForEITC: 0,
+      childCareExpenses: 0,
+      numChildCareQualifying: 0,
+      educationExpenses: [{ type: 'american_opportunity', qualifiedExpenses: 400000, studentSSN: '111-22-3333' }],
+      saversContributions: 0,
+      config: cfg,
+    };
+    const result = computeAllCredits(input);
+    // $2,500 AOTC → $1,000 refundable, $1,500 nonrefundable (but $0 tax, so nonrefundable = 0)
+    expect(result.refundable).toBe(100000); // $1,000
+    expect(result.educationCredits).toBe(250000); // $2,500 total
+  });
+
+  it('AOTC refundable scales below $2,500', () => {
+    // $2,000 AOTC (only first tier) → refundable = 40% * $2,000 = $800
+    const input: Parameters<typeof computeAllCredits>[0] = {
+      dependents: [],
+      agi: 3000000,
+      filingStatus: 'single',
+      taxLiability: 0,
+      earnedIncome: 3000000,
+      investmentIncome: 0,
+      numQualifyingChildrenForEITC: 0,
+      childCareExpenses: 0,
+      numChildCareQualifying: 0,
+      educationExpenses: [{ type: 'american_opportunity', qualifiedExpenses: 200000, studentSSN: '111-22-3333' }],
+      saversContributions: 0,
+      config: cfg,
+    };
+    const result = computeAllCredits(input);
+    expect(result.refundable).toBe(80000); // 40% * $2,000 = $800
+  });
+
+  it('LLC credit is fully nonrefundable (no refundable portion)', () => {
+    const input: Parameters<typeof computeAllCredits>[0] = {
+      dependents: [],
+      agi: 3000000,
+      filingStatus: 'single',
+      taxLiability: 0,
+      earnedIncome: 3000000,
+      investmentIncome: 0,
+      numQualifyingChildrenForEITC: 0,
+      childCareExpenses: 0,
+      numChildCareQualifying: 0,
+      educationExpenses: [{ type: 'lifetime_learning', qualifiedExpenses: 1000000, studentSSN: '111-22-3333' }],
+      saversContributions: 0,
+      config: cfg,
+    };
+    const result = computeAllCredits(input);
+    expect(result.refundable).toBe(0); // LLC has no refundable portion
+    expect(result.educationCredits).toBe(200000); // $2,000 max LLC
   });
 });
 

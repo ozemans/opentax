@@ -324,6 +324,16 @@ export function buildStateTaxInput(
     resolvedLocality = 'NYC';
   }
 
+  // NY non-resident: source income = W-2 wages with stateCode === 'NY'
+  const nySourceIncome = stateCode === 'NY'
+    ? input.w2s
+        .filter((w2) => w2.stateCode === 'NY')
+        .reduce((sum, w2) => sum + (w2.stateWages || w2.wages), 0)
+    : undefined;
+
+  // NY residency type from user input
+  const residencyType = stateCode === 'NY' ? input.nyResidencyType : undefined;
+
   return {
     federalAGI: federalResult.adjustedGrossIncome,
     federalTaxableIncome: federalResult.taxableIncome,
@@ -375,5 +385,7 @@ export function buildStateTaxInput(
     isRenter: false,
     rentPaid: 0,
     locality: resolvedLocality,
+    residencyType,
+    nySourceIncome,
   };
 }

@@ -76,17 +76,27 @@ export function StatePage() {
   const headingRef = useFocusOnPageChange('state');
 
   const stateCode = input.stateOfResidence;
+  const nyResidencyType = input.nyResidencyType ?? 'resident';
 
   const selectedState = STATE_OPTIONS.find((s) => s.value === stateCode);
   const stateInfo = stateCode ? STATE_INFO[stateCode] : null;
 
-  // NYC is tracked as an additional state
+  // NYC is tracked as an additional state (residents only)
   const isNYC = input.additionalStates?.includes('NYC') ?? false;
+  const isNYNonResident = stateCode === 'NY' && nyResidencyType === 'nonresident';
 
   function handleStateChange(v: string) {
     dispatch({ type: 'SET_FIELD', path: 'stateOfResidence', value: v });
     // Clear NYC if switching away from NY
     if (v !== 'NY' && isNYC) {
+      dispatch({ type: 'SET_ADDITIONAL_STATES', payload: [] });
+    }
+  }
+
+  function handleNYResidencyChange(v: 'resident' | 'nonresident') {
+    dispatch({ type: 'SET_FIELD', path: 'nyResidencyType', value: v });
+    // Non-residents don't pay NYC local tax — clear it
+    if (v === 'nonresident' && isNYC) {
       dispatch({ type: 'SET_ADDITIONAL_STATES', payload: [] });
     }
   }
@@ -145,26 +155,77 @@ export function StatePage() {
                   </>
                 )}
 
-                {/* NYC prompt for NY */}
+                {/* NY residency type + NYC prompt */}
                 {stateCode === 'NY' && (
-                  <div className="rounded-xl bg-highlight-light p-4">
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={isNYC}
-                        onChange={(e) => handleNYCToggle(e.target.checked)}
-                        className="h-5 w-5 rounded border-slate-light text-primary
-                                   focus:ring-highlight focus:ring-2"
-                      />
-                      <div>
-                        <p className="text-sm font-display font-semibold text-slate-dark">
-                          I live in New York City
-                        </p>
-                        <p className="text-xs font-body text-slate mt-0.5">
-                          NYC residents pay both NYS and NYC income tax.
+                  <div className="space-y-3">
+                    <div className="rounded-xl bg-highlight-light p-4">
+                      <p className="text-sm font-display font-semibold text-slate-dark mb-3">
+                        What is your New York residency status?
+                      </p>
+                      <div className="space-y-2">
+                        <label className="flex items-center gap-3 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="nyResidencyType"
+                            value="resident"
+                            checked={nyResidencyType === 'resident'}
+                            onChange={() => handleNYResidencyChange('resident')}
+                            className="h-4 w-4 border-slate-light text-primary focus:ring-highlight focus:ring-2"
+                          />
+                          <div>
+                            <p className="text-sm font-body font-medium text-slate-dark">
+                              Full-year resident — I live in New York
+                            </p>
+                            <p className="text-xs font-body text-slate">Files IT-201</p>
+                          </div>
+                        </label>
+                        <label className="flex items-center gap-3 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="nyResidencyType"
+                            value="nonresident"
+                            checked={nyResidencyType === 'nonresident'}
+                            onChange={() => handleNYResidencyChange('nonresident')}
+                            className="h-4 w-4 border-slate-light text-primary focus:ring-highlight focus:ring-2"
+                          />
+                          <div>
+                            <p className="text-sm font-body font-medium text-slate-dark">
+                              Non-resident — I work in NY but live elsewhere
+                            </p>
+                            <p className="text-xs font-body text-slate">Files IT-203 · Tax applies to NY-sourced wages only</p>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+
+                    {isNYNonResident && (
+                      <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
+                        <p className="text-xs font-body text-amber-800">
+                          <strong>Non-resident filing:</strong> NY tax is computed on your NY-sourced wages only (from W-2 Box 16). No NYC local tax applies.
                         </p>
                       </div>
-                    </label>
+                    )}
+
+                    {/* NYC checkbox — only for residents */}
+                    {!isNYNonResident && (
+                      <label className="flex items-center gap-3 cursor-pointer rounded-xl bg-highlight-light p-4">
+                        <input
+                          type="checkbox"
+                          checked={isNYC}
+                          onChange={(e) => handleNYCToggle(e.target.checked)}
+                          className="h-5 w-5 rounded border-slate-light text-primary
+                                     focus:ring-highlight focus:ring-2"
+                        />
+                        <div>
+                          <p className="text-sm font-display font-semibold text-slate-dark">
+                            I live in New York City
+                          </p>
+                          <p className="text-xs font-body text-slate mt-0.5">
+                            NYC residents pay both NYS and NYC income tax.
+                          </p>
+                        </div>
+                      </label>
+                    )}
                   </div>
                 )}
 

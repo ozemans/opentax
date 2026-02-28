@@ -49,6 +49,8 @@ export interface StateTaxInput {
   isRenter: boolean;
   rentPaid: number;
   locality?: string;
+  residencyType?: 'resident' | 'nonresident' | 'part_year';
+  nySourceIncome?: number;  // NY-sourced wages for non-residents (cents)
 }
 
 // ---------------------------------------------------------------------------

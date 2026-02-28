@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import type { Form1099B } from '@/engine/types';
 import { CurrencyInput } from '@/ui/components/CurrencyInput';
 import { CapitalGainsImport } from '@/ui/components/CapitalGainsImport';
@@ -8,6 +8,7 @@ import { useFocusOnPageChange } from '@/ui/hooks/useFocusOnPageChange';
 import { HELP_TEXTS } from '@/ui/data/helpTexts';
 import { useTaxState } from '@/ui/hooks/useTaxState';
 import type { Parsed1099Result } from '@/utils/1099-parser';
+import { computeTotalWashSaleDisallowed, detectWashSales } from '@/engine/federal/wash-sales';
 
 type EntryMode = 'transactions' | 'summary';
 
@@ -98,6 +99,16 @@ export function InvestmentsPage() {
   const displayST = mode === 'summary' ? summary.shortTermGainLoss : totalST;
   const displayLT = mode === 'summary' ? summary.longTermGainLoss : totalLT;
   const net = displayST + displayLT;
+
+  // Wash sale analysis
+  const totalWashSaleDisallowed = useMemo(
+    () => computeTotalWashSaleDisallowed(transactions),
+    [transactions],
+  );
+  const washSaleAlerts = useMemo(
+    () => detectWashSales(transactions),
+    [transactions],
+  );
 
   function formatCents(cents: number): string {
     const dollars = Math.abs(cents) / 100;
@@ -269,6 +280,57 @@ export function InvestmentsPage() {
                 </span>
               </div>
             </div>
+
+            {/* Wash sale alerts — broker-reported Box 1g */}
+            {totalWashSaleDisallowed > 0 && (
+              <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-3">
+                <div className="flex items-start gap-2">
+                  <svg className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                  </svg>
+                  <div>
+                    <p className="text-sm font-display font-semibold text-amber-900">
+                      Wash Sale Losses Disallowed: {formatCents(totalWashSaleDisallowed)}
+                    </p>
+                    <p className="text-xs font-body text-amber-800 mt-0.5">
+                      These losses are disallowed per IRS §1091 and reported in Form 1099-B Box 1g.
+                      They increase the cost basis of repurchased shares — the loss is deferred, not lost.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Advisory wash sale detection (no Box 1g reported) */}
+            {totalWashSaleDisallowed === 0 && washSaleAlerts.length > 0 && (
+              <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3">
+                <div className="flex items-start gap-2">
+                  <svg className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                  </svg>
+                  <div>
+                    <p className="text-sm font-display font-semibold text-amber-900">
+                      Possible Wash Sales Detected ({washSaleAlerts.length})
+                    </p>
+                    <p className="text-xs font-body text-amber-800 mt-0.5 mb-2">
+                      The following transactions may trigger the wash sale rule. Verify Box 1g on your 1099-B.
+                    </p>
+                    <ul className="space-y-1">
+                      {washSaleAlerts.map((alert, i) => (
+                        <li key={i} className="text-xs font-body text-amber-900">
+                          • {alert.security}: {formatCents(alert.lossAmount)} loss sold {alert.dateSold},
+                          repurchased {alert.triggerDate}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
           </section>
         )}
       </div>

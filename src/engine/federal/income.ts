@@ -1,7 +1,7 @@
 // Federal Income & AGI Computation
 // References: IRS Form 1040 Lines 1-11, Schedule 1 Part II
 
-import type { TaxInput, FederalConfig } from '../types';
+import type { TaxInput, FederalConfig, FilingStatus } from '../types';
 
 /**
  * Compute gross Schedule C net profit/loss.
@@ -150,12 +150,50 @@ export function computeAdjustments(
     adjustments += input.hsaDeduction;
   }
 
-  // 5. IRA deduction
+  // 5. IRA deduction (with phase-out if covered by workplace plan)
   if (input.iraDeduction && input.iraDeduction > 0) {
-    adjustments += input.iraDeduction;
+    adjustments += computeIRADeduction(
+      input.iraDeduction,
+      totalIncome,
+      input.filingStatus,
+      input.hasWorkplaceRetirementPlan ?? false,
+      config,
+    );
   }
 
   return adjustments;
+}
+
+/**
+ * Compute the allowable Traditional IRA deduction after phase-out.
+ * Per IRC §219(g): phase-out applies when covered by a workplace plan.
+ */
+function computeIRADeduction(
+  amount: number,
+  magi: number,
+  filingStatus: FilingStatus,
+  hasWorkplacePlan: boolean,
+  config: FederalConfig,
+): number {
+  const maxContrib = config.iraDeduction?.maxContribution ?? 700000;
+  const capped = Math.min(amount, maxContrib);
+
+  if (!config.iraDeduction || !hasWorkplacePlan) return capped;
+
+  const { coveredSingle, coveredMFJ } = config.iraDeduction.phaseOut;
+  const isMFJ =
+    filingStatus === 'married_filing_jointly' ||
+    filingStatus === 'qualifying_surviving_spouse';
+
+  const phaseOut = isMFJ ? coveredMFJ : coveredSingle;
+
+  if (magi <= phaseOut.begin) return capped;
+  if (magi >= phaseOut.end) return 0;
+
+  const range = phaseOut.end - phaseOut.begin;
+  const excess = magi - phaseOut.begin;
+  const reductionRatio = excess / range;
+  return Math.max(0, Math.round(capped * (1 - reductionRatio)));
 }
 
 /**
