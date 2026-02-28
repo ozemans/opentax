@@ -1,0 +1,22 @@
+{
+  "stateCode": "GA",
+  "stateName": "Georgia",
+  "taxYear": 2025,
+  "_source": "O.C.G.A. §48-7-20; Georgia Department of Revenue (https://dor.georgia.gov/taxes/individual-taxes/file-pay-individual/georgia-standard-deductions-exemptions)",
+  "_verifiedDate": "2026-02-28",
+  "_notes": "Georgia enacted a flat tax of 5.49% for 2025 (reduced from 5.75% graduated structure via HB 1437). Standard deduction: $12,000 single, $24,000 MFJ. SS income is partially exempt; for simplicity modeled as not exempt (conservative, higher tax).",
+  "hasIncomeTax": true,
+  "startingPoint": "federal_agi",
+  "flatRate": 0.0549,
+  "socialSecurityExempt": false,
+  "capitalGainsTreatment": "ordinary",
+  "standardDeduction": {
+    "single": 1200000,
+    "married_filing_jointly": 2400000,
+    "married_filing_separately": 1200000,
+    "head_of_household": 1200000,
+    "qualifying_surviving_spouse": 2400000
+  },
+  "formId": "ga500",
+  "formName": "Georgia Individual Income Tax Return"
+}

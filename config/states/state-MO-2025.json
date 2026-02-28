@@ -1,0 +1,78 @@
+{
+  "stateCode": "MO",
+  "stateName": "Missouri",
+  "taxYear": 2025,
+  "_source": "RSMo §143.011; Missouri Department of Revenue (https://dor.mo.gov/taxation/individual/tax-types/income/)",
+  "_verifiedDate": "2026-02-28",
+  "_notes": "Missouri progressive brackets. Standard deduction mirrors the federal standard deduction amounts. Social Security income is fully exempt. All filing statuses use the same bracket thresholds.",
+  "hasIncomeTax": true,
+  "startingPoint": "federal_agi",
+  "socialSecurityExempt": true,
+  "capitalGainsTreatment": "ordinary",
+  "standardDeduction": {
+    "single": 1500000,
+    "married_filing_jointly": 3000000,
+    "married_filing_separately": 1500000,
+    "head_of_household": 2250000,
+    "qualifying_surviving_spouse": 3000000
+  },
+  "brackets": {
+    "single": [
+      { "min": 0, "max": 120700, "rate": 0 },
+      { "min": 120700, "max": 241400, "rate": 0.015 },
+      { "min": 241400, "max": 362100, "rate": 0.02 },
+      { "min": 362100, "max": 482800, "rate": 0.025 },
+      { "min": 482800, "max": 603500, "rate": 0.03 },
+      { "min": 603500, "max": 724200, "rate": 0.035 },
+      { "min": 724200, "max": 844900, "rate": 0.04 },
+      { "min": 844900, "max": 965600, "rate": 0.045 },
+      { "min": 965600, "max": null, "rate": 0.0495 }
+    ],
+    "married_filing_jointly": [
+      { "min": 0, "max": 120700, "rate": 0 },
+      { "min": 120700, "max": 241400, "rate": 0.015 },
+      { "min": 241400, "max": 362100, "rate": 0.02 },
+      { "min": 362100, "max": 482800, "rate": 0.025 },
+      { "min": 482800, "max": 603500, "rate": 0.03 },
+      { "min": 603500, "max": 724200, "rate": 0.035 },
+      { "min": 724200, "max": 844900, "rate": 0.04 },
+      { "min": 844900, "max": 965600, "rate": 0.045 },
+      { "min": 965600, "max": null, "rate": 0.0495 }
+    ],
+    "married_filing_separately": [
+      { "min": 0, "max": 120700, "rate": 0 },
+      { "min": 120700, "max": 241400, "rate": 0.015 },
+      { "min": 241400, "max": 362100, "rate": 0.02 },
+      { "min": 362100, "max": 482800, "rate": 0.025 },
+      { "min": 482800, "max": 603500, "rate": 0.03 },
+      { "min": 603500, "max": 724200, "rate": 0.035 },
+      { "min": 724200, "max": 844900, "rate": 0.04 },
+      { "min": 844900, "max": 965600, "rate": 0.045 },
+      { "min": 965600, "max": null, "rate": 0.0495 }
+    ],
+    "head_of_household": [
+      { "min": 0, "max": 120700, "rate": 0 },
+      { "min": 120700, "max": 241400, "rate": 0.015 },
+      { "min": 241400, "max": 362100, "rate": 0.02 },
+      { "min": 362100, "max": 482800, "rate": 0.025 },
+      { "min": 482800, "max": 603500, "rate": 0.03 },
+      { "min": 603500, "max": 724200, "rate": 0.035 },
+      { "min": 724200, "max": 844900, "rate": 0.04 },
+      { "min": 844900, "max": 965600, "rate": 0.045 },
+      { "min": 965600, "max": null, "rate": 0.0495 }
+    ],
+    "qualifying_surviving_spouse": [
+      { "min": 0, "max": 120700, "rate": 0 },
+      { "min": 120700, "max": 241400, "rate": 0.015 },
+      { "min": 241400, "max": 362100, "rate": 0.02 },
+      { "min": 362100, "max": 482800, "rate": 0.025 },
+      { "min": 482800, "max": 603500, "rate": 0.03 },
+      { "min": 603500, "max": 724200, "rate": 0.035 },
+      { "min": 724200, "max": 844900, "rate": 0.04 },
+      { "min": 844900, "max": 965600, "rate": 0.045 },
+      { "min": 965600, "max": null, "rate": 0.0495 }
+    ]
+  },
+  "formId": "mo1040",
+  "formName": "Missouri Individual Income Tax Return"
+}

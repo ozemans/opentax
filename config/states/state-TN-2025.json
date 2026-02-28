@@ -1,0 +1,14 @@
+{
+  "stateCode": "TN",
+  "stateName": "Tennessee",
+  "taxYear": 2025,
+  "_source": "Tennessee Code §67-2-102; the Hall Income Tax was fully repealed effective Jan 1, 2021",
+  "_verifiedDate": "2026-02-28",
+  "_notes": "Tennessee repealed its Hall Income Tax on investment income effective 2021. There is no state personal income tax of any kind for 2025.",
+  "hasIncomeTax": false,
+  "startingPoint": "federal_agi",
+  "socialSecurityExempt": true,
+  "capitalGainsTreatment": "exempt",
+  "formId": "none",
+  "formName": "None"
+}

@@ -1,0 +1,22 @@
+{
+  "stateCode": "NC",
+  "stateName": "North Carolina",
+  "taxYear": 2025,
+  "_source": "N.C. Gen. Stat. §105-153.7; NCDOR (https://www.ncdor.gov/taxes-forms/individual-income-tax/individual-income-tax-rates)",
+  "_verifiedDate": "2026-02-28",
+  "_notes": "NC flat rate reduced to 4.50% for 2025 (from 4.75% in 2024). Standard deduction: $12,750 single, $25,500 MFJ, $19,125 HOH. Social Security is taxable in NC for 2025.",
+  "hasIncomeTax": true,
+  "startingPoint": "federal_agi",
+  "flatRate": 0.045,
+  "socialSecurityExempt": false,
+  "capitalGainsTreatment": "ordinary",
+  "standardDeduction": {
+    "single": 1275000,
+    "married_filing_jointly": 2550000,
+    "married_filing_separately": 1275000,
+    "head_of_household": 1912500,
+    "qualifying_surviving_spouse": 2550000
+  },
+  "formId": "ncd400",
+  "formName": "North Carolina Individual Income Tax Return"
+}

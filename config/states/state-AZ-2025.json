@@ -1,0 +1,22 @@
+{
+  "stateCode": "AZ",
+  "stateName": "Arizona",
+  "taxYear": 2025,
+  "_source": "A.R.S. §43-1011; Arizona Department of Revenue (https://azdor.gov/individual-income-tax-highlights)",
+  "_verifiedDate": "2026-02-28",
+  "_notes": "Arizona enacted a flat 2.50% tax rate effective 2023 via Prop 208/SB 1828. Standard deduction mirrors federal standard deduction: $14,600 single, $29,200 MFJ for 2025. Social Security is fully exempt in Arizona.",
+  "hasIncomeTax": true,
+  "startingPoint": "federal_agi",
+  "flatRate": 0.025,
+  "socialSecurityExempt": true,
+  "capitalGainsTreatment": "ordinary",
+  "standardDeduction": {
+    "single": 1460000,
+    "married_filing_jointly": 2920000,
+    "married_filing_separately": 1460000,
+    "head_of_household": 2192500,
+    "qualifying_surviving_spouse": 2920000
+  },
+  "formId": "az140",
+  "formName": "Arizona Resident Personal Income Tax Return"
+}

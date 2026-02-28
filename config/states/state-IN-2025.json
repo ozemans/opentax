@@ -1,0 +1,26 @@
+{
+  "stateCode": "IN",
+  "stateName": "Indiana",
+  "taxYear": 2025,
+  "_source": "IC §6-3-2-1; Indiana Department of Revenue (https://www.in.gov/dor/individual-income-taxes/filing-my-taxes/indiana-deductions-from-income/)",
+  "_verifiedDate": "2026-02-28",
+  "_notes": "Indiana flat rate reduced to 3.05% for 2025 (from 3.15%). Personal exemption: $1,000 per person (filer, spouse for MFJ, each dependent). Social Security is exempt. County income taxes range 0.5%–2.9% by county — not included here.",
+  "hasIncomeTax": true,
+  "startingPoint": "federal_agi",
+  "flatRate": 0.0305,
+  "socialSecurityExempt": true,
+  "capitalGainsTreatment": "ordinary",
+  "personalExemption": {
+    "taxpayer": {
+      "single": 100000,
+      "married_filing_jointly": 100000,
+      "married_filing_separately": 100000,
+      "head_of_household": 100000,
+      "qualifying_surviving_spouse": 100000
+    },
+    "spouse": 100000,
+    "dependent": 100000
+  },
+  "formId": "in-it40",
+  "formName": "Indiana Individual Income Tax Return"
+}

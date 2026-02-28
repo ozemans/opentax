@@ -1,0 +1,14 @@
+{
+  "stateCode": "WA",
+  "stateName": "Washington",
+  "taxYear": 2025,
+  "_source": "Washington State Constitution Art. VII §1 — no state personal income tax",
+  "_verifiedDate": "2026-02-28",
+  "_notes": "Washington has no state personal income tax. A capital gains excise tax (7%) applies to gains over $262,000 but is out of scope for this release.",
+  "hasIncomeTax": false,
+  "startingPoint": "federal_agi",
+  "socialSecurityExempt": true,
+  "capitalGainsTreatment": "exempt",
+  "formId": "none",
+  "formName": "None"
+}

@@ -1,0 +1,65 @@
+{
+  "stateCode": "WI",
+  "stateName": "Wisconsin",
+  "taxYear": 2025,
+  "_source": "Wis. Stat. §71.06; Wisconsin Department of Revenue (https://www.revenue.wi.gov/Pages/TaxPro/2025/individual-income-tax-rates.aspx)",
+  "_verifiedDate": "2026-02-28",
+  "_notes": "Wisconsin has 4 brackets 3.5%–7.65%. Standard deduction phases out at higher incomes (computed in engine). Personal exemption: $700/person. Social Security is largely exempt (complex rules — simplified as exempt). MFJ bracket thresholds are double single thresholds.",
+  "hasIncomeTax": true,
+  "startingPoint": "federal_agi",
+  "socialSecurityExempt": true,
+  "capitalGainsTreatment": "ordinary",
+  "personalExemption": {
+    "taxpayer": {
+      "single": 70000,
+      "married_filing_jointly": 70000,
+      "married_filing_separately": 70000,
+      "head_of_household": 70000,
+      "qualifying_surviving_spouse": 70000
+    },
+    "spouse": 70000,
+    "dependent": 70000
+  },
+  "brackets": {
+    "single": [
+      { "min": 0, "max": 1432000, "rate": 0.035 },
+      { "min": 1432000, "max": 2864000, "rate": 0.044 },
+      { "min": 2864000, "max": 31461000, "rate": 0.053 },
+      { "min": 31461000, "max": null, "rate": 0.0765 }
+    ],
+    "married_filing_jointly": [
+      { "min": 0, "max": 1906000, "rate": 0.035 },
+      { "min": 1906000, "max": 3812000, "rate": 0.044 },
+      { "min": 3812000, "max": 41922000, "rate": 0.053 },
+      { "min": 41922000, "max": null, "rate": 0.0765 }
+    ],
+    "married_filing_separately": [
+      { "min": 0, "max": 953000, "rate": 0.035 },
+      { "min": 953000, "max": 1906000, "rate": 0.044 },
+      { "min": 1906000, "max": 20961000, "rate": 0.053 },
+      { "min": 20961000, "max": null, "rate": 0.0765 }
+    ],
+    "head_of_household": [
+      { "min": 0, "max": 1432000, "rate": 0.035 },
+      { "min": 1432000, "max": 2864000, "rate": 0.044 },
+      { "min": 2864000, "max": 31461000, "rate": 0.053 },
+      { "min": 31461000, "max": null, "rate": 0.0765 }
+    ],
+    "qualifying_surviving_spouse": [
+      { "min": 0, "max": 1906000, "rate": 0.035 },
+      { "min": 1906000, "max": 3812000, "rate": 0.044 },
+      { "min": 3812000, "max": 41922000, "rate": 0.053 },
+      { "min": 41922000, "max": null, "rate": 0.0765 }
+    ]
+  },
+  "standardDeduction": {
+    "_notes": "Base amounts before income-based phase-out. Phase-out computed in engine.",
+    "single": 1335000,
+    "married_filing_jointly": 2459000,
+    "married_filing_separately": 1229500,
+    "head_of_household": 1897000,
+    "qualifying_surviving_spouse": 2459000
+  },
+  "formId": "wi-1",
+  "formName": "Wisconsin Individual Income Tax Return"
+}

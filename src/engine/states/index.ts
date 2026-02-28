@@ -21,6 +21,16 @@ import { massachusetts } from './massachusetts';
 import { newJersey } from './new-jersey';
 import { newYork } from './new-york';
 import { california } from './california';
+import { georgia } from './georgia';
+import { northCarolina } from './north-carolina';
+import { michigan } from './michigan';
+import { washington } from './washington';
+import { arizona } from './arizona';
+import { tennessee } from './tennessee';
+import { indiana } from './indiana';
+import { missouri } from './missouri';
+import { maryland } from './maryland';
+import { wisconsin } from './wisconsin';
 
 // State configs
 import txConfig from '../../../config/states/state-TX-2025.json';
@@ -34,6 +44,16 @@ import maConfig from '../../../config/states/state-MA-2025.json';
 import njConfig from '../../../config/states/state-NJ-2025.json';
 import nyConfig from '../../../config/states/state-NY-2025.json';
 import caConfig from '../../../config/states/state-CA-2025.json';
+import gaConfig from '../../../config/states/state-GA-2025.json';
+import ncConfig from '../../../config/states/state-NC-2025.json';
+import miConfig from '../../../config/states/state-MI-2025.json';
+import waConfig from '../../../config/states/state-WA-2025.json';
+import azConfig from '../../../config/states/state-AZ-2025.json';
+import tnConfig from '../../../config/states/state-TN-2025.json';
+import inConfig from '../../../config/states/state-IN-2025.json';
+import moConfig from '../../../config/states/state-MO-2025.json';
+import mdConfig from '../../../config/states/state-MD-2025.json';
+import wiConfig from '../../../config/states/state-WI-2025.json';
 
 // ---------------------------------------------------------------------------
 // State Module Registry
@@ -51,6 +71,16 @@ const stateModuleRegistry: Record<string, StateModule> = {
   NJ: newJersey,
   NY: newYork,
   CA: california,
+  GA: georgia,
+  NC: northCarolina,
+  MI: michigan,
+  WA: washington,
+  AZ: arizona,
+  TN: tennessee,
+  IN: indiana,
+  MO: missouri,
+  MD: maryland,
+  WI: wisconsin,
 };
 
 // ---------------------------------------------------------------------------
@@ -69,6 +99,16 @@ const stateConfigRegistry: Record<string, StateConfig> = {
   NJ: njConfig as unknown as StateConfig,
   NY: nyConfig as unknown as StateConfig,
   CA: caConfig as unknown as StateConfig,
+  GA: gaConfig as unknown as StateConfig,
+  NC: ncConfig as unknown as StateConfig,
+  MI: miConfig as unknown as StateConfig,
+  WA: waConfig as unknown as StateConfig,
+  AZ: azConfig as unknown as StateConfig,
+  TN: tnConfig as unknown as StateConfig,
+  IN: inConfig as unknown as StateConfig,
+  MO: moConfig as unknown as StateConfig,
+  MD: mdConfig as unknown as StateConfig,
+  WI: wiConfig as unknown as StateConfig,
 };
 
 // ---------------------------------------------------------------------------

@@ -1,0 +1,83 @@
+{
+  "stateCode": "MD",
+  "stateName": "Maryland",
+  "taxYear": 2025,
+  "_source": "Md. Code Tax-Gen §10-105; Comptroller of Maryland (https://www.marylandtaxes.gov/individual/index.php)",
+  "_verifiedDate": "2026-02-28",
+  "_notes": "Maryland has progressive brackets 2%–5.75%. County/city tax averages ~2.96% statewide (varies 2.25%–3.2% by county). Personal exemption: $3,200 each (taxpayer, spouse, dependent) with phase-out above $100k+ (simplified: not phased out). Standard deduction: 15% of MD AGI, min $1,800 / max $4,000 single; min $3,200 / max $8,000 MFJ — computed in engine, not here. Social Security fully exempt. MFJ bracket thresholds are double of single.",
+  "hasIncomeTax": true,
+  "startingPoint": "federal_agi",
+  "socialSecurityExempt": true,
+  "capitalGainsTreatment": "ordinary",
+  "personalExemption": {
+    "taxpayer": {
+      "single": 320000,
+      "married_filing_jointly": 320000,
+      "married_filing_separately": 320000,
+      "head_of_household": 320000,
+      "qualifying_surviving_spouse": 320000
+    },
+    "spouse": 320000,
+    "dependent": 320000
+  },
+  "brackets": {
+    "single": [
+      { "min": 0, "max": 100000, "rate": 0.02 },
+      { "min": 100000, "max": 200000, "rate": 0.03 },
+      { "min": 200000, "max": 300000, "rate": 0.04 },
+      { "min": 300000, "max": 10000000, "rate": 0.0475 },
+      { "min": 10000000, "max": 12500000, "rate": 0.05 },
+      { "min": 12500000, "max": 15000000, "rate": 0.0525 },
+      { "min": 15000000, "max": 25000000, "rate": 0.055 },
+      { "min": 25000000, "max": null, "rate": 0.0575 }
+    ],
+    "married_filing_jointly": [
+      { "min": 0, "max": 200000, "rate": 0.02 },
+      { "min": 200000, "max": 400000, "rate": 0.03 },
+      { "min": 400000, "max": 600000, "rate": 0.04 },
+      { "min": 600000, "max": 20000000, "rate": 0.0475 },
+      { "min": 20000000, "max": 25000000, "rate": 0.05 },
+      { "min": 25000000, "max": 30000000, "rate": 0.0525 },
+      { "min": 30000000, "max": 50000000, "rate": 0.055 },
+      { "min": 50000000, "max": null, "rate": 0.0575 }
+    ],
+    "married_filing_separately": [
+      { "min": 0, "max": 100000, "rate": 0.02 },
+      { "min": 100000, "max": 200000, "rate": 0.03 },
+      { "min": 200000, "max": 300000, "rate": 0.04 },
+      { "min": 300000, "max": 10000000, "rate": 0.0475 },
+      { "min": 10000000, "max": 12500000, "rate": 0.05 },
+      { "min": 12500000, "max": 15000000, "rate": 0.0525 },
+      { "min": 15000000, "max": 25000000, "rate": 0.055 },
+      { "min": 25000000, "max": null, "rate": 0.0575 }
+    ],
+    "head_of_household": [
+      { "min": 0, "max": 100000, "rate": 0.02 },
+      { "min": 100000, "max": 200000, "rate": 0.03 },
+      { "min": 200000, "max": 300000, "rate": 0.04 },
+      { "min": 300000, "max": 10000000, "rate": 0.0475 },
+      { "min": 10000000, "max": 12500000, "rate": 0.05 },
+      { "min": 12500000, "max": 15000000, "rate": 0.0525 },
+      { "min": 15000000, "max": 25000000, "rate": 0.055 },
+      { "min": 25000000, "max": null, "rate": 0.0575 }
+    ],
+    "qualifying_surviving_spouse": [
+      { "min": 0, "max": 200000, "rate": 0.02 },
+      { "min": 200000, "max": 400000, "rate": 0.03 },
+      { "min": 400000, "max": 600000, "rate": 0.04 },
+      { "min": 600000, "max": 20000000, "rate": 0.0475 },
+      { "min": 20000000, "max": 25000000, "rate": 0.05 },
+      { "min": 25000000, "max": 30000000, "rate": 0.0525 },
+      { "min": 30000000, "max": 50000000, "rate": 0.055 },
+      { "min": 50000000, "max": null, "rate": 0.0575 }
+    ]
+  },
+  "localTax": {
+    "_default": {
+      "rate": 0.0296,
+      "_notes": "Statewide weighted average county/city rate. Actual rate varies 2.25%–3.2% by county."
+    }
+  },
+  "formId": "md502",
+  "formName": "Maryland Resident Income Tax Return"
+}

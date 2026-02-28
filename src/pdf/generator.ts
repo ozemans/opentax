@@ -49,12 +49,29 @@ const FLAG_TO_FORM: { flag: keyof TaxResult; formId: FormId }[] = [
  * Map state-level formId strings (from StateConfig.formId) to the PDF FormId type.
  * Each state module returns a formId string in its StateTaxResult (e.g., 'IT-201').
  * This maps those strings to the FormId union member used by the PDF module.
+ *
+ * States with no PDF template (e.g. OH 'IT-1040', NH 'DP-10') return undefined
+ * and are silently skipped — their formId strings don't appear in this set.
  */
+const STATE_FORM_IDS_WITH_TEMPLATES = new Set<FormId>([
+  'it201',    // New York (resident)
+  'ftb540',   // California
+  'va760',    // Virginia
+  'il1040',   // Illinois
+  'pa40',     // Pennsylvania
+  'nj1040',   // New Jersey
+  'maForm1',  // Massachusetts
+]);
+
+// Explicit remaps for configs whose formId string differs from the FormId union value
+const STATE_FORM_ID_REMAP: Record<string, FormId> = {
+  'IT-201': 'it201',  // NY config uses 'IT-201'; FormId is 'it201'
+};
+
 function mapStateFormId(formId: string): FormId | undefined {
-  const map: Record<string, FormId> = {
-    'IT-201': 'it201',
-  };
-  return map[formId];
+  if (formId in STATE_FORM_ID_REMAP) return STATE_FORM_ID_REMAP[formId];
+  if (STATE_FORM_IDS_WITH_TEMPLATES.has(formId as FormId)) return formId as FormId;
+  return undefined;
 }
 
 /**

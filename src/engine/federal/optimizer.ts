@@ -89,23 +89,6 @@ export function computeOpportunities(
   }
 
   // ---------------------------------------------------------------------------
-  // Roth IRA — informational (no tax deduction, but tax-free growth)
-  // ---------------------------------------------------------------------------
-  // Roth phase-out for single 2025: begins $150k, ends $165k
-  const rothPhaseOutEnd = 16_500_000;
-  if (earnedIncome > 0 && agi < rothPhaseOutEnd && iraEnteredCents === 0) {
-    opportunities.push({
-      id: 'ira_roth',
-      title: 'Roth IRA — Tax-Free Growth',
-      description:
-        'At your income level, you qualify for a Roth IRA (up to $7,000 for 2025). Contributions aren\'t deductible, but all growth and qualified withdrawals are tax-free. Especially valuable early in your career.',
-      estimatedSavings: 0, // Long-term benefit, not immediate
-      actionPage: 'adjustments',
-      actionLabel: 'Learn more',
-    });
-  }
-
-  // ---------------------------------------------------------------------------
   // Student loan interest
   // ---------------------------------------------------------------------------
   const studentLoanDeduction = input.studentLoanInterest ?? 0;
@@ -121,23 +104,6 @@ export function computeOpportunities(
       estimatedSavings: savings,
       actionPage: 'adjustments',
       actionLabel: 'Add student loan interest',
-    });
-  }
-
-  // ---------------------------------------------------------------------------
-  // HSA contribution
-  // ---------------------------------------------------------------------------
-  const hsaEntered = input.hsaDeduction ?? 0;
-  const maxHSASingle = 425000; // $4,250 for self-only 2025 (approx)
-  if (hsaEntered === 0) {
-    opportunities.push({
-      id: 'hsa_contribution',
-      title: 'Health Savings Account (HSA)',
-      description:
-        'If you have a high-deductible health plan (HDHP), HSA contributions are triple tax-advantaged: deductible now, grow tax-free, and withdrawals for medical expenses are tax-free. Max $4,300/year for self-only coverage (2025).',
-      estimatedSavings: Math.round(maxHSASingle * marginalRate),
-      actionPage: 'adjustments',
-      actionLabel: 'Add HSA deduction',
     });
   }
 

@@ -96,6 +96,7 @@ export function ResultsPage() {
   const [showNewReturn, setShowNewReturn] = useState(false);
   const [showExportPassword, setShowExportPassword] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
 
   // Read from result
   const refundOrOwed = result?.refundOrOwed ?? 0;
@@ -158,6 +159,7 @@ export function ResultsPage() {
   const handleDownloadPDF = useCallback(async () => {
     if (!result) return;
     setIsDownloading(true);
+    setDownloadError(null);
     try {
       const pdfBytes = await generateReturnPackage(input, result);
       const blob = new Blob([pdfBytes.buffer.slice(pdfBytes.byteOffset, pdfBytes.byteOffset + pdfBytes.byteLength) as ArrayBuffer], { type: 'application/pdf' });
@@ -171,6 +173,7 @@ export function ResultsPage() {
       URL.revokeObjectURL(url);
     } catch (err) {
       console.error('[OpenTax] Failed to generate PDF:', err);
+      setDownloadError('PDF generation failed. Please try again or check that your browser supports PDF downloads.');
     } finally {
       setIsDownloading(false);
     }
@@ -484,6 +487,12 @@ export function ResultsPage() {
           >
             {isDownloading ? 'Generating PDF...' : 'Download PDF Return'}
           </button>
+
+          {downloadError && (
+            <p className="text-xs font-body text-accent text-center px-2">
+              {downloadError}
+            </p>
+          )}
 
           <button
             type="button"

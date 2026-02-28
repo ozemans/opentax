@@ -56,9 +56,10 @@ function makeInput(overrides: Partial<TaxInput> = {}): TaxInput {
 // ---------------------------------------------------------------------------
 
 describe('State Registry', () => {
-  it('supports 11 states', () => {
+  it('supports 21 states', () => {
     const states = getSupportedStates();
-    expect(states).toHaveLength(11);
+    expect(states).toHaveLength(21);
+    // Original 11
     expect(states).toContain('TX');
     expect(states).toContain('FL');
     expect(states).toContain('PA');
@@ -70,6 +71,17 @@ describe('State Registry', () => {
     expect(states).toContain('NJ');
     expect(states).toContain('NY');
     expect(states).toContain('CA');
+    // 10 new states
+    expect(states).toContain('GA');
+    expect(states).toContain('NC');
+    expect(states).toContain('MI');
+    expect(states).toContain('WA');
+    expect(states).toContain('AZ');
+    expect(states).toContain('TN');
+    expect(states).toContain('IN');
+    expect(states).toContain('MO');
+    expect(states).toContain('MD');
+    expect(states).toContain('WI');
   });
 
   it('getStateModule returns module for supported state', () => {

@@ -1,0 +1,26 @@
+{
+  "stateCode": "MI",
+  "stateName": "Michigan",
+  "taxYear": 2025,
+  "_source": "MCL §206.51; Michigan Department of Treasury (https://www.michigan.gov/taxes/iit/tax-rate)",
+  "_verifiedDate": "2026-02-28",
+  "_notes": "Michigan flat rate 4.25%. No standard deduction; uses personal exemptions instead. Personal exemption: $5,600 per taxpayer, spouse (MFJ), and each dependent for 2025. Michigan does not tax Social Security income (fully exempt). Retirement distributions partially exempt (complex — simplified here as not exempt).",
+  "hasIncomeTax": true,
+  "startingPoint": "federal_agi",
+  "flatRate": 0.0425,
+  "socialSecurityExempt": true,
+  "capitalGainsTreatment": "ordinary",
+  "personalExemption": {
+    "taxpayer": {
+      "single": 560000,
+      "married_filing_jointly": 560000,
+      "married_filing_separately": 560000,
+      "head_of_household": 560000,
+      "qualifying_surviving_spouse": 560000
+    },
+    "spouse": 560000,
+    "dependent": 560000
+  },
+  "formId": "mi1040",
+  "formName": "Michigan Individual Income Tax Return"
+}
