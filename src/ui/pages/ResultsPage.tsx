@@ -97,6 +97,7 @@ export function ResultsPage() {
   const [showExportPassword, setShowExportPassword] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [downloadSuccess, setDownloadSuccess] = useState(false);
 
   // Read from result
   const refundOrOwed = result?.refundOrOwed ?? 0;
@@ -158,22 +159,42 @@ export function ResultsPage() {
 
   const handleDownloadPDF = useCallback(async () => {
     if (!result) return;
+
     setIsDownloading(true);
     setDownloadError(null);
+    setDownloadSuccess(false);
+
     try {
+      console.log('[PDF] Starting generation...');
       const pdfBytes = await generateReturnPackage(input, result);
-      const blob = new Blob([pdfBytes.buffer.slice(pdfBytes.byteOffset, pdfBytes.byteOffset + pdfBytes.byteLength) as ArrayBuffer], { type: 'application/pdf' });
+      console.log('[PDF] Generated, bytes:', pdfBytes.byteLength);
+
+      // pdfBytes.slice() creates a Uint8Array<ArrayBuffer> (plain, not SharedArrayBuffer).
+      // This is required by the Blob constructor; passing pdfBytes directly fails TypeScript
+      // because its underlying buffer is typed as ArrayBufferLike (may be SharedArrayBuffer).
+      const blob = new Blob([pdfBytes.slice()], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
+      console.log('[PDF] Blob URL created');
+
       const link = document.createElement('a');
       link.href = url;
       link.download = `opentax-${input.taxYear}-return.pdf`;
+      link.style.display = 'none';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+
+      // Delay revocation — browsers need time to initiate the transfer
+      setTimeout(() => URL.revokeObjectURL(url), 30_000);
+
+      console.log('[PDF] Download triggered');
+      setDownloadSuccess(true);
+      setTimeout(() => setDownloadSuccess(false), 4000);
     } catch (err) {
       console.error('[OpenTax] Failed to generate PDF:', err);
-      setDownloadError('PDF generation failed. Please try again or check that your browser supports PDF downloads.');
+      setDownloadError(
+        'PDF generation failed. Open DevTools Console (F12 / Cmd+Option+J) for details.',
+      );
     } finally {
       setIsDownloading(false);
     }
@@ -483,13 +504,27 @@ export function ResultsPage() {
             type="button"
             onClick={handleDownloadPDF}
             disabled={isDownloading || !result}
-            className="w-full rounded-xl bg-primary px-6 py-4 text-base font-display
-                       font-semibold text-white hover:bg-primary-dark transition-colors
-                       focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
-                       shadow-card hover:shadow-card-hover disabled:opacity-50"
+            className={`w-full rounded-xl px-6 py-4 text-base font-display
+                       font-semibold text-white transition-colors
+                       focus:outline-none focus:ring-2 focus:ring-offset-2
+                       shadow-card hover:shadow-card-hover disabled:opacity-50
+                       ${downloadSuccess
+                         ? 'bg-success hover:bg-success/90 focus:ring-success'
+                         : 'bg-primary hover:bg-primary-dark focus:ring-primary'
+                       }`}
           >
-            {isDownloading ? 'Generating PDF...' : 'Download PDF Return'}
+            {isDownloading
+              ? 'Generating PDF...'
+              : downloadSuccess
+                ? 'Downloaded! ✓'
+                : 'Download PDF Return'}
           </button>
+
+          {downloadSuccess && (
+            <p className="text-xs font-body text-success text-center">
+              Your PDF was saved to your Downloads folder.
+            </p>
+          )}
 
           {downloadError && (
             <p className="text-xs font-body text-accent text-center px-2">
