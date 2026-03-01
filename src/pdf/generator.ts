@@ -118,14 +118,24 @@ export async function generateReturnPackage(
       // This shouldn't happen — but guard against it
       throw new Error(`No form data for required form: ${formId}`);
     }
-    const bytes = await fillForm(formId, formData, templateLoader);
-    return { formId, bytes };
+    try {
+      const bytes = await fillForm(formId, formData, templateLoader);
+      return { formId, bytes };
+    } catch (err) {
+      console.error(`[PDF] Failed to fill ${formId}:`, err);
+      throw err;
+    }
   });
 
   // Handle Form 8949 separately (multi-page, per-category Part I/II split)
   let f8949Pages: Uint8Array[] = [];
   if (result.needsForm8949) {
-    f8949Pages = await fillForm8949(result.capitalGainsResult.categorized, templateLoader);
+    try {
+      f8949Pages = await fillForm8949(result.capitalGainsResult.categorized, templateLoader);
+    } catch (err) {
+      console.error('[PDF] Failed to fill Form 8949:', err);
+      throw err;
+    }
   }
 
   // Wait for all standard forms

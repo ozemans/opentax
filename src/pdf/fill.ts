@@ -38,8 +38,10 @@ export async function fillForm(
     );
   }
 
-  // Load document
-  const pdfDoc = await PDFDocument.load(templateBytes);
+  // Load document — ignoreEncryption: true required for some IRS PDFs that have
+  // usage-rights encryption flags set. pdf-lib doesn't modify encrypted content;
+  // it only prevents loading without this flag.
+  const pdfDoc = await PDFDocument.load(templateBytes, { ignoreEncryption: true });
   const form = pdfDoc.getForm();
 
   // Get field map for this form

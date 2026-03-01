@@ -412,9 +412,12 @@ export function ResultsPage() {
                     <button
                       type="button"
                       onClick={() => navigate(`/${op.actionPage}`)}
-                      className="mt-2 text-xs font-body font-medium text-highlight hover:text-highlight/80 transition-colors"
+                      className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-highlight/10 border border-highlight/20 px-3 py-1.5 text-xs font-body font-semibold text-highlight hover:bg-highlight/20 transition-colors"
                     >
-                      {op.actionLabel ?? 'Go there'} →
+                      {op.actionLabel ?? 'Go there'}
+                      <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+                        <path d="M5 12h14M12 5l7 7-7 7" />
+                      </svg>
                     </button>
                   )}
                 </div>

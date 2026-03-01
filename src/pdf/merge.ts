@@ -24,7 +24,7 @@ export async function mergePdfs(pdfs: Uint8Array[]): Promise<Uint8Array> {
   const mergedDoc = await PDFDocument.create();
 
   for (const pdfBytes of pdfs) {
-    const srcDoc = await PDFDocument.load(pdfBytes);
+    const srcDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
     const pageIndices = srcDoc.getPageIndices();
     const copiedPages = await mergedDoc.copyPages(srcDoc, pageIndices);
 

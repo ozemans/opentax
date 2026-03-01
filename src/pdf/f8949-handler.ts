@@ -43,7 +43,7 @@ async function fillOnePage(
   checkboxFieldName: string | undefined,
   templateBytes: Uint8Array,
 ): Promise<Uint8Array> {
-  const pdfDoc = await PDFDocument.load(templateBytes);
+  const pdfDoc = await PDFDocument.load(templateBytes, { ignoreEncryption: true });
   const form = pdfDoc.getForm();
 
   // Check the category checkbox (A/B/C or D/E/F)

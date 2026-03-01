@@ -538,7 +538,14 @@ function parse1099INTSection(
     taxExemptInterest = findLabeledValue(sectionItems, ['tax-exempt interest', 'tax exempt interest']);
   }
 
-  if (interest === 0 && earlyWithdrawalPenalty === 0 && taxExemptInterest === 0) {
+  // Only warn if the section contains no dollar-amount text at all.
+  // Legitimate all-zero 1099-INTs (e.g. IB accounts with no activity) must
+  // still be parsed — findBoxValue() returns 0 for both "not found" and "$0.00".
+  const intHasDollarAmounts = sectionItems.some((item) => {
+    const t = item.text.trim();
+    return /^\$?[\d,]+\.\d{2}$/.test(t) || /^\([\d,]+\.\d{2}\)$/.test(t);
+  });
+  if (!intHasDollarAmounts) {
     warnings.push('1099-INT section found but no amounts could be extracted.');
     return null;
   }
@@ -596,7 +603,11 @@ function parse1099DIVSection(
     ]);
   }
 
-  if (ordinaryDividends === 0 && totalCapitalGain === 0 && exemptInterestDividends === 0) {
+  const divHasDollarAmounts = sectionItems.some((item) => {
+    const t = item.text.trim();
+    return /^\$?[\d,]+\.\d{2}$/.test(t) || /^\([\d,]+\.\d{2}\)$/.test(t);
+  });
+  if (!divHasDollarAmounts) {
     warnings.push('1099-DIV section found but no amounts could be extracted.');
     return null;
   }
@@ -631,7 +642,11 @@ function parse1099NECSection(
     ]);
   }
 
-  if (nonemployeeCompensation === 0) {
+  const necHasDollarAmounts = sectionItems.some((item) => {
+    const t = item.text.trim();
+    return /^\$?[\d,]+\.\d{2}$/.test(t) || /^\([\d,]+\.\d{2}\)$/.test(t);
+  });
+  if (!necHasDollarAmounts) {
     warnings.push('1099-NEC section found but no compensation amount could be extracted.');
     return null;
   }
@@ -997,7 +1012,7 @@ function parse1099BDetailTable(
 ): Form1099B[] {
   const results: Form1099B[] = [];
   const X_COL_TOLERANCE = 5;
-  const Y_FIELD_TOLERANCE = 30;
+  const Y_FIELD_TOLERANCE = 15;
 
   for (const page of detailPages) {
     const pageItems = items.filter((item) => item.page === page);
@@ -1070,7 +1085,6 @@ function parse1099BDetailTable(
     }
 
     const basisReportedToIRS = !isNoncovered;
-    const category = determineCategory(isLongTerm, basisReportedToIRS);
 
     // Step 4: For each security column, extract field values
     for (const sym of symbolItems) {
@@ -1113,6 +1127,20 @@ function parse1099BDetailTable(
       // Use symbol as fallback description
       const description = descriptionStr || sym.text.trim();
 
+      // Derive isLongTerm per-transaction from actual dates when available.
+      // The page-level flag is a fallback only — it can be wrong when both
+      // "Short-Term" and "Long-Term" headers appear on the same page.
+      let txIsLongTerm = isLongTerm;
+      if (dateAcquired && dateAcquired !== 'VARIOUS' && dateSold) {
+        const acquiredDate = new Date(dateAcquired);
+        const soldDate = new Date(dateSold);
+        if (!isNaN(acquiredDate.getTime()) && !isNaN(soldDate.getTime())) {
+          const daysHeld = (soldDate.getTime() - acquiredDate.getTime()) / (24 * 60 * 60 * 1000);
+          txIsLongTerm = daysHeld > 365;
+        }
+      }
+      const txCategory = determineCategory(txIsLongTerm, basisReportedToIRS);
+
       results.push({
         description,
         dateAcquired,
@@ -1120,10 +1148,10 @@ function parse1099BDetailTable(
         proceeds,
         costBasis,
         gainLoss: proceeds - costBasis,
-        isLongTerm,
+        isLongTerm: txIsLongTerm,
         basisReportedToIRS,
         washSaleDisallowed: washSaleDisallowed || undefined,
-        category,
+        category: txCategory,
       });
     }
   }
