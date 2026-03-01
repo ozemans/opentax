@@ -589,6 +589,26 @@ describe('computeQualifiedDividendAndCapGainTax', () => {
       });
       expect(qdcgTax).toBe(13_754_725);
     });
+
+    it('single: 10% bracket filer with collectibles taxed at 10% (min of 28% and marginal)', () => {
+      // $5,000 ordinary income + $2,000 collectibles = $7,000 total
+      // Entire income is in the 10% bracket (below $11,925 threshold)
+      // collectibles rate = min(28%, 10%) = 10%
+      // collectibles tax = 200_000 * 0.10 = 20_000
+      // ordinary tax = 500_000 * 0.10 = 50_000
+      // total = 70_000
+      const qdcgTax = computeQualifiedDividendAndCapGainTax({
+        taxableIncome: 700_000,
+        ordinaryIncome: 500_000,
+        qualifiedDividends: 0,
+        netLTCG: 200_000,
+        collectiblesGain: 200_000,
+        section1250Gain: 0,
+        filingStatus: 'single',
+        config: federalConfig,
+      });
+      expect(qdcgTax).toBe(70_000);
+    });
   });
 
   // --- Section 1250 gain at 25% max rate ---------------------------------

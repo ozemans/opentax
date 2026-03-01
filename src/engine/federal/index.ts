@@ -23,7 +23,6 @@ import type {
   IncomeBreakdown,
   TaxBreakdown,
   CreditBreakdown,
-  CapitalGainsResult,
   SelfEmploymentResult,
   Form1099B,
 } from '../types';
@@ -134,56 +133,22 @@ export function computeFederalTax(input: TaxInput, config: FederalConfig): TaxRe
     ?? (input.priorYearCapitalLossCarryforward ?? 0);
   const ltCF = input.priorYearLTCapitalLossCarryforward ?? 0;
 
-  const rawCapGains = computeCapitalGains(
+  // 1099-DIV Box 2a capital gain distributions are aggregated inside computeCapitalGains()
+  // via the optional divForms parameter. They add to long-term gains and populate
+  // section1250Gain and collectiblesGain from Box 2b/2d respectively.
+  const capitalGainsResult = computeCapitalGains(
     capGainsTransactions,
     stCF,
     ltCF,
     input.filingStatus,
     config,
+    input.form1099DIVs,
   );
-
-  // 1099-DIV capital gain distributions (Box 2a) are long-term gains not
-  // included in the 1099-B capital gains module. Add them here.
-  const capGainFromDIV = input.form1099DIVs.reduce(
-    (sum, f) => sum + f.totalCapitalGain, 0,
-  );
-  const section1250FromDIV = input.form1099DIVs.reduce(
-    (sum, f) => sum + (f.section1250Gain ?? 0), 0,
-  );
-  const collectiblesFromDIV = input.form1099DIVs.reduce(
-    (sum, f) => sum + (f.collectiblesGain ?? 0), 0,
-  );
-
-  // Adjust capital gains to include 1099-DIV distributions
-  const adjustedNetLT = rawCapGains.netLongTerm + capGainFromDIV;
-  const adjustedNetCapGainLoss = rawCapGains.netShortTerm + adjustedNetLT;
-
-  // Re-apply loss limitation on adjusted net
-  const lossLimit = config.capitalLossLimit[input.filingStatus];
-  let finalDeductibleLoss = 0;
-  let finalCarryforward = 0;
-
-  if (adjustedNetCapGainLoss < 0) {
-    const absLoss = Math.abs(adjustedNetCapGainLoss);
-    finalDeductibleLoss = -Math.min(absLoss, lossLimit);
-    finalCarryforward = Math.max(0, absLoss - lossLimit);
-  }
-
-  const capitalGainsResult: CapitalGainsResult = {
-    ...rawCapGains,
-    longTermGains: rawCapGains.longTermGains + capGainFromDIV,
-    netLongTerm: adjustedNetLT,
-    netCapitalGainLoss: adjustedNetCapGainLoss,
-    deductibleLoss: finalDeductibleLoss,
-    carryforwardLoss: finalCarryforward,
-    collectiblesGain: rawCapGains.collectiblesGain + collectiblesFromDIV,
-    section1250Gain: rawCapGains.section1250Gain + section1250FromDIV,
-  };
 
   // Amount to add to total income: full gain if positive, limited loss if negative
-  const capGainForIncome = adjustedNetCapGainLoss >= 0
-    ? adjustedNetCapGainLoss
-    : finalDeductibleLoss;
+  const capGainForIncome = capitalGainsResult.netCapitalGainLoss >= 0
+    ? capitalGainsResult.netCapitalGainLoss
+    : capitalGainsResult.deductibleLoss;
 
   // ══════════════════════════════════════════════════════════════════════════
   // Phase 3: Income & AGI
@@ -251,7 +216,7 @@ export function computeFederalTax(input: TaxInput, config: FederalConfig): TaxRe
   const qualifiedDividends = input.form1099DIVs.reduce(
     (sum, f) => sum + f.qualifiedDividends, 0,
   );
-  const netLTCG = Math.max(0, adjustedNetLT);
+  const netLTCG = Math.max(0, capitalGainsResult.netLongTerm);
   const totalPreferential = qualifiedDividends + netLTCG;
 
   let ordinaryIncomeTax: number;
@@ -419,8 +384,8 @@ export function computeFederalTax(input: TaxInput, config: FederalConfig): TaxRe
     interest,
     ordinaryDividends,
     qualifiedDividends,
-    shortTermCapitalGains: rawCapGains.netShortTerm,
-    longTermCapitalGains: adjustedNetLT,
+    shortTermCapitalGains: capitalGainsResult.netShortTerm,
+    longTermCapitalGains: capitalGainsResult.netLongTerm,
     selfEmploymentIncome: scheduleCResult.netProfit + necIncome,
     unemployment,
     retirementDistributions,
@@ -456,7 +421,6 @@ export function computeFederalTax(input: TaxInput, config: FederalConfig): TaxRe
     unemployment > 0 ||
     (input.otherIncome ?? 0) !== 0 ||
     adjustments > 0 ||
-    capGainFromDIV > 0 ||
     capitalGainsResult.netCapitalGainLoss !== 0;
 
   const needsSchedule2 =
@@ -471,7 +435,8 @@ export function computeFederalTax(input: TaxInput, config: FederalConfig): TaxRe
   const needsScheduleB = interest > 150000 || ordinaryDividends > 150000;
   const needsScheduleC = !!input.scheduleCData;
   const needsScheduleD =
-    input.form1099Bs.length > 0 || capGainFromDIV > 0;
+    input.form1099Bs.length > 0 ||
+    input.form1099DIVs.some(d => d.totalCapitalGain > 0);
   const needsScheduleSE = seTaxResult.totalSETax > 0;
   const needsForm8949 = input.form1099Bs.length > 0;
   const needsForm8959 = additionalMedicareTax > 0;
@@ -526,7 +491,7 @@ export function computeFederalTax(input: TaxInput, config: FederalConfig): TaxRe
 // Re-export individual modules for direct access
 export { computeTotalIncome, computeAdjustments, computeAGI } from './income';
 export { computeStandardDeduction, computeSaltCap, computeItemizedDeductions, computeDeductions } from './deductions';
-export { computeCapitalGains, categorizeTransactions } from './capital-gains';
+export { computeCapitalGains, categorizeTransactions, applyWashSaleAdjustments } from './capital-gains';
 export { computeOrdinaryTax, getMarginalRate, computeQualifiedDividendAndCapGainTax } from './brackets';
 export { computeScheduleC, computeSelfEmploymentTax, computeQBIDeduction, computeSelfEmployment } from './self-employment';
 export { computeChildTaxCredit, computeOtherDependentCredit, computeChildCareCredit, computeEITC, computeEducationCredits, computeSaversCredit, computeAllCredits } from './credits';

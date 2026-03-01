@@ -7,6 +7,7 @@ import type {
   TaxResult,
   CapitalGainsResult,
   Form1099B,
+  AdjustedForm1099B,
   Form8949Category,
 } from '../../src/engine/types';
 import type { FormId } from '../../src/pdf/types';
@@ -41,9 +42,11 @@ function emptyCapitalGains(): CapitalGainsResult {
   return {
     shortTermGains: 0,
     shortTermLosses: 0,
+    rawNetShortTerm: 0,
     netShortTerm: 0,
     longTermGains: 0,
     longTermLosses: 0,
+    rawNetLongTerm: 0,
     netLongTerm: 0,
     netCapitalGainLoss: 0,
     deductibleLoss: 0,
@@ -54,6 +57,28 @@ function emptyCapitalGains(): CapitalGainsResult {
       '8949_A': [], '8949_B': [], '8949_C': [],
       '8949_D': [], '8949_E': [], '8949_F': [],
     },
+  };
+}
+
+/** Build a minimal AdjustedForm1099B for tests. */
+function makeAdjustedTx(
+  category: Form8949Category,
+  overrides: Partial<AdjustedForm1099B> = {},
+): AdjustedForm1099B {
+  const gainLoss = overrides.gainLoss ?? 500_000;
+  return {
+    description: 'TEST STOCK',
+    dateAcquired: '2023-01-15',
+    dateSold: '2025-06-20',
+    proceeds: 2_000_000,
+    costBasis: 1_500_000,
+    gainLoss,
+    isLongTerm: category.startsWith('8949_D') || category.startsWith('8949_E') || category.startsWith('8949_F'),
+    basisReportedToIRS: category === '8949_A' || category === '8949_D',
+    category,
+    effectiveGainLoss: gainLoss + (overrides.washSaleDisallowed ?? 0),
+    adjustmentCode: (overrides.washSaleDisallowed ?? 0) > 0 ? 'W' : '',
+    ...overrides,
   };
 }
 
@@ -246,8 +271,14 @@ describe('generateReturnPackage', () => {
       capitalGainsResult: {
         ...emptyCapitalGains(),
         longTermGains: 500_000,
+        rawNetLongTerm: 500_000,
         netLongTerm: 500_000,
         netCapitalGainLoss: 500_000,
+        categorized: {
+          '8949_A': [], '8949_B': [], '8949_C': [],
+          '8949_D': [makeAdjustedTx('8949_D', { description: '100 AAPL', gainLoss: 500_000 })],
+          '8949_E': [], '8949_F': [],
+        },
       },
       forms: {
         f1040: { firstName: 'Test', line7: 5000 },
@@ -287,6 +318,18 @@ describe('generateReturnPackage', () => {
       needsForm8949: true,
       needsForm8959: true,
       needsForm8960: true,
+      capitalGainsResult: {
+        ...emptyCapitalGains(),
+        longTermGains: 300_000,
+        rawNetLongTerm: 300_000,
+        netLongTerm: 300_000,
+        netCapitalGainLoss: 300_000,
+        categorized: {
+          '8949_A': [], '8949_B': [], '8949_C': [],
+          '8949_D': [makeAdjustedTx('8949_D', { description: 'Stock A', gainLoss: 300_000 })],
+          '8949_E': [], '8949_F': [],
+        },
+      },
       selfEmploymentResult: {
         scheduleCNetProfit: 5_000_000,
         homeOfficeDeduction: 0,
@@ -353,24 +396,35 @@ describe('generateReturnPackage', () => {
     const templates = await createTemplates(['f1040', 'scheduleD', 'f8949']);
     const loader = createMockTemplateLoader(templates);
 
-    // Create 20 transactions -> 2 pages of Form 8949
-    const transactions = Array.from({ length: 20 }, (_, i) => ({
-      description: `Stock ${i + 1}`,
-      dateAcquired: '2023-01-01',
-      dateSold: '2025-06-15',
-      proceeds: 10000 + i * 1000,
-      basis: 8000 + i * 500,
-      gainLoss: 2000 + i * 500,
-      category: '8949_D',
-    }));
+    // Create 20 LT transactions (Cat D) -> 2 pages of Form 8949
+    const ltTransactions = Array.from({ length: 20 }, (_, i) =>
+      makeAdjustedTx('8949_D', {
+        description: `Stock ${i + 1}`,
+        gainLoss: 200_000 + i * 50_000,
+      }),
+    );
 
     const result = makeResult({
       needsScheduleD: true,
       needsForm8949: true,
+      capitalGainsResult: {
+        ...emptyCapitalGains(),
+        categorized: {
+          '8949_A': [], '8949_B': [], '8949_C': [],
+          '8949_D': ltTransactions,
+          '8949_E': [], '8949_F': [],
+        },
+      },
       forms: {
         f1040: { firstName: 'Test' },
         scheduleD: { netGainLoss: 50000 },
-        f8949: transactions,
+        f8949: ltTransactions.map(tx => ({
+          description: tx.description,
+          proceeds: tx.proceeds / 100,
+          basis: tx.costBasis / 100,
+          gainLoss: tx.effectiveGainLoss / 100,
+          category: tx.category,
+        })),
       },
     });
 

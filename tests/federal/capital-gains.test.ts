@@ -13,6 +13,7 @@ import type {
   CapitalGainsResult,
 } from '../../src/engine/types.ts';
 import {
+  applyWashSaleAdjustments,
   categorizeTransactions,
   computeCapitalGains,
 } from '../../src/engine/federal/capital-gains.ts';
@@ -422,24 +423,25 @@ describe('computeCapitalGains', () => {
 
   // -----------------------------------------------------------------------
   // Wash sale handling
+  // Per IRC §1091: effectiveGainLoss = gainLoss (raw) + washSaleDisallowed
+  // The raw gainLoss = proceeds - costBasis; column h = gainLoss + Box 1g.
   // -----------------------------------------------------------------------
-  it('handles wash sale: washSaleDisallowed is already factored into gainLoss', () => {
-    // Bought at $10,000, sold at $8,000 → $2,000 loss
-    // But $500 is wash sale disallowed → only $1,500 loss is in gainLoss
-    // The washSaleDisallowed field is informational; gainLoss already reflects the adjustment
+  it('handles wash sale: adds washSaleDisallowed back to raw gainLoss', () => {
+    // Bought at $10,000, sold at $8,000 → raw loss = -$2,000
+    // Box 1g: $500 disallowed → effectiveGainLoss = -$2,000 + $500 = -$1,500
     const tx = makeTx({
       description: 'WASH SALE STOCK',
-      proceeds: 800_000,       // $8,000
-      costBasis: 1_000_000,    // $10,000
-      gainLoss: -150_000,      // -$1,500 (loss after wash sale adjustment)
-      washSaleDisallowed: 50_000,  // $500 disallowed
+      proceeds: 800_000,           // $8,000
+      costBasis: 1_000_000,        // $10,000
+      gainLoss: -200_000,          // raw: proceeds - costBasis = -$2,000
+      washSaleDisallowed: 50_000,  // Box 1g: $500 disallowed
       isLongTerm: false,
       basisReportedToIRS: true,
       category: '8949_A',
     });
     const result = computeCapitalGains([tx], 0, 0, 'single', config);
 
-    // gainLoss is -$1,500 (already adjusted for wash sale)
+    // effectiveGainLoss = -200,000 + 50,000 = -150,000 (-$1,500 net loss)
     expect(result.shortTermLosses).toBe(150_000);
     expect(result.netShortTerm).toBe(-150_000);
     expect(result.netCapitalGainLoss).toBe(-150_000);
@@ -447,20 +449,21 @@ describe('computeCapitalGains', () => {
     expect(result.carryforwardLoss).toBe(0);
   });
 
-  it('handles wash sale with gain (washSaleDisallowed present but net gain)', () => {
-    // A wash sale that still results in a gain
+  it('handles wash sale with net gain after adjustment (washSaleDisallowed present)', () => {
+    // Raw gain = $5,000; Box 1g = $500; effectiveGainLoss = $5,000 + $500 = $5,500
     const tx = makeTx({
       description: 'WASH SALE GAIN STOCK',
-      proceeds: 1_500_000,     // $15,000
-      costBasis: 1_000_000,    // $10,000
-      gainLoss: 550_000,       // $5,500 gain (adjusted)
-      washSaleDisallowed: 50_000,  // $500 disallowed (added to basis of replacement shares)
+      proceeds: 1_500_000,         // $15,000
+      costBasis: 1_000_000,        // $10,000
+      gainLoss: 500_000,           // raw: proceeds - costBasis = $5,000
+      washSaleDisallowed: 50_000,  // Box 1g: $500 disallowed
       isLongTerm: true,
       basisReportedToIRS: true,
       category: '8949_D',
     });
     const result = computeCapitalGains([tx], 0, 0, 'single', config);
 
+    // effectiveGainLoss = 500,000 + 50,000 = 550,000
     expect(result.longTermGains).toBe(550_000);
     expect(result.netLongTerm).toBe(550_000);
     expect(result.netCapitalGainLoss).toBe(550_000);
@@ -736,5 +739,162 @@ describe('computeCapitalGains', () => {
     // But netShortTerm and netLongTerm are negative
     expect(result.netShortTerm).toBe(-250_000);
     expect(result.netLongTerm).toBe(-750_000);
+  });
+
+  // -----------------------------------------------------------------------
+  // rawNetShortTerm / rawNetLongTerm (pre-carryforward Schedule D lines 2/9)
+  // -----------------------------------------------------------------------
+  it('rawNetShortTerm and rawNetLongTerm capture pre-carryforward totals', () => {
+    const transactions = [
+      makeShortTermGain(500_000),  // $5,000 ST gain
+      makeLongTermGain(300_000),   // $3,000 LT gain
+    ];
+    const result = computeCapitalGains(transactions, 100_000, 50_000, 'single', config);
+
+    // rawNet = Form 8949 totals before carryforward (Schedule D lines 2/9)
+    expect(result.rawNetShortTerm).toBe(500_000);
+    expect(result.rawNetLongTerm).toBe(300_000);
+    // net = after carryforward (Schedule D lines 7/15)
+    expect(result.netShortTerm).toBe(400_000);  // 500k - 100k CF
+    expect(result.netLongTerm).toBe(250_000);   // 300k - 50k CF
+  });
+
+  it('rawNetShortTerm stays at Form 8949 total even when loss carryforward makes net negative', () => {
+    const transactions = [makeShortTermGain(200_000)];  // $2,000 gain
+    const result = computeCapitalGains(transactions, 500_000, 0, 'single', config);
+
+    expect(result.rawNetShortTerm).toBe(200_000);  // Form 8949 total = $2,000
+    expect(result.netShortTerm).toBe(-300_000);     // after $5,000 CF: -$3,000
+  });
+});
+
+// ---------------------------------------------------------------------------
+// applyWashSaleAdjustments
+// ---------------------------------------------------------------------------
+
+describe('applyWashSaleAdjustments', () => {
+  it('returns effectiveGainLoss === gainLoss when no washSaleDisallowed', () => {
+    const tx = makeTx({ proceeds: 1_000_000, costBasis: 800_000, gainLoss: 200_000 });
+    const [adjusted] = applyWashSaleAdjustments([tx]);
+    expect(adjusted.effectiveGainLoss).toBe(200_000);
+    expect(adjusted.adjustmentCode).toBe('');
+  });
+
+  it('adds washSaleDisallowed to raw loss: $1,000 loss + $400 disallowed → -$600 effective', () => {
+    const tx = makeTx({
+      proceeds: 900_000,
+      costBasis: 1_000_000,
+      gainLoss: -100_000,        // raw: -$1,000
+      washSaleDisallowed: 40_000, // Box 1g: $400
+    });
+    const [adjusted] = applyWashSaleAdjustments([tx]);
+    expect(adjusted.effectiveGainLoss).toBe(-60_000);  // -$600
+    expect(adjusted.adjustmentCode).toBe('W');
+  });
+
+  it('fully disallowed loss results in effectiveGainLoss of 0', () => {
+    const tx = makeTx({
+      proceeds: 600_000,
+      costBasis: 1_000_000,
+      gainLoss: -400_000,
+      washSaleDisallowed: 400_000,  // entire loss disallowed
+    });
+    const [adjusted] = applyWashSaleAdjustments([tx]);
+    expect(adjusted.effectiveGainLoss).toBe(0);
+    expect(adjusted.adjustmentCode).toBe('W');
+  });
+
+  it('preserves all original Form1099B fields on the adjusted result', () => {
+    const tx = makeTx({
+      description: 'MY STOCK',
+      proceeds: 500_000,
+      costBasis: 600_000,
+      gainLoss: -100_000,
+      isLongTerm: true,
+      category: '8949_D',
+    });
+    const [adjusted] = applyWashSaleAdjustments([tx]);
+    expect(adjusted.description).toBe('MY STOCK');
+    expect(adjusted.isLongTerm).toBe(true);
+    expect(adjusted.category).toBe('8949_D');
+    expect(adjusted.gainLoss).toBe(-100_000);  // raw field unchanged
+  });
+
+  it('handles a batch of mixed transactions', () => {
+    const txs = [
+      makeTx({ proceeds: 100_000, costBasis: 150_000, gainLoss: -50_000, washSaleDisallowed: 20_000 }),
+      makeTx({ proceeds: 200_000, costBasis: 100_000, gainLoss: 100_000 }),
+    ];
+    const adjusted = applyWashSaleAdjustments(txs);
+    expect(adjusted[0].effectiveGainLoss).toBe(-30_000);
+    expect(adjusted[0].adjustmentCode).toBe('W');
+    expect(adjusted[1].effectiveGainLoss).toBe(100_000);
+    expect(adjusted[1].adjustmentCode).toBe('');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// computeCapitalGains — 1099-DIV integration
+// ---------------------------------------------------------------------------
+
+describe('computeCapitalGains with 1099-DIV forms', () => {
+  function makeDiv(overrides: Partial<Form1099DIV>): Form1099DIV {
+    return {
+      payerName: 'TEST FUND',
+      ordinaryDividends: 0,
+      qualifiedDividends: 0,
+      totalCapitalGain: 0,
+      ...overrides,
+    };
+  }
+
+  it('adds DIV Box 2a totalCapitalGain to longTermGains', () => {
+    const div = makeDiv({ totalCapitalGain: 500_000 });
+    const result = computeCapitalGains([], 0, 0, 'single', config, [div]);
+
+    expect(result.longTermGains).toBe(500_000);
+    expect(result.netLongTerm).toBe(500_000);
+    expect(result.netCapitalGainLoss).toBe(500_000);
+  });
+
+  it('accumulates section1250Gain from DIV Box 2b', () => {
+    const div = makeDiv({ totalCapitalGain: 300_000, section1250Gain: 100_000 });
+    const result = computeCapitalGains([], 0, 0, 'single', config, [div]);
+
+    expect(result.section1250Gain).toBe(100_000);
+    expect(result.longTermGains).toBe(300_000);
+  });
+
+  it('accumulates collectiblesGain from DIV Box 2d', () => {
+    const div = makeDiv({ totalCapitalGain: 400_000, collectiblesGain: 150_000 });
+    const result = computeCapitalGains([], 0, 0, 'single', config, [div]);
+
+    expect(result.collectiblesGain).toBe(150_000);
+  });
+
+  it('sums multiple DIV forms correctly', () => {
+    const divs = [
+      makeDiv({ totalCapitalGain: 200_000, section1250Gain: 50_000 }),
+      makeDiv({ totalCapitalGain: 300_000, collectiblesGain: 80_000 }),
+    ];
+    const result = computeCapitalGains([], 0, 0, 'single', config, divs);
+
+    expect(result.longTermGains).toBe(500_000);
+    expect(result.section1250Gain).toBe(50_000);
+    expect(result.collectiblesGain).toBe(80_000);
+  });
+
+  it('DIV gains are combined with 1099-B LT gains', () => {
+    const ltTx = makeLongTermGain(1_000_000);
+    const div = makeDiv({ totalCapitalGain: 250_000 });
+    const result = computeCapitalGains([ltTx], 0, 0, 'single', config, [div]);
+
+    expect(result.longTermGains).toBe(1_250_000);
+    expect(result.netCapitalGainLoss).toBe(1_250_000);
+  });
+
+  it('no DIV forms passed → section1250Gain stays 0 from 1099-B', () => {
+    const result = computeCapitalGains([makeLongTermGain(500_000)], 0, 0, 'single', config);
+    expect(result.section1250Gain).toBe(0);
   });
 });

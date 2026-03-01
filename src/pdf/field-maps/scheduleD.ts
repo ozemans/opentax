@@ -20,17 +20,35 @@ export const scheduleDFieldMap: FieldMap = {
   // c1_1[0], c1_1[1] = checkboxes
 
   // ── Part I: Short-Term ──
-  // Table_PartI has rows for lines 1a, 1b, 2, 3
-  // Each row has 4 columns: (d) proceeds, (e) cost basis, (g) adjustments, (h) gain/loss
-  // But our engine just has the net short-term total.
+  // Line 2: Form 8949, Part I totals (all ST categories A+B+C)
+  // Row2 fields confirmed from 2025 IRS f1040sd.pdf:
+  //   f1_11=(d)proceeds, f1_12=(e)basis, f1_13=(g)adjustments, f1_14=(h)gain/loss
+  line2Proceeds:     { pdfFieldName: p1('Table_PartI[0].Row2[0].f1_11[0]'), type: 'text' },
+  line2Basis:        { pdfFieldName: p1('Table_PartI[0].Row2[0].f1_12[0]'), type: 'text' },
+  line2Adjustments:  { pdfFieldName: p1('Table_PartI[0].Row2[0].f1_13[0]'), type: 'text' },
+  line2GainLoss:     { pdfFieldName: p1('Table_PartI[0].Row2[0].f1_14[0]'), type: 'text' },
+
+  // Line 5: Net ST capital loss carryover (from prior year Capital Loss Carryover Worksheet)
+  // Standalone scalar fields after Part I table rows: f1_19=L4, f1_20=L5, f1_21=L6, f1_22=L7
+  line5STCarryforward: { pdfFieldName: p1('f1_20[0]'), type: 'text' },
+
   // Line 7 = Net short-term capital gain or (loss)
-  // f1_22 = Line 7 (the last field before Part II starts)
   shortTermGainLoss: { pdfFieldName: p1('f1_22[0]'), type: 'text' },  // Line 7
 
   // ── Part II: Long-Term ──
-  // Table_PartII has rows for lines 8a, 8b, 9, 10
+  // Line 9: Form 8949, Part II totals (all LT categories D+E+F)
+  // Row9 fields confirmed from 2025 IRS f1040sd.pdf:
+  //   f1_31=(d)proceeds, f1_32=(e)basis, f1_33=(g)adjustments, f1_34=(h)gain/loss
+  line9Proceeds:     { pdfFieldName: p1('Table_PartII[0].Row9[0].f1_31[0]'), type: 'text' },
+  line9Basis:        { pdfFieldName: p1('Table_PartII[0].Row9[0].f1_32[0]'), type: 'text' },
+  line9Adjustments:  { pdfFieldName: p1('Table_PartII[0].Row9[0].f1_33[0]'), type: 'text' },
+  line9GainLoss:     { pdfFieldName: p1('Table_PartII[0].Row9[0].f1_34[0]'), type: 'text' },
+
+  // Line 12: Net LT capital loss carryover (from prior year Capital Loss Carryover Worksheet)
+  // Standalone scalar fields after Part II table rows: f1_39=L11, f1_40=L12, f1_41=L13, f1_42=L15
+  line12LTCarryforward: { pdfFieldName: p1('f1_40[0]'), type: 'text' },
+
   // Line 15 = Net long-term capital gain or (loss)
-  // f1_42 = Line 15
   longTermGainLoss: { pdfFieldName: p1('f1_42[0]'), type: 'text' },  // Line 15
 
   // ── Part III: Summary (Page 2) ──

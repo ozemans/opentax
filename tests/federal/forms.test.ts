@@ -6,6 +6,7 @@ import type {
   CapitalGainsResult,
   Form8949Category,
   Form1099B,
+  AdjustedForm1099B,
 } from '../../src/engine/types';
 
 // ---------------------------------------------------------------------------
@@ -38,9 +39,11 @@ function emptyCapitalGains(): CapitalGainsResult {
   return {
     shortTermGains: 0,
     shortTermLosses: 0,
+    rawNetShortTerm: 0,
     netShortTerm: 0,
     longTermGains: 0,
     longTermLosses: 0,
+    rawNetLongTerm: 0,
     netLongTerm: 0,
     netCapitalGainLoss: 0,
     deductibleLoss: 0,
@@ -584,8 +587,9 @@ describe('mapScheduleSE', () => {
 // ---------------------------------------------------------------------------
 
 describe('mapForm8949', () => {
-  it('should map transactions as an array of records', () => {
-    const tx1: Form1099B = {
+  it('should map transactions from categorized using effectiveGainLoss for column h', () => {
+    // LT transaction Cat D with no wash sale: effectiveGainLoss = gainLoss
+    const tx1: AdjustedForm1099B = {
       description: '100 AAPL',
       dateAcquired: '2023-01-15',
       dateSold: '2025-06-20',
@@ -595,30 +599,48 @@ describe('mapForm8949', () => {
       isLongTerm: true,
       basisReportedToIRS: true,
       category: '8949_D' as Form8949Category,
+      effectiveGainLoss: 500_000,  // no wash sale adjustment
+      adjustmentCode: '',
     };
-    const tx2: Form1099B = {
+    // ST transaction Cat A with wash sale: effectiveGainLoss = gainLoss + washSaleDisallowed
+    const tx2: AdjustedForm1099B = {
       description: '50 GOOG',
       dateAcquired: '2025-03-01',
       dateSold: '2025-04-15',
       proceeds: 1_000_000,
       costBasis: 1_200_000,
-      gainLoss: -200_000,
+      gainLoss: -200_000,          // raw loss
+      washSaleDisallowed: 50_000,  // $500 disallowed
       isLongTerm: false,
       basisReportedToIRS: true,
       category: '8949_A' as Form8949Category,
+      effectiveGainLoss: -150_000, // -200k + 50k
+      adjustmentCode: 'W',
     };
     const input = makeInput({ form1099Bs: [tx1, tx2] });
-    const result = makeResult({ needsForm8949: true });
+    const result = makeResult({
+      needsForm8949: true,
+      capitalGainsResult: {
+        ...emptyCapitalGains(),
+        categorized: {
+          '8949_A': [tx2], '8949_B': [], '8949_C': [],
+          '8949_D': [tx1], '8949_E': [], '8949_F': [],
+        },
+      },
+    });
     const forms = generateFormMappings(input, result);
 
     expect(forms.f8949).toBeDefined();
     expect(forms.f8949).toHaveLength(2);
-    expect(forms.f8949![0]['description']).toBe('100 AAPL');
-    expect(forms.f8949![0]['proceeds']).toBe(20_000);
-    expect(forms.f8949![0]['basis']).toBe(15_000);
-    expect(forms.f8949![0]['gainLoss']).toBe(5_000);
-    expect(forms.f8949![1]['description']).toBe('50 GOOG');
-    expect(forms.f8949![1]['gainLoss']).toBe(-2_000);
+    // Cat A comes first (A before D in iteration order)
+    const aRow = forms.f8949!.find(r => r['description'] === '50 GOOG')!;
+    const dRow = forms.f8949!.find(r => r['description'] === '100 AAPL')!;
+    expect(dRow['proceeds']).toBe(20_000);       // $20,000
+    expect(dRow['basis']).toBe(15_000);           // $15,000
+    expect(dRow['gainLoss']).toBe(5_000);         // column h = effectiveGainLoss = $5,000
+    expect(aRow['gainLoss']).toBe(-1_500);        // column h = -$1,500
+    expect(aRow['adjustmentCode']).toBe('W');     // column f = 'W'
+    expect(aRow['adjustment']).toBe(500);         // column g = $500
   });
 
   it('should not generate f8949 when not needed', () => {

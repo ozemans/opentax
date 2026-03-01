@@ -122,10 +122,10 @@ export async function generateReturnPackage(
     return { formId, bytes };
   });
 
-  // Handle Form 8949 separately (multi-page)
+  // Handle Form 8949 separately (multi-page, per-category Part I/II split)
   let f8949Pages: Uint8Array[] = [];
-  if (result.needsForm8949 && result.forms.f8949) {
-    f8949Pages = await fillForm8949(result.forms.f8949, templateLoader);
+  if (result.needsForm8949) {
+    f8949Pages = await fillForm8949(result.capitalGainsResult.categorized, templateLoader);
   }
 
   // Wait for all standard forms

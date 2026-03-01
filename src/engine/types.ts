@@ -70,12 +70,22 @@ export interface Form1099B {
   dateSold: string;                // ISO date
   proceeds: number;                // Box 1d (cents)
   costBasis: number;               // Box 1e (cents)
-  gainLoss: number;                // Computed: proceeds - costBasis (cents)
+  gainLoss: number;                // Computed: proceeds - costBasis (cents, raw, pre-wash-sale)
   isLongTerm: boolean;             // Held > 1 year
   basisReportedToIRS: boolean;     // Box 12 checked
   washSaleDisallowed?: number;     // Box 1g (cents)
   isCollectible?: boolean;
   category: Form8949Category;
+}
+
+/**
+ * Form1099B with wash sale adjustment applied.
+ * effectiveGainLoss = gainLoss + (washSaleDisallowed ?? 0)
+ * This is the value that goes in Form 8949 column h.
+ */
+export interface AdjustedForm1099B extends Form1099B {
+  effectiveGainLoss: number;  // Column h: gainLoss + washSaleDisallowed (cents)
+  adjustmentCode: string;     // Column f: 'W' if wash sale, '' otherwise
 }
 
 export interface Form1099NEC {
@@ -300,17 +310,19 @@ export interface CreditBreakdown {
 export interface CapitalGainsResult {
   shortTermGains: number;
   shortTermLosses: number;
-  netShortTerm: number;
+  rawNetShortTerm: number;         // Pre-carryforward ST net (Form 8949 Part I total for Schedule D line 2)
+  netShortTerm: number;            // Post-carryforward ST net (Schedule D line 7)
   longTermGains: number;
   longTermLosses: number;
-  netLongTerm: number;
+  rawNetLongTerm: number;          // Pre-carryforward LT net (Form 8949 Part II total for Schedule D line 9)
+  netLongTerm: number;             // Post-carryforward LT net (Schedule D line 15)
   netCapitalGainLoss: number;
   deductibleLoss: number;          // Limited to -$3,000
   carryforwardLoss: number;        // Excess loss for next year
   collectiblesGain: number;
   section1250Gain: number;
-  // Categorized transactions for Form 8949
-  categorized: Record<Form8949Category, Form1099B[]>;
+  // Categorized transactions for Form 8949 (wash sale adjusted)
+  categorized: Record<Form8949Category, AdjustedForm1099B[]>;
 }
 
 export interface SelfEmploymentResult {

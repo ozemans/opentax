@@ -298,14 +298,72 @@ function mapScheduleC(input: TaxInput, result: TaxResult): Record<string, string
  * Generate Schedule D field mappings (Capital Gains and Losses).
  * Ref: IRS Schedule D (Form 1040)
  */
-function mapScheduleD(_input: TaxInput, result: TaxResult): Record<string, string | number> {
+/** Sum proceeds, basis, adjustments, and effectiveGainLoss across a set of Form 8949 categories. */
+function computeScheduleDTotals(
+  categorized: TaxResult['capitalGainsResult']['categorized'],
+  categories: Array<keyof typeof categorized>,
+): { proceeds: number; basis: number; adjustments: number; gainLoss: number } {
+  let proceeds = 0;
+  let basis = 0;
+  let adjustments = 0;
+  let gainLoss = 0;
+
+  for (const cat of categories) {
+    for (const tx of categorized[cat]) {
+      proceeds += tx.proceeds;
+      basis += tx.costBasis;
+      adjustments += tx.washSaleDisallowed ?? 0;
+      gainLoss += tx.effectiveGainLoss;
+    }
+  }
+
+  return { proceeds, basis, adjustments, gainLoss };
+}
+
+function mapScheduleD(input: TaxInput, result: TaxResult): Record<string, string | number> {
   const fields: Record<string, string | number> = {};
   const cg = result.capitalGainsResult;
 
-  // Part I: Short-Term
+  // Lines 2: Form 8949 Part I totals (all ST categories A+B+C)
+  // Uses rawNetShortTerm (pre-carryforward) for Form 8949 transfer totals (Schedule D line 2)
+  const stTotals = computeScheduleDTotals(cg.categorized, ['8949_A', '8949_B', '8949_C']);
+  if (stTotals.proceeds !== 0 || stTotals.gainLoss !== 0) {
+    fields['line2Proceeds']    = toDollars(stTotals.proceeds);
+    fields['line2Basis']       = toDollars(stTotals.basis);
+    if (stTotals.adjustments !== 0) {
+      fields['line2Adjustments'] = toDollars(stTotals.adjustments);
+    }
+    fields['line2GainLoss']    = toDollars(stTotals.gainLoss);
+  }
+
+  // Lines 9: Form 8949 Part II totals (all LT categories D+E+F)
+  const ltTotals = computeScheduleDTotals(cg.categorized, ['8949_D', '8949_E', '8949_F']);
+  if (ltTotals.proceeds !== 0 || ltTotals.gainLoss !== 0) {
+    fields['line9Proceeds']    = toDollars(ltTotals.proceeds);
+    fields['line9Basis']       = toDollars(ltTotals.basis);
+    if (ltTotals.adjustments !== 0) {
+      fields['line9Adjustments'] = toDollars(ltTotals.adjustments);
+    }
+    fields['line9GainLoss']    = toDollars(ltTotals.gainLoss);
+  }
+
+  // Line 5: Net ST capital loss carryover (from prior year Capital Loss Carryover Worksheet)
+  const stCF = input.priorYearSTCapitalLossCarryforward
+    ?? (input.priorYearCapitalLossCarryforward ?? 0);
+  if (stCF > 0) {
+    fields['line5STCarryforward'] = toDollars(stCF);
+  }
+
+  // Line 12: Net LT capital loss carryover
+  const ltCF = input.priorYearLTCapitalLossCarryforward ?? 0;
+  if (ltCF > 0) {
+    fields['line12LTCarryforward'] = toDollars(ltCF);
+  }
+
+  // Part I: Short-Term (Line 7 = net ST post-carryforward)
   fields['shortTermGainLoss'] = toDollars(cg.netShortTerm);
 
-  // Part II: Long-Term
+  // Part II: Long-Term (Line 15 = net LT post-carryforward)
   fields['longTermGainLoss'] = toDollars(cg.netLongTerm);
 
   // Part III: Summary
@@ -340,19 +398,29 @@ function mapScheduleSE(_input: TaxInput, result: TaxResult): Record<string, stri
 
 /**
  * Generate Form 8949 field mappings (Sales and Other Dispositions of Capital Assets).
- * Returns an ARRAY of records (one per transaction).
+ * Returns an ARRAY of records (one per transaction), using adjusted values.
+ * - column g (adjustment): washSaleDisallowed (Box 1g)
+ * - column h (gainLoss): effectiveGainLoss = gainLoss + washSaleDisallowed
  * Ref: IRS Form 8949
  */
-function mapForm8949(input: TaxInput, _result: TaxResult): Record<string, string | number>[] {
-  return input.form1099Bs.map((tx) => ({
-    description: tx.description,
-    dateAcquired: tx.dateAcquired,
-    dateSold: tx.dateSold,
-    proceeds: toDollars(tx.proceeds),
-    basis: toDollars(tx.costBasis),
-    gainLoss: toDollars(tx.gainLoss),
-    category: tx.category,
-  }));
+function mapForm8949(_input: TaxInput, result: TaxResult): Record<string, string | number>[] {
+  const rows: Record<string, string | number>[] = [];
+  for (const txs of Object.values(result.capitalGainsResult.categorized)) {
+    for (const tx of txs) {
+      rows.push({
+        description: tx.description,
+        dateAcquired: tx.dateAcquired,
+        dateSold: tx.dateSold,
+        proceeds: toDollars(tx.proceeds),
+        basis: toDollars(tx.costBasis),
+        adjustmentCode: tx.adjustmentCode,
+        adjustment: tx.washSaleDisallowed ? toDollars(tx.washSaleDisallowed) : '',
+        gainLoss: toDollars(tx.effectiveGainLoss),
+        category: tx.category,
+      });
+    }
+  }
+  return rows;
 }
 
 /**
