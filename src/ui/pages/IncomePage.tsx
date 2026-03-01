@@ -231,6 +231,89 @@ export function IncomePage() {
                     onChange={(v) => dispatch({ type: 'UPDATE_W2', index: i, updates: { stateWithheld: v } })}
                   />
                 </div>
+
+                {/* Local tax fields — shown for NY W-2s (Boxes 18-20) */}
+                {w2.stateCode === 'NY' && (
+                  <div className="space-y-3">
+                    <p className="text-xs font-display font-semibold text-slate uppercase tracking-wide">
+                      Local Tax (NYC — Boxes 18–20)
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <CurrencyInput
+                        label="Local Wages (Box 18)"
+                        name={`w2-${i}-localwages`}
+                        value={w2.localWages ?? 0}
+                        onChange={(v) => dispatch({ type: 'UPDATE_W2', index: i, updates: { localWages: v } })}
+                      />
+                      <CurrencyInput
+                        label="Local Withheld (Box 19)"
+                        name={`w2-${i}-localwh`}
+                        value={w2.localWithheld ?? 0}
+                        onChange={(v) => dispatch({ type: 'UPDATE_W2', index: i, updates: { localWithheld: v } })}
+                      />
+                      <FormField
+                        label="Locality Name (Box 20)"
+                        name={`w2-${i}-locality`}
+                        value={w2.locality ?? ''}
+                        onChange={(v) => dispatch({ type: 'UPDATE_W2', index: i, updates: { locality: v } })}
+                        placeholder="e.g. NYC"
+                      />
+                    </div>
+
+                    {/* Box 14 — NY-specific deductions */}
+                    <div className="space-y-2">
+                      <p className="text-xs font-display font-semibold text-slate uppercase tracking-wide">
+                        Box 14 — NY Deductions (414H, NYPFL, IRC 125)
+                      </p>
+                      {(w2.box14Entries ?? []).map((entry, j) => (
+                        <div key={j} className="flex items-center gap-3">
+                          <FormField
+                            label={j === 0 ? 'Code' : ''}
+                            name={`w2-${i}-b14-code-${j}`}
+                            value={entry.code}
+                            onChange={(v) => {
+                              const updated = [...(w2.box14Entries ?? [])];
+                              updated[j] = { ...updated[j], code: v };
+                              dispatch({ type: 'UPDATE_W2', index: i, updates: { box14Entries: updated } });
+                            }}
+                            placeholder="414H"
+                          />
+                          <CurrencyInput
+                            label={j === 0 ? 'Amount' : ''}
+                            name={`w2-${i}-b14-amt-${j}`}
+                            value={entry.amount}
+                            onChange={(v) => {
+                              const updated = [...(w2.box14Entries ?? [])];
+                              updated[j] = { ...updated[j], amount: v };
+                              dispatch({ type: 'UPDATE_W2', index: i, updates: { box14Entries: updated } });
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = (w2.box14Entries ?? []).filter((_, k) => k !== j);
+                              dispatch({ type: 'UPDATE_W2', index: i, updates: { box14Entries: updated } });
+                            }}
+                            className="mt-5 text-slate hover:text-accent text-sm"
+                            aria-label="Remove Box 14 entry"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = [...(w2.box14Entries ?? []), { code: '', amount: 0 }];
+                          dispatch({ type: 'UPDATE_W2', index: i, updates: { box14Entries: updated } });
+                        }}
+                        className="text-xs font-body text-primary hover:text-primary-dark"
+                      >
+                        + Add Box 14 entry
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </IncomeDocumentCard>
           ))}

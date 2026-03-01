@@ -4,8 +4,14 @@
 // - 9 progressive NYS brackets (4% through 10.9%)
 // - Standard deduction
 // - NYC local tax if locality === 'NYC' (4 brackets: 3.078%–3.876%)
-// - EITC = 30% of federal EITC (refundable)
+// - NYS EITC = 30% of federal EITC (refundable)
+// - NYC EITC = 5% of federal EITC (refundable, NYC residents only)
 // - Empire State child credit: $1,000/child under 4, $330/child 4-16, gradual phase-out
+// - NYC School Tax Credit: $63/person for NYC residents with AGI < $250k
+// - NY pension exclusion: up to $20k of qualifying pension/annuity income
+// - NY 529 deduction: up to $5k single / $10k MFJ
+// - Box 14 subtractions: 414(h), NYPFL, IRC 125 — reduce NY taxable income
+// - NY childcare credit: % of federal child/dep care credit, based on NY AGI
 // - Social Security is exempt
 //
 // NYC residents pay BOTH NYS and NYC income tax.
@@ -55,6 +61,20 @@ function computeNYChildCredit(
   return totalCredit;
 }
 
+/**
+ * Look up NY childcare credit multiplier from the config table.
+ * Table entries are sorted ascending by maxAgi; last entry has maxAgi = null.
+ */
+function getNYChildcareMultiplier(
+  agi: number,
+  table: NonNullable<StateConfig['nyChildcareCreditTable']>,
+): number {
+  for (const row of table) {
+    if (row.maxAgi === null || agi <= row.maxAgi) return row.nyMultiplier;
+  }
+  return table[table.length - 1]?.nyMultiplier ?? 0;
+}
+
 export const newYork: StateModule = {
   stateCode: 'NY',
   stateName: 'New York',
@@ -67,6 +87,7 @@ export const newYork: StateModule = {
     }
 
     const isNonResident = input.residencyType === 'nonresident';
+    const isNYC = !isNonResident && input.locality === 'NYC';
 
     // Non-residents (IT-203): tax applies only to NY-sourced income.
     // If stateWages from NY-coded W-2s are available, use that; otherwise fall back to federalAGI.
@@ -80,6 +101,20 @@ export const newYork: StateModule = {
     const ssSubtraction = isNonResident ? 0 : input.socialSecurityIncome;
     let income = baseIncome - ssSubtraction;
 
+    // NY pension exclusion: up to $20k of qualifying pension/annuity income (residents only)
+    const pensionExclusion = isNonResident ? 0 :
+      Math.min(input.retirementIncome ?? 0, config.retirementExemption?.[input.filingStatus] ?? 0);
+    income -= pensionExclusion;
+
+    // Box 14 subtractions: 414(h) pension, NYPFL, IRC 125 — reduce NY taxable income
+    const box14Subtraction = isNonResident ? 0 : (input.box14TotalSubtraction ?? 0);
+    income -= box14Subtraction;
+
+    // NY 529 deduction (residents only, up to limit by filing status)
+    const ny529Deduction = isNonResident ? 0 :
+      Math.min(input.ny529Contributions ?? 0, config.ny529DeductionLimit?.[input.filingStatus] ?? 0);
+    income -= ny529Deduction;
+
     // Standard deduction
     const standardDeduction = computeStateStandardDeduction(input.filingStatus, config);
     income -= standardDeduction;
@@ -91,7 +126,8 @@ export const newYork: StateModule = {
 
     // NYC local tax — non-residents do NOT owe NYC resident tax (IT-203 filers only owe NYS tax)
     let nycTax = 0;
-    if (!isNonResident && input.locality === 'NYC' && config.localTax?.NYC) {
+    let nycMarginalRate = 0;
+    if (isNYC && config.localTax?.NYC) {
       const nycBracketsConfig = config.localTax.NYC.brackets;
       const nycBrackets = Array.isArray(nycBracketsConfig)
         ? nycBracketsConfig as TaxBracket[]
@@ -99,13 +135,15 @@ export const newYork: StateModule = {
           ?? (nycBracketsConfig as Partial<Record<string, TaxBracket[]>>)['single']
           ?? []) as TaxBracket[];
       nycTax = computeStateBracketTax(taxableIncome, nycBrackets);
+      nycMarginalRate = getStateMarginalRate(taxableIncome, nycBrackets);
     }
 
     const taxBeforeCredits = nysTax;
 
-    // Credits
+    // ── Credits ──
     const creditBreakdown: Record<string, number> = {};
-    let totalCredits = 0;
+    let totalNYSCredits = 0; // Applied against NYS tax (refundable excess)
+    let totalNYCCredits = 0; // Applied against NYC tax
 
     // NY EITC = 30% of federal EITC (refundable)
     const eitcCfg = config.credits?.eitc;
@@ -113,21 +151,59 @@ export const newYork: StateModule = {
     const stateEITC = computeStateEITC(input.federalEITC, eitcPercent);
     if (stateEITC > 0) {
       creditBreakdown.eitc = stateEITC;
-      totalCredits += stateEITC;
+      totalNYSCredits += stateEITC;
     }
 
-    // NY child credit
+    // NYC EITC = 5% of federal EITC (refundable, NYC residents only)
+    const nycEITC = isNYC ? computeStateEITC(input.federalEITC, config.nycEitcPercent ?? 0) : 0;
+    if (nycEITC > 0) {
+      creditBreakdown.nycEitc = nycEITC;
+      totalNYCCredits += nycEITC;
+    }
+
+    // NY Empire State Child Credit (refundable)
     const childCredit = computeNYChildCredit(input, config);
     if (childCredit > 0) {
       creditBreakdown.childCredit = childCredit;
-      totalCredits += childCredit;
+      totalNYSCredits += childCredit;
     }
 
-    // Apply credits against NYS tax (not NYC)
-    const nysAfterCredits = Math.max(0, taxBeforeCredits - totalCredits);
-    const refundableCredits = Math.max(0, totalCredits - taxBeforeCredits);
+    // NYC School Tax Credit: $63/person for NYC residents with AGI < $250k (non-refundable)
+    let nycSchoolTaxCredit = 0;
+    if (isNYC && config.nycSchoolTaxCredit) {
+      const { amountPerPerson, agiLimit } = config.nycSchoolTaxCredit;
+      if (input.federalAGI < agiLimit) {
+        const numPersons = input.filingStatus === 'married_filing_jointly' ? 2 : 1;
+        nycSchoolTaxCredit = numPersons * amountPerPerson;
+      }
+    }
+    if (nycSchoolTaxCredit > 0) {
+      creditBreakdown.nycSchoolTaxCredit = nycSchoolTaxCredit;
+      totalNYCCredits += nycSchoolTaxCredit;
+    }
 
-    const totalTaxAfterCredits = nysAfterCredits + nycTax;
+    // NY childcare credit: % of federal child/dep care credit, based on NY AGI
+    let nyChildcareCredit = 0;
+    const fedChildCareCredit = input.federalChildCareCredit ?? 0;
+    if (!isNonResident && config.nyChildcareCreditTable && fedChildCareCredit > 0) {
+      const multiplier = getNYChildcareMultiplier(input.federalAGI, config.nyChildcareCreditTable);
+      nyChildcareCredit = Math.round(fedChildCareCredit * multiplier);
+    }
+    if (nyChildcareCredit > 0) {
+      creditBreakdown.nyChildcareCredit = nyChildcareCredit;
+      totalNYSCredits += nyChildcareCredit;
+    }
+
+    // Apply NYS credits against NYS tax; excess is refundable
+    const nysAfterCredits = Math.max(0, taxBeforeCredits - totalNYSCredits);
+    const refundableNYS = Math.max(0, totalNYSCredits - taxBeforeCredits);
+
+    // Apply NYC credits against NYC tax (non-refundable portion)
+    const nycAfterCredits = Math.max(0, nycTax - totalNYCCredits);
+
+    const totalTaxAfterCredits = nysAfterCredits + nycAfterCredits;
+    const totalCredits = totalNYSCredits + totalNYCCredits;
+    const totalSubtractions = ssSubtraction + pensionExclusion + box14Subtraction + ny529Deduction;
 
     const effectiveRate =
       input.federalAGI > 0
@@ -136,13 +212,17 @@ export const newYork: StateModule = {
 
     const marginalRate = getStateMarginalRate(taxableIncome, brackets);
 
+    // Flag if income is in the NY supplemental tax recapture range (>$107,650)
+    // Full computation requires a fixed-dollar table lookup; flagged for future implementation.
+    const hasSupplementalTaxRange = taxableIncome > 10765000 ? 1 : 0;
+
     return {
       stateCode: 'NY',
       stateName: 'New York',
       hasIncomeTax: true,
       stateAGI: baseIncome,
       stateAdditions: 0,
-      stateSubtractions: ssSubtraction,
+      stateSubtractions: totalSubtractions,
       stateDeduction: standardDeduction,
       stateExemptions: 0,
       stateTaxableIncome: taxableIncome,
@@ -156,7 +236,9 @@ export const newYork: StateModule = {
       stateRefundOrOwed:
         input.stateWithheld +
         input.stateEstimatedPayments +
-        refundableCredits -
+        (input.localWithheld ?? 0) +
+        (input.nycEstimatedPayments ?? 0) +
+        refundableNYS -
         totalTaxAfterCredits,
       effectiveRate,
       marginalRate: marginalRate * 100,
@@ -165,14 +247,22 @@ export const newYork: StateModule = {
         federalAGI: input.federalAGI,
         nySourceIncome: baseIncome,
         ssSubtraction,
+        pensionExclusion,
+        box14Subtraction,
+        ny529Deduction,
         standardDeduction,
         taxableIncome,
         nysTax,
         nycTax,
         stateEITC,
+        nycEITC,
         childCredit,
+        nycSchoolTaxCredit,
+        nyChildcareCredit,
         locality: input.locality ?? '',
         residencyType: input.residencyType ?? 'resident',
+        nycMarginalRate: nycMarginalRate * 100,
+        hasSupplementalTaxRange,
       },
       // Non-residents file IT-203; residents file IT-201
       formId: isNonResident ? 'IT-203' : config.formId,

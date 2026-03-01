@@ -30,6 +30,7 @@ export interface W2 {
   localWages?: number;              // Box 18
   localWithheld?: number;           // Box 19
   locality?: string;                // Box 20
+  box14Entries?: Array<{ code: string; amount: number }>; // Box 14 (414H, NYPFL, IRC125, etc.)
 }
 
 export interface Form1099INT {
@@ -225,6 +226,9 @@ export interface TaxInput {
   // State
   stateOfResidence: string;
   additionalStates?: string[];
+  retirementIncome?: number;        // Pension/annuity income (1099-R taxable amount, cents)
+  ny529Contributions?: number;      // NY 529 plan contributions (cents)
+  nycEstimatedPayments?: number;    // NYC estimated tax payments (cents)
 
   // Refund
   directDeposit?: {

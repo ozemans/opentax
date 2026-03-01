@@ -1,4 +1,5 @@
 import { StateSelector } from '@/ui/components/StateSelector';
+import { CurrencyInput } from '@/ui/components/CurrencyInput';
 import { PageContainer } from '@/ui/layouts/PageContainer';
 import { useFocusOnPageChange } from '@/ui/hooks/useFocusOnPageChange';
 import { STATE_OPTIONS } from '@/ui/data/stateOptions';
@@ -84,6 +85,12 @@ export function StatePage() {
   // NYC is tracked as an additional state (residents only)
   const isNYC = input.additionalStates?.includes('NYC') ?? false;
   const isNYNonResident = stateCode === 'NY' && nyResidencyType === 'nonresident';
+
+  // Smart warning: detect NYC withholding on W-2 but NYC checkbox not checked
+  const hasNYCWithholdingOnW2 = stateCode === 'NY' && !isNYNonResident && !isNYC &&
+    input.w2s.some(
+      (w) => w.stateCode === 'NY' && (w.localWithheld ?? 0) > 0 && w.locality?.toUpperCase() === 'NYC',
+    );
 
   function handleStateChange(v: string) {
     dispatch({ type: 'SET_FIELD', path: 'stateOfResidence', value: v });
@@ -226,6 +233,51 @@ export function StatePage() {
                         </div>
                       </label>
                     )}
+
+                    {/* Smart warning: NYC withholding detected but not in NYC mode */}
+                    {hasNYCWithholdingOnW2 && (
+                      <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
+                        <p className="text-xs font-body text-amber-800">
+                          <strong>NYC withholding detected:</strong> One of your W-2s shows local tax withheld (Box 19) for NYC. Did you live in New York City in 2025? If so, check the box above to apply your NYC withholding to your return.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* NYC estimated tax payments — shown when NYC mode is active */}
+                    {isNYC && (
+                      <div className="rounded-xl bg-surface p-4">
+                        <CurrencyInput
+                          label="NYC Estimated Tax Payments"
+                          name="nycEstimatedPayments"
+                          value={input.nycEstimatedPayments ?? 0}
+                          onChange={(v) => dispatch({ type: 'SET_FIELD', path: 'nycEstimatedPayments', value: v })}
+                          helpText="Total NYC estimated tax payments made during the year (NYC-200V vouchers)."
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* NY-specific income adjustments */}
+                {stateCode === 'NY' && !isNYNonResident && (
+                  <div className="space-y-3">
+                    <p className="text-sm font-display font-semibold text-slate-dark">
+                      New York Adjustments
+                    </p>
+                    <CurrencyInput
+                      label="Pension / Annuity Income (1099-R)"
+                      name="retirementIncome"
+                      value={input.retirementIncome ?? 0}
+                      onChange={(v) => dispatch({ type: 'SET_FIELD', path: 'retirementIncome', value: v })}
+                      helpText="NY exempts up to $20,000 of qualifying pension/annuity income from NY or US government retirement plans."
+                    />
+                    <CurrencyInput
+                      label="NY 529 Plan Contributions"
+                      name="ny529Contributions"
+                      value={input.ny529Contributions ?? 0}
+                      onChange={(v) => dispatch({ type: 'SET_FIELD', path: 'ny529Contributions', value: v })}
+                      helpText="Contributions to NY 529 college savings plans are deductible up to $5,000 (single) or $10,000 (MFJ)."
+                    />
                   </div>
                 )}
 

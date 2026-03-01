@@ -276,6 +276,26 @@ export function buildStateTaxInput(
     .filter((w2) => w2.stateCode === stateCode)
     .reduce((sum, w2) => sum + w2.stateWithheld, 0);
 
+  // Sum Box 19 (local withheld) from W-2s with NYC locality (for NY only)
+  const localWithheld = stateCode === 'NY'
+    ? input.w2s
+        .filter((w2) => w2.stateCode === 'NY' && w2.locality?.toUpperCase() === 'NYC')
+        .reduce((sum, w2) => sum + (w2.localWithheld ?? 0), 0)
+    : 0;
+
+  // Sum qualifying Box 14 amounts from NY W-2s (414H, NYPFL, IRC125 reduce NY taxable income)
+  const box14TotalSubtraction = stateCode === 'NY'
+    ? input.w2s
+        .filter((w2) => w2.stateCode === 'NY')
+        .reduce((sum, w2) => {
+          const entries = w2.box14Entries ?? [];
+          const qualifyingCodes = new Set(['414H', '414(H)', 'NYPFL', 'IRC125', 'IRC 125']);
+          return sum + entries
+            .filter((e) => qualifyingCodes.has(e.code.toUpperCase().replace(/\s/g, '')))
+            .reduce((s, e) => s + e.amount, 0);
+        }, 0)
+    : 0;
+
   // Sum 1099-INT interest
   const taxableInterest = input.form1099INTs.reduce(
     (sum, f) => sum + f.interest - (f.taxExemptInterest ?? 0),
@@ -387,5 +407,12 @@ export function buildStateTaxInput(
     locality: resolvedLocality,
     residencyType,
     nySourceIncome,
+    localWithheld,
+    nycEstimatedPayments: stateCode === 'NY' ? (input.nycEstimatedPayments ?? 0) : 0,
+    retirementIncome: input.retirementIncome ?? 0,
+    ny529Contributions: stateCode === 'NY' ? (input.ny529Contributions ?? 0) : 0,
+    box14TotalSubtraction,
+    federalChildCareCredit: federalResult.creditBreakdown.childCareCareCredit,
+    childCareCreditExpenses: input.childCareCreditExpenses ?? 0,
   };
 }

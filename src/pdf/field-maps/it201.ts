@@ -5,8 +5,9 @@
 // Unlike IRS forms, the IT-201 uses simple human-readable field names like "Line1", "Line2".
 //
 // The NY engine (new-york.ts) puts these keys in formData:
-//   federalAGI, ssSubtraction, standardDeduction, taxableIncome,
-//   nysTax, nycTax, stateEITC, childCredit, locality
+//   federalAGI, ssSubtraction, pensionExclusion, box14Subtraction, ny529Deduction,
+//   standardDeduction, taxableIncome, nysTax, nycTax,
+//   stateEITC, nycEITC, childCredit, nycSchoolTaxCredit, nyChildcareCredit, locality
 //
 // IT-201 line mapping:
 //   Line 1 = Wages, salaries, tips (from federal)
@@ -81,6 +82,27 @@ export const it201FieldMap: FieldMap = {
   // ── NY Child Credit → IT-201 Line 63 ──
   childCredit: {
     pdfFieldName: 'Line63',
+    type: 'text',
+    transform: centsToDollars,
+  },
+
+  // ── NYC EITC → IT-201 Line 66a ──
+  nycEITC: {
+    pdfFieldName: 'Line66a',
+    type: 'text',
+    transform: centsToDollars,
+  },
+
+  // ── NYC School Tax Credit → IT-201 Line 69a ──
+  nycSchoolTaxCredit: {
+    pdfFieldName: 'Line69a',
+    type: 'text',
+    transform: centsToDollars,
+  },
+
+  // ── NY Childcare Credit → IT-201 Line 62 ──
+  nyChildcareCredit: {
+    pdfFieldName: 'Line62',
     type: 'text',
     transform: centsToDollars,
   },

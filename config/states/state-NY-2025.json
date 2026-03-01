@@ -129,6 +129,39 @@
       "_notes": "Empire State Child Credit: $1,000 per qualifying child under age 4, $330 per qualifying child ages 4-16 (enhanced for 2025). Phase-out: $16.50 reduction per $1,000 over threshold."
     }
   },
+  "retirementExemption": {
+    "single": 2000000,
+    "married_filing_jointly": 2000000,
+    "married_filing_separately": 2000000,
+    "head_of_household": 2000000,
+    "qualifying_surviving_spouse": 2000000
+  },
+  "nycEitcPercent": 0.05,
+  "nycSchoolTaxCredit": {
+    "amountPerPerson": 6300,
+    "agiLimit": 25000000,
+    "_notes": "NYC School Tax Credit: $63/person for NYC residents with AGI < $250,000. IT-201 line 69a."
+  },
+  "ny529DeductionLimit": {
+    "single": 500000,
+    "married_filing_jointly": 1000000,
+    "married_filing_separately": 500000,
+    "head_of_household": 500000,
+    "qualifying_surviving_spouse": 1000000,
+    "_notes": "NY 529 deduction: up to $5,000 single / $10,000 MFJ per year for contributions to NY 529 plans."
+  },
+  "nyChildcareCreditTable": [
+    { "maxAgi": 2500000,   "nyMultiplier": 1.10 },
+    { "maxAgi": 4000000,   "nyMultiplier": 0.90 },
+    { "maxAgi": 6000000,   "nyMultiplier": 0.75 },
+    { "maxAgi": 7500000,   "nyMultiplier": 0.61 },
+    { "maxAgi": 10000000,  "nyMultiplier": 0.53 },
+    { "maxAgi": 12500000,  "nyMultiplier": 0.47 },
+    { "maxAgi": 15000000,  "nyMultiplier": 0.43 },
+    { "maxAgi": 17500000,  "nyMultiplier": 0.39 },
+    { "maxAgi": 20000000,  "nyMultiplier": 0.36 },
+    { "maxAgi": null,      "nyMultiplier": 0.20 }
+  ],
   "formId": "IT-201",
   "formName": "New York State Resident Income Tax Return"
 }

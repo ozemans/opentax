@@ -50,7 +50,14 @@ export interface StateTaxInput {
   rentPaid: number;
   locality?: string;
   residencyType?: 'resident' | 'nonresident' | 'part_year';
-  nySourceIncome?: number;  // NY-sourced wages for non-residents (cents)
+  nySourceIncome?: number;           // NY-sourced wages for non-residents (cents)
+  localWithheld?: number;            // Local income tax withheld (Box 19, NYC)
+  nycEstimatedPayments?: number;     // NYC estimated tax payments (cents)
+  retirementIncome?: number;         // Pension/annuity income for NY exclusion (cents)
+  ny529Contributions?: number;       // NY 529 plan contributions (cents)
+  box14TotalSubtraction?: number;    // Sum of qualifying Box 14 amounts (414H + NYPFL + IRC125)
+  federalChildCareCredit?: number;   // Federal child/dep care credit for NY state credit computation
+  childCareCreditExpenses?: number;  // Qualifying child care expenses (cents)
 }
 
 // ---------------------------------------------------------------------------
@@ -137,6 +144,11 @@ export interface StateConfig {
     childCredit?: { amountPerChild: number; amountPerChildUnder4?: number; agiPhaseOut: Partial<Record<FilingStatus, number>> };
   };
   specialTaxes?: { sdi?: { rate: number; wageBase: number } };
+  // NY-specific optional fields
+  nycEitcPercent?: number;           // NYC EITC as fraction of federal EITC (e.g. 0.05)
+  nycSchoolTaxCredit?: { amountPerPerson: number; agiLimit: number }; // NYC school tax credit
+  ny529DeductionLimit?: Partial<Record<FilingStatus, number>>;        // NY 529 deduction cap by filing status
+  nyChildcareCreditTable?: Array<{ maxAgi: number | null; nyMultiplier: number }>; // NY childcare credit % of federal credit by AGI
   formId: string;
   formName: string;
 }
