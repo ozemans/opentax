@@ -12,6 +12,7 @@ import type {
   Dependent,
   ItemizedDeductions,
   ScheduleCData,
+  TaxLot,
 } from '../../engine/types';
 
 // ---------------------------------------------------------------------------
@@ -150,6 +151,13 @@ export type TaxAction =
   | { type: 'SET_ADJUSTMENTS'; payload: Partial<Pick<TaxInput, 'studentLoanInterest' | 'educatorExpenses' | 'hsaDeduction' | 'iraDeduction'>> }
   | { type: 'SET_RETIREMENT_SAVERS_CREDIT'; payload: TaxInput['retirementSaversCredit'] }
   | { type: 'SET_ADDITIONAL_STATES'; payload: string[] }
+
+  // TaxLot operations (Phase 2)
+  | { type: 'ADD_TAX_LOT' }
+  | { type: 'UPDATE_TAX_LOT'; index: number; updates: Partial<TaxLot> }
+  | { type: 'REMOVE_TAX_LOT'; index: number }
+  | { type: 'IMPORT_TAX_LOTS'; payload: TaxLot[] }
+  | { type: 'APPEND_TAX_LOTS'; payload: TaxLot[] }
 
   // Bulk operations
   | { type: 'LOAD_INPUT'; payload: TaxInput }

@@ -12,6 +12,7 @@ import type {
   ItemizedDeductions,
   ScheduleCData,
   ScheduleCExpenses,
+  TaxLot,
 } from '../../engine/types';
 
 // ---------------------------------------------------------------------------
@@ -131,6 +132,19 @@ export function createEmptyScheduleC(): ScheduleCData {
   };
 }
 
+export function createEmptyTaxLot(): TaxLot {
+  return {
+    id: crypto.randomUUID(),
+    symbol: '',
+    description: '',
+    dateAcquired: '',
+    quantity: 0,
+    unitCostBasis: 0,
+    totalCostBasis: 0,
+    isLongTerm: null,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Default TaxInput — valid empty return ready for the engine
 // ---------------------------------------------------------------------------
@@ -171,5 +185,8 @@ export function createDefaultTaxInput(): TaxInput {
 
     // State
     stateOfResidence: '',
+
+    // Lot-level holdings (Phase 2)
+    taxLots: [],
   };
 }

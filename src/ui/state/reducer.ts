@@ -11,6 +11,7 @@ import {
   createEmpty1099R,
   createEmpty1099K,
   createEmptyDependent,
+  createEmptyTaxLot,
 } from './defaults';
 
 // ---------------------------------------------------------------------------
@@ -217,6 +218,18 @@ export function taxReducer(state: TaxInput, action: TaxAction): TaxInput {
       return { ...state, retirementSaversCredit: action.payload };
     case 'SET_ADDITIONAL_STATES':
       return { ...state, additionalStates: action.payload };
+
+    // --- TaxLots ---
+    case 'ADD_TAX_LOT':
+      return { ...state, taxLots: [...(state.taxLots ?? []), createEmptyTaxLot()] };
+    case 'UPDATE_TAX_LOT':
+      return { ...state, taxLots: updateArrayItem(state.taxLots ?? [], action.index, action.updates) };
+    case 'REMOVE_TAX_LOT':
+      return { ...state, taxLots: removeArrayItem(state.taxLots ?? [], action.index) };
+    case 'IMPORT_TAX_LOTS':
+      return { ...state, taxLots: action.payload };
+    case 'APPEND_TAX_LOTS':
+      return { ...state, taxLots: [...(state.taxLots ?? []), ...action.payload] };
 
     // --- Bulk operations ---
     case 'LOAD_INPUT':

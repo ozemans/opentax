@@ -5,7 +5,7 @@ import { createDefaultTaxInput } from '../state/defaults';
  * Current schema version for stored TaxInput data.
  * Increment this when TaxInput shape changes between releases.
  */
-export const CURRENT_SCHEMA_VERSION = 1;
+export const CURRENT_SCHEMA_VERSION = 2;
 
 /**
  * Migrate stored data from an older schema version to the current one.
@@ -50,6 +50,14 @@ export function migrateIfNeeded(data: unknown, version: number): TaxInput {
       form1099Rs: Array.isArray(migrated.form1099Rs) ? migrated.form1099Rs : [],
       form1099Ks: Array.isArray(migrated.form1099Ks) ? migrated.form1099Ks : [],
       dependents: Array.isArray(migrated.dependents) ? migrated.dependents : [],
+    };
+  }
+
+  if (version < 2) {
+    // Phase 2: add taxLots array for lot-level tax optimization
+    migrated = {
+      ...migrated,
+      taxLots: Array.isArray(migrated.taxLots) ? migrated.taxLots : [],
     };
   }
 

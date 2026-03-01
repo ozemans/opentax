@@ -1,7 +1,9 @@
 import { useState, useCallback, useMemo } from 'react';
-import type { Form1099B } from '@/engine/types';
+import type { Form1099B, FederalConfig, TaxLot } from '@/engine/types';
 import { CurrencyInput } from '@/ui/components/CurrencyInput';
 import { CapitalGainsImport } from '@/ui/components/CapitalGainsImport';
+import { HoldingsImport } from '@/ui/components/HoldingsImport';
+import { LotOptimizerPanel } from '@/ui/components/LotOptimizerPanel';
 import { Document1099Upload } from '@/ui/components/Document1099Upload';
 import { PageContainer } from '@/ui/layouts/PageContainer';
 import { useFocusOnPageChange } from '@/ui/hooks/useFocusOnPageChange';
@@ -9,6 +11,9 @@ import { HELP_TEXTS } from '@/ui/data/helpTexts';
 import { useTaxState } from '@/ui/hooks/useTaxState';
 import type { Parsed1099Result } from '@/utils/1099-parser';
 import { computeTotalWashSaleDisallowed, detectWashSales } from '@/engine/federal/wash-sales';
+import federalConfigJson from '../../../config/federal-2025.json';
+
+const federalConfig = federalConfigJson as unknown as FederalConfig;
 
 type EntryMode = 'transactions' | 'summary';
 
@@ -73,6 +78,18 @@ export function InvestmentsPage() {
   const handleBulkImport = useCallback((imported: Form1099B[]) => {
     // Append imported transactions to existing ones
     dispatch({ type: 'IMPORT_1099_BS', payload: [...input.form1099Bs, ...imported] });
+  }, [dispatch, input.form1099Bs]);
+
+  const handleImportHoldings = useCallback((lots: TaxLot[]) => {
+    dispatch({ type: 'APPEND_TAX_LOTS', payload: lots });
+  }, [dispatch]);
+
+  const handleRemoveLot = useCallback((index: number) => {
+    dispatch({ type: 'REMOVE_TAX_LOT', index });
+  }, [dispatch]);
+
+  const handleConfirmSale = useCallback((newTransactions: Form1099B[]) => {
+    dispatch({ type: 'IMPORT_1099_BS', payload: [...input.form1099Bs, ...newTransactions] });
   }, [dispatch, input.form1099Bs]);
 
   const handlePdfImport = useCallback(
@@ -250,6 +267,44 @@ export function InvestmentsPage() {
             />
           </div>
         </section>
+
+        {/* Holdings & Lot Optimizer */}
+        <section aria-labelledby="holdings-heading">
+          <h2 id="holdings-heading" className="text-lg font-display font-semibold text-slate-dark mb-2">
+            Holdings &amp; Lot Optimizer
+          </h2>
+          <p className="text-sm font-body text-slate mb-4">
+            Import your brokerage positions to model the tax impact of pending sales and identify
+            loss-harvesting opportunities. Fidelity, Schwab, and Vanguard holdings CSVs are supported.
+          </p>
+          <HoldingsImport
+            lots={input.taxLots ?? []}
+            onBulkImport={handleImportHoldings}
+            onRemove={handleRemoveLot}
+          />
+        </section>
+
+        {(input.taxLots?.length ?? 0) > 0 && (
+          <section aria-labelledby="lot-optimizer-heading">
+            <h2 id="lot-optimizer-heading" className="text-lg font-display font-semibold text-slate-dark mb-2">
+              Sale Optimizer
+            </h2>
+            <p className="text-sm font-body text-slate mb-4">
+              Model the tax impact of selling specific lots using FIFO, LIFO, or a tax-minimizing selection.
+            </p>
+            <LotOptimizerPanel
+              lots={input.taxLots ?? []}
+              filingStatus={input.filingStatus}
+              config={federalConfig}
+              form1099Bs={input.form1099Bs}
+              ytdShortTermGainCents={totalST}
+              ytdLongTermGainCents={totalLT}
+              priorYearSTCarryforwardCents={priorYearSTCarryforward}
+              priorYearLTCarryforwardCents={priorYearLTCarryforward}
+              onConfirmSale={handleConfirmSale}
+            />
+          </section>
+        )}
 
         {/* Summary */}
         {(mode === 'summary' || transactions.length > 0) && (

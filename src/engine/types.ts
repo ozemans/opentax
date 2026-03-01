@@ -265,6 +265,9 @@ export interface TaxInput {
 
   // Workplace retirement plan flag — affects Traditional IRA deduction phase-out
   hasWorkplaceRetirementPlan?: boolean;
+
+  // Lot-level holdings for tax optimization (Phase 2)
+  taxLots?: TaxLot[];
 }
 
 export interface IncomeBreakdown {
@@ -589,6 +592,103 @@ export interface FederalConfig {
       mfj: { begin: number; end: number };
     };
   };
+}
+
+// ---------------------------------------------------------------------------
+// TaxLot — Individual cost-basis lot for lot-level tax optimization
+// ---------------------------------------------------------------------------
+
+export interface TaxLot {
+  id: string;                    // crypto.randomUUID()
+  symbol: string;                // Ticker symbol, e.g. 'AAPL'
+  description: string;           // Security name
+  dateAcquired: string;          // ISO date (YYYY-MM-DD) or 'VARIOUS'
+  quantity: number;              // Shares; can be fractional (DRIPs, mutual funds)
+  unitCostBasis: number;         // Cents per share
+  totalCostBasis: number;        // Cents (= unitCostBasis × quantity for whole-share lots)
+  isLongTerm: boolean | null;    // null when dateAcquired is 'VARIOUS'
+  dateSold?: string;             // ISO date — set once lot is realized
+  proceeds?: number;             // Cents — set once lot is realized
+  washSaleDisallowed?: number;   // Cents — Box 1g if applicable
+}
+
+// ---------------------------------------------------------------------------
+// Lot Optimizer — What-if sale projections and loss harvesting advisor
+// ---------------------------------------------------------------------------
+
+export type LotSelectionStrategy = 'FIFO' | 'LIFO' | 'MIN_TAX';
+
+/** One lot's contribution to a sale scenario */
+export interface SelectedLotDetail {
+  lot: TaxLot;
+  sharesSold: number;            // May be < lot.quantity for partial fills
+  proceeds: number;              // Cents
+  basis: number;                 // Cents
+  gain: number;                  // Cents (proceeds - basis)
+  isLongTerm: boolean;
+}
+
+/** Projected outcome of selling shares using one strategy */
+export interface LotProjection {
+  strategy: LotSelectionStrategy;
+  selectedLots: SelectedLotDetail[];
+  totalShares: number;
+  totalProceeds: number;         // Cents
+  totalBasis: number;            // Cents
+  shortTermGain: number;         // Cents (may be negative)
+  longTermGain: number;          // Cents (may be negative)
+  estimatedFederalTax: number;   // Cents — marginal ST + preferential LT + NIIT
+  afterTaxProceeds: number;      // Cents = totalProceeds − estimatedFederalTax
+  isRecommended: boolean;        // True on lowest-tax projection
+}
+
+export interface LotOptimizerInput {
+  lots: TaxLot[];                // All unsold lots for this symbol
+  symbol: string;
+  sharesToSell: number;
+  currentPricePerShareCents: number;
+  /** YTD realized gains/losses from other transactions (for NIIT / rate thresholds) */
+  ytdShortTermGainCents: number;
+  ytdLongTermGainCents: number;
+  priorYearSTCarryforwardCents?: number;
+  priorYearLTCarryforwardCents?: number;
+  filingStatus: FilingStatus;
+  config: FederalConfig;
+}
+
+export interface LotOptimizerResult {
+  projections: LotProjection[];  // One per strategy (FIFO, LIFO, MIN_TAX)
+}
+
+// ---------------------------------------------------------------------------
+// Loss Harvesting Advisor
+// ---------------------------------------------------------------------------
+
+export interface HarvestingCandidate {
+  symbol: string;
+  description: string;
+  lots: TaxLot[];
+  currentValueCents: number;     // Shares × currentPrice
+  totalBasisCents: number;       // Sum of totalCostBasis across lots
+  unrealizedLossCents: number;   // Positive number = magnitude of loss
+  estimatedTaxSavingsCents: number; // |unrealizedLoss| × effectiveMarginalRate
+  washSaleRisk: boolean;         // True if a substantially identical security was bought/sold within 30 days
+}
+
+export interface HarvestingAdvisorInput {
+  lots: TaxLot[];                // All unsold lots (all symbols)
+  /** Current price per share for each symbol (cents) */
+  currentPrices: Record<string, number>;
+  ytdShortTermGainCents: number;
+  ytdLongTermGainCents: number;
+  filingStatus: FilingStatus;
+  config: FederalConfig;
+  /** Existing realized transactions — used for wash sale window scan */
+  form1099Bs: Form1099B[];
+}
+
+export interface HarvestingAdvisorResult {
+  candidates: HarvestingCandidate[];  // Sorted by estimatedTaxSavings descending, top 5
 }
 
 // Re-export state types for convenience
