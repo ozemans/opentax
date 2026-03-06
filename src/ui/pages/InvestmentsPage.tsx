@@ -225,6 +225,8 @@ export function InvestmentsPage() {
                     payload: { ...summary, shortTermGainLoss: v },
                   })
                 }
+                helpText={HELP_TEXTS['capitalGainsSummary.shortTermGainLoss']?.content}
+                irsReference={HELP_TEXTS['capitalGainsSummary.shortTermGainLoss']?.irsReference}
               />
               <CurrencyInput
                 label="Net Long-Term Capital Gain/Loss"
@@ -237,6 +239,8 @@ export function InvestmentsPage() {
                     payload: { ...summary, longTermGainLoss: v },
                   })
                 }
+                helpText={HELP_TEXTS['capitalGainsSummary.longTermGainLoss']?.content}
+                irsReference={HELP_TEXTS['capitalGainsSummary.longTermGainLoss']?.irsReference}
               />
             </div>
           </section>
@@ -264,6 +268,8 @@ export function InvestmentsPage() {
               name="prior-year-lt-loss"
               value={priorYearLTCarryforward}
               onChange={(v) => dispatch({ type: 'SET_FIELD', path: 'priorYearLTCapitalLossCarryforward', value: v })}
+              helpText={HELP_TEXTS['priorYearLTCapitalLossCarryforward']?.content}
+              irsReference={HELP_TEXTS['priorYearLTCapitalLossCarryforward']?.irsReference}
             />
           </div>
         </section>

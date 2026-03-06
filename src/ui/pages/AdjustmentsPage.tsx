@@ -1,4 +1,5 @@
 import { CurrencyInput } from '@/ui/components/CurrencyInput';
+import { HelpTooltip } from '@/ui/components/HelpTooltip';
 import { PageContainer } from '@/ui/layouts/PageContainer';
 import { useFocusOnPageChange } from '@/ui/hooks/useFocusOnPageChange';
 import { HELP_TEXTS } from '@/ui/data/helpTexts';
@@ -111,6 +112,7 @@ export function AdjustmentsPage() {
             />
             <span className="text-sm font-body text-slate-dark">
               I participate in a retirement plan at work (401k, 403b, SEP, SIMPLE, or pension)
+              <HelpTooltip content={HELP_TEXTS['hasWorkplaceRetirementPlan']?.content ?? ''} irsReference={HELP_TEXTS['hasWorkplaceRetirementPlan']?.irsReference} />
             </span>
           </label>
 

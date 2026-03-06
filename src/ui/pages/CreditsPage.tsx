@@ -120,6 +120,8 @@ export function CreditsPage() {
                   name={`edu-${i}-ssn`}
                   value={entry.studentSSN}
                   onChange={(v) => handleEducationChange(i, { studentSSN: v })}
+                  helpText={HELP_TEXTS['educationExpenses.studentSSN']?.content}
+                  irsReference={HELP_TEXTS['educationExpenses.studentSSN']?.irsReference}
                   required
                 />
 

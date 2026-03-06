@@ -83,7 +83,7 @@ function StackedBar({ segments, total }: { segments: BarSegment[]; total: number
 }
 
 export function ResultsPage() {
-  const { input, result, dispatch, clearAll } = useTaxState();
+  const { input, result, computeError, dispatch, clearAll } = useTaxState();
   const headingRef = useFocusOnPageChange('results');
   const navigate = useNavigate();
   const {
@@ -158,6 +158,7 @@ export function ResultsPage() {
   ];
 
   const handleDownloadPDF = useCallback(async () => {
+    console.log('[PDF] Button clicked, result is:', result ? 'present' : 'NULL');
     if (!result) return;
 
     setIsDownloading(true);
@@ -223,6 +224,22 @@ export function ResultsPage() {
       </h1>
 
       <div className="space-y-8">
+        {/* Engine computation error */}
+        {computeError && (
+          <div role="alert" className="rounded-2xl border border-accent/30 bg-accent/10 p-5">
+            <p className="text-sm font-display font-semibold text-accent mb-1">
+              Tax computation error
+            </p>
+            <p className="text-xs font-body text-slate-dark leading-relaxed">
+              Something went wrong calculating your taxes. Please go back and check your inputs for
+              unusual values. If the problem persists, try starting a new return.
+            </p>
+            <p className="text-xs font-body text-slate mt-2">
+              Details: {computeError}
+            </p>
+          </div>
+        )}
+
         {/* Big refund/owed display */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
@@ -523,6 +540,12 @@ export function ResultsPage() {
           {downloadSuccess && (
             <p className="text-xs font-body text-success text-center">
               Your PDF was saved to your Downloads folder.
+            </p>
+          )}
+
+          {!result && !computeError && (
+            <p className="text-xs font-body text-slate text-center">
+              Complete your tax information to generate a PDF.
             </p>
           )}
 

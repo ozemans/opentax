@@ -478,6 +478,12 @@ export function Document1099Upload({ onImport }: Document1099UploadProps) {
             )}
           </div>
 
+          {/* Extraction note */}
+          <p className="text-xs font-body text-slate">
+            Please verify the extracted amounts match your original document.
+            PDF extraction is best-effort — some broker formats may not parse perfectly.
+          </p>
+
           {/* Warnings */}
           {state.result.warnings.length > 0 && (
             <div className="rounded-xl bg-warning/10 border border-warning/20 px-4 py-3">

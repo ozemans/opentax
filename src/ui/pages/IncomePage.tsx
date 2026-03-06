@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { FormField } from '@/ui/components/FormField';
 import { CurrencyInput } from '@/ui/components/CurrencyInput';
 import { EINInput } from '@/ui/components/EINInput';
+import { HelpTooltip } from '@/ui/components/HelpTooltip';
 import { IncomeDocumentCard } from '@/ui/components/IncomeDocumentCard';
 import { Document1099Upload } from '@/ui/components/Document1099Upload';
 import { DocumentW2Upload } from '@/ui/components/DocumentW2Upload';
@@ -152,12 +153,19 @@ export function IncomePage() {
                   irsReference={HELP_TEXTS['w2.employerName']?.irsReference}
                   required
                 />
-                <EINInput
-                  label="Employer EIN"
-                  name={`w2-${i}-ein`}
-                  value={w2.employerEIN}
-                  onChange={(v) => dispatch({ type: 'UPDATE_W2', index: i, updates: { employerEIN: v } })}
-                />
+                <div className="relative">
+                  <EINInput
+                    label="Employer EIN"
+                    name={`w2-${i}-ein`}
+                    value={w2.employerEIN}
+                    onChange={(v) => dispatch({ type: 'UPDATE_W2', index: i, updates: { employerEIN: v } })}
+                  />
+                  {HELP_TEXTS['w2.employerEIN'] && (
+                    <div className="absolute top-0 right-0">
+                      <HelpTooltip content={HELP_TEXTS['w2.employerEIN'].content} irsReference={HELP_TEXTS['w2.employerEIN'].irsReference} />
+                    </div>
+                  )}
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <CurrencyInput
                     label="Wages (Box 1)"
@@ -184,6 +192,7 @@ export function IncomePage() {
                     value={w2.socialSecurityWages}
                     onChange={(v) => dispatch({ type: 'UPDATE_W2', index: i, updates: { socialSecurityWages: v } })}
                     helpText={HELP_TEXTS['w2.socialSecurityWages']?.content}
+                    irsReference={HELP_TEXTS['w2.socialSecurityWages']?.irsReference}
                   />
                   <CurrencyInput
                     label="SS Withheld (Box 4)"
@@ -191,6 +200,7 @@ export function IncomePage() {
                     value={w2.socialSecurityWithheld}
                     onChange={(v) => dispatch({ type: 'UPDATE_W2', index: i, updates: { socialSecurityWithheld: v } })}
                     helpText={HELP_TEXTS['w2.socialSecurityWithheld']?.content}
+                    irsReference={HELP_TEXTS['w2.socialSecurityWithheld']?.irsReference}
                   />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -200,6 +210,7 @@ export function IncomePage() {
                     value={w2.medicareWages}
                     onChange={(v) => dispatch({ type: 'UPDATE_W2', index: i, updates: { medicareWages: v } })}
                     helpText={HELP_TEXTS['w2.medicareWages']?.content}
+                    irsReference={HELP_TEXTS['w2.medicareWages']?.irsReference}
                   />
                   <CurrencyInput
                     label="Medicare Withheld (Box 6)"
@@ -207,6 +218,7 @@ export function IncomePage() {
                     value={w2.medicareWithheld}
                     onChange={(v) => dispatch({ type: 'UPDATE_W2', index: i, updates: { medicareWithheld: v } })}
                     helpText={HELP_TEXTS['w2.medicareWithheld']?.content}
+                    irsReference={HELP_TEXTS['w2.medicareWithheld']?.irsReference}
                   />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -217,18 +229,24 @@ export function IncomePage() {
                     value={w2.stateCode}
                     onChange={(v) => dispatch({ type: 'UPDATE_W2', index: i, updates: { stateCode: v } })}
                     options={stateOptions}
+                    helpText={HELP_TEXTS['w2.stateCode']?.content}
+                    irsReference={HELP_TEXTS['w2.stateCode']?.irsReference}
                   />
                   <CurrencyInput
                     label="State Wages (Box 16)"
                     name={`w2-${i}-statewages`}
                     value={w2.stateWages}
                     onChange={(v) => dispatch({ type: 'UPDATE_W2', index: i, updates: { stateWages: v } })}
+                    helpText={HELP_TEXTS['w2.stateWages']?.content}
+                    irsReference={HELP_TEXTS['w2.stateWages']?.irsReference}
                   />
                   <CurrencyInput
                     label="State Withheld (Box 17)"
                     name={`w2-${i}-statewh`}
                     value={w2.stateWithheld}
                     onChange={(v) => dispatch({ type: 'UPDATE_W2', index: i, updates: { stateWithheld: v } })}
+                    helpText={HELP_TEXTS['w2.stateWithheld']?.content}
+                    irsReference={HELP_TEXTS['w2.stateWithheld']?.irsReference}
                   />
                 </div>
 
@@ -244,12 +262,16 @@ export function IncomePage() {
                         name={`w2-${i}-localwages`}
                         value={w2.localWages ?? 0}
                         onChange={(v) => dispatch({ type: 'UPDATE_W2', index: i, updates: { localWages: v } })}
+                        helpText={HELP_TEXTS['w2.localWages']?.content}
+                        irsReference={HELP_TEXTS['w2.localWages']?.irsReference}
                       />
                       <CurrencyInput
                         label="Local Withheld (Box 19)"
                         name={`w2-${i}-localwh`}
                         value={w2.localWithheld ?? 0}
                         onChange={(v) => dispatch({ type: 'UPDATE_W2', index: i, updates: { localWithheld: v } })}
+                        helpText={HELP_TEXTS['w2.localWithheld']?.content}
+                        irsReference={HELP_TEXTS['w2.localWithheld']?.irsReference}
                       />
                       <FormField
                         label="Locality Name (Box 20)"
@@ -257,6 +279,8 @@ export function IncomePage() {
                         value={w2.locality ?? ''}
                         onChange={(v) => dispatch({ type: 'UPDATE_W2', index: i, updates: { locality: v } })}
                         placeholder="e.g. NYC"
+                        helpText={HELP_TEXTS['w2.locality']?.content}
+                        irsReference={HELP_TEXTS['w2.locality']?.irsReference}
                       />
                     </div>
 
@@ -277,6 +301,8 @@ export function IncomePage() {
                               dispatch({ type: 'UPDATE_W2', index: i, updates: { box14Entries: updated } });
                             }}
                             placeholder="414H"
+                            helpText={HELP_TEXTS['w2.box14Code']?.content}
+                            irsReference={HELP_TEXTS['w2.box14Code']?.irsReference}
                           />
                           <CurrencyInput
                             label={j === 0 ? 'Amount' : ''}
@@ -287,6 +313,8 @@ export function IncomePage() {
                               updated[j] = { ...updated[j], amount: v };
                               dispatch({ type: 'UPDATE_W2', index: i, updates: { box14Entries: updated } });
                             }}
+                            helpText={HELP_TEXTS['w2.box14Amount']?.content}
+                            irsReference={HELP_TEXTS['w2.box14Amount']?.irsReference}
                           />
                           <button
                             type="button"
@@ -352,6 +380,8 @@ export function IncomePage() {
                   name={`1099int-${i}-payer`}
                   value={f.payerName}
                   onChange={(v) => dispatch({ type: 'UPDATE_1099_INT', index: i, updates: { payerName: v } })}
+                  helpText={HELP_TEXTS['1099int.payerName']?.content}
+                  irsReference={HELP_TEXTS['1099int.payerName']?.irsReference}
                   required
                 />
                 <CurrencyInput
@@ -369,12 +399,15 @@ export function IncomePage() {
                   value={f.earlyWithdrawalPenalty ?? 0}
                   onChange={(v) => dispatch({ type: 'UPDATE_1099_INT', index: i, updates: { earlyWithdrawalPenalty: v } })}
                   helpText={HELP_TEXTS['1099int.earlyWithdrawalPenalty']?.content}
+                  irsReference={HELP_TEXTS['1099int.earlyWithdrawalPenalty']?.irsReference}
                 />
                 <CurrencyInput
                   label="Federal Tax Withheld (Box 4)"
                   name={`1099int-${i}-fedwh`}
                   value={f.federalWithheld ?? 0}
                   onChange={(v) => dispatch({ type: 'UPDATE_1099_INT', index: i, updates: { federalWithheld: v } })}
+                  helpText={HELP_TEXTS['1099int.federalWithheld']?.content}
+                  irsReference={HELP_TEXTS['1099int.federalWithheld']?.irsReference}
                 />
               </div>
             </IncomeDocumentCard>
@@ -414,6 +447,8 @@ export function IncomePage() {
                   name={`1099div-${i}-payer`}
                   value={f.payerName}
                   onChange={(v) => dispatch({ type: 'UPDATE_1099_DIV', index: i, updates: { payerName: v } })}
+                  helpText={HELP_TEXTS['1099div.payerName']?.content}
+                  irsReference={HELP_TEXTS['1099div.payerName']?.irsReference}
                   required
                 />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -441,12 +476,15 @@ export function IncomePage() {
                   value={f.totalCapitalGain}
                   onChange={(v) => dispatch({ type: 'UPDATE_1099_DIV', index: i, updates: { totalCapitalGain: v } })}
                   helpText={HELP_TEXTS['1099div.totalCapitalGain']?.content}
+                  irsReference={HELP_TEXTS['1099div.totalCapitalGain']?.irsReference}
                 />
                 <CurrencyInput
                   label="Federal Tax Withheld (Box 4)"
                   name={`1099div-${i}-fedwh`}
                   value={f.federalWithheld ?? 0}
                   onChange={(v) => dispatch({ type: 'UPDATE_1099_DIV', index: i, updates: { federalWithheld: v } })}
+                  helpText={HELP_TEXTS['1099div.federalWithheld']?.content}
+                  irsReference={HELP_TEXTS['1099div.federalWithheld']?.irsReference}
                 />
               </div>
             </IncomeDocumentCard>
@@ -490,6 +528,8 @@ export function IncomePage() {
                   name={`1099nec-${i}-payer`}
                   value={f.payerName}
                   onChange={(v) => dispatch({ type: 'UPDATE_1099_NEC', index: i, updates: { payerName: v } })}
+                  helpText={HELP_TEXTS['1099nec.payerName']?.content}
+                  irsReference={HELP_TEXTS['1099nec.payerName']?.irsReference}
                   required
                 />
                 <CurrencyInput
@@ -506,6 +546,8 @@ export function IncomePage() {
                   name={`1099nec-${i}-fedwh`}
                   value={f.federalWithheld ?? 0}
                   onChange={(v) => dispatch({ type: 'UPDATE_1099_NEC', index: i, updates: { federalWithheld: v } })}
+                  helpText={HELP_TEXTS['1099nec.federalWithheld']?.content}
+                  irsReference={HELP_TEXTS['1099nec.federalWithheld']?.irsReference}
                 />
                 <p className="text-xs font-body text-warning">
                   Self-employment income is subject to SE tax (15.3%). Schedule C may be required.
@@ -538,7 +580,8 @@ export function IncomePage() {
             name="other-income"
             value={otherIncome}
             onChange={(v) => dispatch({ type: 'SET_FIELD', path: 'otherIncome', value: v })}
-            helpText="Any other taxable income not reported on W-2 or 1099 forms (e.g., gambling winnings, prizes, jury duty pay)."
+            helpText={HELP_TEXTS['otherIncome']?.content}
+            irsReference={HELP_TEXTS['otherIncome']?.irsReference}
           />
           <FormField
             label="Description (required for Schedule 1 Line 8)"
@@ -546,6 +589,8 @@ export function IncomePage() {
             value={input.otherIncomeDescription ?? ''}
             onChange={(v) => dispatch({ type: 'SET_FIELD', path: 'otherIncomeDescription', value: v })}
             placeholder="e.g., Gambling winnings, Prize, Jury duty"
+            helpText={HELP_TEXTS['otherIncomeDescription']?.content}
+            irsReference={HELP_TEXTS['otherIncomeDescription']?.irsReference}
           />
         </div>
       )}

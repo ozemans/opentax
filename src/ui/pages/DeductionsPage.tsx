@@ -205,6 +205,8 @@ export function DeductionsPage() {
               name="other-deductions"
               value={itemized.otherDeductions ?? 0}
               onChange={(v) => updateItemized('otherDeductions', v)}
+              helpText={HELP_TEXTS['itemized.otherDeductions']?.content}
+              irsReference={HELP_TEXTS['itemized.otherDeductions']?.irsReference}
             />
           </div>
         )}

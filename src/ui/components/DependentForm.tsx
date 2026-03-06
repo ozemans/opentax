@@ -2,7 +2,9 @@ import { useState, useCallback } from 'react';
 import type { Dependent } from '@/engine/types';
 import { FormField } from './FormField';
 import { SSNInput } from './SSNInput';
+import { HelpTooltip } from './HelpTooltip';
 import { ConfirmDialog } from './ConfirmDialog';
+import { HELP_TEXTS } from '@/ui/data/helpTexts';
 
 interface DependentFormProps {
   index: number;
@@ -84,6 +86,8 @@ export function DependentForm({
             value={dependent.firstName}
             onChange={(v) => handleChange('firstName', v)}
             error={errors['firstName']}
+            helpText={HELP_TEXTS['dependent.firstName']?.content}
+            irsReference={HELP_TEXTS['dependent.firstName']?.irsReference}
             required
           />
           <FormField
@@ -92,6 +96,8 @@ export function DependentForm({
             value={dependent.lastName}
             onChange={(v) => handleChange('lastName', v)}
             error={errors['lastName']}
+            helpText={HELP_TEXTS['dependent.lastName']?.content}
+            irsReference={HELP_TEXTS['dependent.lastName']?.irsReference}
             required
           />
         </div>
@@ -102,6 +108,8 @@ export function DependentForm({
           value={dependent.ssn}
           onChange={(v) => handleChange('ssn', v)}
           error={errors['ssn']}
+          helpText={HELP_TEXTS['dependent.ssn']?.content}
+          irsReference={HELP_TEXTS['dependent.ssn']?.irsReference}
           required
         />
 
@@ -113,6 +121,8 @@ export function DependentForm({
             value={dependent.dateOfBirth}
             onChange={(v) => handleChange('dateOfBirth', v)}
             error={errors['dateOfBirth']}
+            helpText={HELP_TEXTS['dependent.dateOfBirth']?.content}
+            irsReference={HELP_TEXTS['dependent.dateOfBirth']?.irsReference}
             required
           />
           <FormField
@@ -123,6 +133,8 @@ export function DependentForm({
             onChange={(v) => handleChange('relationship', v)}
             options={RELATIONSHIP_OPTIONS}
             error={errors['relationship']}
+            helpText={HELP_TEXTS['dependent.relationship']?.content}
+            irsReference={HELP_TEXTS['dependent.relationship']?.irsReference}
             required
           />
         </div>
@@ -135,6 +147,7 @@ export function DependentForm({
           onChange={(v) => handleChange('monthsLivedWithYou', parseInt(v, 10))}
           options={MONTHS_OPTIONS}
           helpText="How many months did this dependent live in your home during the tax year?"
+          irsReference={HELP_TEXTS['dependent.monthsLivedWithYou']?.irsReference}
         />
 
         <div className="flex flex-wrap gap-x-6 gap-y-2 pt-1">
@@ -147,6 +160,9 @@ export function DependentForm({
                          focus:ring-highlight focus:ring-2"
             />
             Full-time student
+            {HELP_TEXTS['dependent.isStudent']?.content && (
+              <HelpTooltip content={HELP_TEXTS['dependent.isStudent'].content} irsReference={HELP_TEXTS['dependent.isStudent']?.irsReference} />
+            )}
           </label>
           <label className="flex items-center gap-2 text-sm font-body text-slate-dark cursor-pointer">
             <input
@@ -157,6 +173,9 @@ export function DependentForm({
                          focus:ring-highlight focus:ring-2"
             />
             Permanently disabled
+            {HELP_TEXTS['dependent.isDisabled']?.content && (
+              <HelpTooltip content={HELP_TEXTS['dependent.isDisabled'].content} irsReference={HELP_TEXTS['dependent.isDisabled']?.irsReference} />
+            )}
           </label>
         </div>
 

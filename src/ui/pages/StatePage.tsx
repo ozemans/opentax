@@ -1,7 +1,9 @@
 import { StateSelector } from '@/ui/components/StateSelector';
 import { CurrencyInput } from '@/ui/components/CurrencyInput';
+import { HelpTooltip } from '@/ui/components/HelpTooltip';
 import { PageContainer } from '@/ui/layouts/PageContainer';
 import { useFocusOnPageChange } from '@/ui/hooks/useFocusOnPageChange';
+import { HELP_TEXTS } from '@/ui/data/helpTexts';
 import { STATE_OPTIONS } from '@/ui/data/stateOptions';
 import { useTaxState } from '@/ui/hooks/useTaxState';
 
@@ -168,6 +170,7 @@ export function StatePage() {
                     <div className="rounded-xl bg-highlight-light p-4">
                       <p className="text-sm font-display font-semibold text-slate-dark mb-3">
                         What is your New York residency status?
+                        <HelpTooltip content={HELP_TEXTS['nyResidencyType']?.content ?? ''} irsReference={HELP_TEXTS['nyResidencyType']?.irsReference} />
                       </p>
                       <div className="space-y-2">
                         <label className="flex items-center gap-3 cursor-pointer">
@@ -226,6 +229,7 @@ export function StatePage() {
                         <div>
                           <p className="text-sm font-display font-semibold text-slate-dark">
                             I live in New York City
+                            <HelpTooltip content={HELP_TEXTS['isNYC']?.content ?? ''} irsReference={HELP_TEXTS['isNYC']?.irsReference} />
                           </p>
                           <p className="text-xs font-body text-slate mt-0.5">
                             NYC residents pay both NYS and NYC income tax.
@@ -251,7 +255,8 @@ export function StatePage() {
                           name="nycEstimatedPayments"
                           value={input.nycEstimatedPayments ?? 0}
                           onChange={(v) => dispatch({ type: 'SET_FIELD', path: 'nycEstimatedPayments', value: v })}
-                          helpText="Total NYC estimated tax payments made during the year (NYC-200V vouchers)."
+                          helpText={HELP_TEXTS['nycEstimatedPayments']?.content}
+                          irsReference={HELP_TEXTS['nycEstimatedPayments']?.irsReference}
                         />
                       </div>
                     )}
@@ -269,14 +274,16 @@ export function StatePage() {
                       name="retirementIncome"
                       value={input.retirementIncome ?? 0}
                       onChange={(v) => dispatch({ type: 'SET_FIELD', path: 'retirementIncome', value: v })}
-                      helpText="NY exempts up to $20,000 of qualifying pension/annuity income from NY or US government retirement plans."
+                      helpText={HELP_TEXTS['retirementIncome']?.content}
+                      irsReference={HELP_TEXTS['retirementIncome']?.irsReference}
                     />
                     <CurrencyInput
                       label="NY 529 Plan Contributions"
                       name="ny529Contributions"
                       value={input.ny529Contributions ?? 0}
                       onChange={(v) => dispatch({ type: 'SET_FIELD', path: 'ny529Contributions', value: v })}
-                      helpText="Contributions to NY 529 college savings plans are deductible up to $5,000 (single) or $10,000 (MFJ)."
+                      helpText={HELP_TEXTS['ny529Contributions']?.content}
+                      irsReference={HELP_TEXTS['ny529Contributions']?.irsReference}
                     />
                   </div>
                 )}

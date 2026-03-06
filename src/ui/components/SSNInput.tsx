@@ -1,4 +1,5 @@
 import { useState, useCallback, useId } from 'react';
+import { HelpTooltip } from './HelpTooltip';
 
 interface SSNInputProps {
   label: string;
@@ -8,6 +9,8 @@ interface SSNInputProps {
   error?: string;
   required?: boolean;
   name: string;
+  helpText?: string;
+  irsReference?: string;
 }
 
 /** Strips all non-digits from a string. */
@@ -36,6 +39,8 @@ export function SSNInput({
   error,
   required = false,
   name,
+  helpText,
+  irsReference,
 }: SSNInputProps) {
   const fieldId = useId();
   const errorId = useId();
@@ -65,10 +70,13 @@ export function SSNInput({
 
   return (
     <div className="space-y-1.5">
-      <label htmlFor={fieldId} className="text-sm font-body font-medium text-slate-dark">
-        {label}
-        {required && <span className="ml-0.5 text-error">*</span>}
-      </label>
+      <div className="flex items-center">
+        <label htmlFor={fieldId} className="text-sm font-body font-medium text-slate-dark">
+          {label}
+          {required && <span className="ml-0.5 text-error">*</span>}
+        </label>
+        {helpText && <HelpTooltip content={helpText} irsReference={irsReference} />}
+      </div>
 
       <input
         id={fieldId}

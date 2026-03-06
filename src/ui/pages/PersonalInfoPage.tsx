@@ -2,10 +2,12 @@ import { useCallback } from 'react';
 import type { Dependent } from '@/engine/types';
 import { FormField } from '@/ui/components/FormField';
 import { SSNInput } from '@/ui/components/SSNInput';
+import { HelpTooltip } from '@/ui/components/HelpTooltip';
 import { DependentForm } from '@/ui/components/DependentForm';
 import { PageContainer } from '@/ui/layouts/PageContainer';
 import { useFocusOnPageChange } from '@/ui/hooks/useFocusOnPageChange';
 import { STATE_OPTIONS } from '@/ui/data/stateOptions';
+import { HELP_TEXTS } from '@/ui/data/helpTexts';
 import { useTaxState } from '@/ui/hooks/useTaxState';
 
 /**
@@ -72,6 +74,8 @@ export function PersonalInfoPage() {
                 name="taxpayer-firstName"
                 value={input.taxpayer.firstName}
                 onChange={(v) => dispatch({ type: 'SET_FIELD', path: 'taxpayer.firstName', value: v })}
+                helpText={HELP_TEXTS['taxpayer.firstName']?.content}
+                irsReference={HELP_TEXTS['taxpayer.firstName']?.irsReference}
                 required
               />
               <FormField
@@ -79,6 +83,8 @@ export function PersonalInfoPage() {
                 name="taxpayer-lastName"
                 value={input.taxpayer.lastName}
                 onChange={(v) => dispatch({ type: 'SET_FIELD', path: 'taxpayer.lastName', value: v })}
+                helpText={HELP_TEXTS['taxpayer.lastName']?.content}
+                irsReference={HELP_TEXTS['taxpayer.lastName']?.irsReference}
                 required
               />
             </div>
@@ -87,6 +93,8 @@ export function PersonalInfoPage() {
               name="taxpayer-ssn"
               value={input.taxpayer.ssn}
               onChange={(v) => dispatch({ type: 'SET_FIELD', path: 'taxpayer.ssn', value: v })}
+              helpText={HELP_TEXTS['taxpayer.ssn']?.content}
+              irsReference={HELP_TEXTS['taxpayer.ssn']?.irsReference}
               required
             />
             <FormField
@@ -98,6 +106,8 @@ export function PersonalInfoPage() {
                 dispatch({ type: 'SET_FIELD', path: 'taxpayer.dateOfBirth', value: v });
                 dispatch({ type: 'SET_FIELD', path: 'taxpayerAge65OrOlder', value: isAge65ByEndOfTaxYear(v, input.taxYear) });
               }}
+              helpText={HELP_TEXTS['taxpayer.dateOfBirth']?.content}
+              irsReference={HELP_TEXTS['taxpayer.dateOfBirth']?.irsReference}
               required
             />
 
@@ -110,6 +120,9 @@ export function PersonalInfoPage() {
                   className="h-4 w-4 rounded border-slate-light text-primary focus:ring-highlight focus:ring-2"
                 />
                 Age 65 or older
+                {HELP_TEXTS['taxpayerAge65OrOlder']?.content && (
+                  <HelpTooltip content={HELP_TEXTS['taxpayerAge65OrOlder'].content} irsReference={HELP_TEXTS['taxpayerAge65OrOlder']?.irsReference} />
+                )}
               </label>
               <label className="flex items-center gap-2 text-sm font-body text-slate-dark cursor-pointer">
                 <input
@@ -119,6 +132,9 @@ export function PersonalInfoPage() {
                   className="h-4 w-4 rounded border-slate-light text-primary focus:ring-highlight focus:ring-2"
                 />
                 Legally blind
+                {HELP_TEXTS['taxpayerBlind']?.content && (
+                  <HelpTooltip content={HELP_TEXTS['taxpayerBlind'].content} irsReference={HELP_TEXTS['taxpayerBlind']?.irsReference} />
+                )}
               </label>
             </div>
           </div>
@@ -137,6 +153,8 @@ export function PersonalInfoPage() {
                   name="spouse-firstName"
                   value={input.spouse?.firstName ?? ''}
                   onChange={(v) => dispatch({ type: 'SET_FIELD', path: 'spouse.firstName', value: v })}
+                  helpText={HELP_TEXTS['spouse.firstName']?.content}
+                  irsReference={HELP_TEXTS['spouse.firstName']?.irsReference}
                   required
                 />
                 <FormField
@@ -144,6 +162,8 @@ export function PersonalInfoPage() {
                   name="spouse-lastName"
                   value={input.spouse?.lastName ?? ''}
                   onChange={(v) => dispatch({ type: 'SET_FIELD', path: 'spouse.lastName', value: v })}
+                  helpText={HELP_TEXTS['spouse.lastName']?.content}
+                  irsReference={HELP_TEXTS['spouse.lastName']?.irsReference}
                   required
                 />
               </div>
@@ -152,6 +172,8 @@ export function PersonalInfoPage() {
                 name="spouse-ssn"
                 value={input.spouse?.ssn ?? ''}
                 onChange={(v) => dispatch({ type: 'SET_FIELD', path: 'spouse.ssn', value: v })}
+                helpText={HELP_TEXTS['spouse.ssn']?.content}
+                irsReference={HELP_TEXTS['spouse.ssn']?.irsReference}
                 required
               />
               <FormField
@@ -163,6 +185,8 @@ export function PersonalInfoPage() {
                   dispatch({ type: 'SET_FIELD', path: 'spouse.dateOfBirth', value: v });
                   dispatch({ type: 'SET_FIELD', path: 'spouseAge65OrOlder', value: isAge65ByEndOfTaxYear(v, input.taxYear) });
                 }}
+                helpText={HELP_TEXTS['spouse.dateOfBirth']?.content}
+                irsReference={HELP_TEXTS['spouse.dateOfBirth']?.irsReference}
                 required
               />
 
@@ -175,6 +199,9 @@ export function PersonalInfoPage() {
                     className="h-4 w-4 rounded border-slate-light text-primary focus:ring-highlight focus:ring-2"
                   />
                   Age 65 or older
+                  {HELP_TEXTS['spouseAge65OrOlder']?.content && (
+                    <HelpTooltip content={HELP_TEXTS['spouseAge65OrOlder'].content} irsReference={HELP_TEXTS['spouseAge65OrOlder']?.irsReference} />
+                  )}
                 </label>
                 <label className="flex items-center gap-2 text-sm font-body text-slate-dark cursor-pointer">
                   <input
@@ -184,6 +211,9 @@ export function PersonalInfoPage() {
                     className="h-4 w-4 rounded border-slate-light text-primary focus:ring-highlight focus:ring-2"
                   />
                   Legally blind
+                  {HELP_TEXTS['spouseBlind']?.content && (
+                    <HelpTooltip content={HELP_TEXTS['spouseBlind'].content} irsReference={HELP_TEXTS['spouseBlind']?.irsReference} />
+                  )}
                 </label>
               </div>
             </div>
@@ -201,6 +231,8 @@ export function PersonalInfoPage() {
               name="address-street"
               value={input.address.street}
               onChange={(v) => dispatch({ type: 'SET_FIELD', path: 'address.street', value: v })}
+              helpText={HELP_TEXTS['address.street']?.content}
+              irsReference={HELP_TEXTS['address.street']?.irsReference}
               required
             />
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -209,6 +241,8 @@ export function PersonalInfoPage() {
                 name="address-city"
                 value={input.address.city}
                 onChange={(v) => dispatch({ type: 'SET_FIELD', path: 'address.city', value: v })}
+                helpText={HELP_TEXTS['address.city']?.content}
+                irsReference={HELP_TEXTS['address.city']?.irsReference}
                 required
               />
               <FormField
@@ -218,6 +252,8 @@ export function PersonalInfoPage() {
                 value={input.address.state}
                 onChange={(v) => dispatch({ type: 'SET_FIELD', path: 'address.state', value: v })}
                 options={stateOptions}
+                helpText={HELP_TEXTS['address.state']?.content}
+                irsReference={HELP_TEXTS['address.state']?.irsReference}
                 required
               />
               <FormField
@@ -226,6 +262,8 @@ export function PersonalInfoPage() {
                 value={input.address.zip}
                 onChange={(v) => dispatch({ type: 'SET_FIELD', path: 'address.zip', value: v })}
                 placeholder="12345"
+                helpText={HELP_TEXTS['address.zip']?.content}
+                irsReference={HELP_TEXTS['address.zip']?.irsReference}
                 required
               />
             </div>

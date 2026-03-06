@@ -17,6 +17,7 @@ export interface TaxStateContextValue {
   input: TaxInput;
   result: TaxResult | null;
   isComputing: boolean;
+  computeError: string | null;
   dispatch: React.Dispatch<TaxAction>;
   isLoading: boolean;
   lastSavedAt: Date | null;
@@ -37,6 +38,7 @@ export function TaxProvider({ children }: TaxProviderProps) {
   const [input, dispatch] = useReducer(taxReducer, undefined, createDefaultTaxInput);
   const [result, setResult] = useState<TaxResult | null>(null);
   const [isComputing, setIsComputing] = useState(false);
+  const [computeError, setComputeError] = useState<string | null>(null);
 
   // Auto-save/restore to IndexedDB
   const { isLoading, lastSavedAt, clearAll } = useLocalStorage(input, dispatch);
@@ -44,6 +46,7 @@ export function TaxProvider({ children }: TaxProviderProps) {
   // Debounced computation whenever input changes
   useEffect(() => {
     setIsComputing(true);
+    setComputeError(null);
 
     const timer = setTimeout(() => {
       try {
@@ -51,7 +54,10 @@ export function TaxProvider({ children }: TaxProviderProps) {
         setResult(computed);
       } catch (err) {
         console.error('[OpenTax] Engine computation error:', err);
-        // Don't crash — leave previous result or null
+        setResult(null);
+        setComputeError(
+          err instanceof Error ? err.message : 'Tax computation failed',
+        );
       } finally {
         setIsComputing(false);
       }
@@ -66,6 +72,7 @@ export function TaxProvider({ children }: TaxProviderProps) {
     input,
     result,
     isComputing,
+    computeError,
     dispatch,
     isLoading,
     lastSavedAt,

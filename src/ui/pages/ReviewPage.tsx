@@ -1,11 +1,13 @@
 import { useState, useCallback } from 'react';
 import { FormField } from '@/ui/components/FormField';
 import { CurrencyInput } from '@/ui/components/CurrencyInput';
+import { HelpTooltip } from '@/ui/components/HelpTooltip';
 import { TaxSummaryCard } from '@/ui/components/TaxSummaryCard';
 import { ConfirmDialog } from '@/ui/components/ConfirmDialog';
 import { PasswordDialog } from '@/ui/components/PasswordDialog';
 import { PageContainer } from '@/ui/layouts/PageContainer';
 import { useFocusOnPageChange } from '@/ui/hooks/useFocusOnPageChange';
+import { HELP_TEXTS } from '@/ui/data/helpTexts';
 import { useTaxState } from '@/ui/hooks/useTaxState';
 import { useEncryptedExport } from '@/ui/hooks/useEncryptedExport';
 import { generateReturnPackage } from '@/pdf/generator';
@@ -203,6 +205,7 @@ export function ReviewPage() {
             <fieldset>
               <legend className="text-sm font-body font-medium text-slate-dark mb-2">
                 Account Type
+                <HelpTooltip content={HELP_TEXTS['directDeposit.accountType']?.content ?? ''} irsReference={HELP_TEXTS['directDeposit.accountType']?.irsReference} />
               </legend>
               <div className="flex gap-4">
                 <label className="flex items-center gap-2 cursor-pointer text-sm font-body text-slate-dark">

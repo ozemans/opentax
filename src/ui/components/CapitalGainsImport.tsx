@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import type { Form1099B } from '@/engine/types';
+import { parseBrokerageCSV } from '@/utils/csv-import';
 
 interface CapitalGainsImportProps {
   transactions: Form1099B[];
@@ -7,16 +8,6 @@ interface CapitalGainsImportProps {
   onUpdate: (index: number, updates: Partial<Form1099B>) => void;
   onRemove: (index: number) => void;
   onBulkImport: (transactions: Form1099B[]) => void;
-}
-
-interface ParsedRow {
-  description: string;
-  dateAcquired: string;
-  dateSold: string;
-  proceeds: number;
-  costBasis: number;
-  gainLoss: number;
-  isLongTerm: boolean;
 }
 
 function formatCentsToDollars(cents: number): string {
@@ -27,76 +18,6 @@ function formatCentsToDollars(cents: number): string {
   });
 }
 
-/**
- * Basic CSV parser — handles the most common CSV formats from brokerages.
- * Expects headers: description, dateAcquired, dateSold, proceeds, costBasis
- * The csv-import utility from Agent 1 will replace this. TODO: Wire up csv-import utility.
- */
-function parseCSV(text: string): ParsedRow[] {
-  const lines = text.trim().split('\n');
-  if (lines.length < 2) return [];
-
-  const headers = lines[0].split(',').map((h) => h.trim().toLowerCase().replace(/"/g, ''));
-
-  const descIdx = headers.findIndex((h) => h.includes('description') || h.includes('security'));
-  const acquiredIdx = headers.findIndex((h) => h.includes('acquired') || h.includes('purchase'));
-  const soldIdx = headers.findIndex((h) => h.includes('sold') || h.includes('sale'));
-  const proceedsIdx = headers.findIndex((h) => h.includes('proceeds') || h.includes('sales price'));
-  const basisIdx = headers.findIndex((h) => h.includes('basis') || h.includes('cost'));
-
-  if (proceedsIdx === -1 || basisIdx === -1) return [];
-
-  const rows: ParsedRow[] = [];
-  for (let i = 1; i < lines.length; i++) {
-    const cols = lines[i].split(',').map((c) => c.trim().replace(/"/g, ''));
-    if (cols.length < Math.max(proceedsIdx, basisIdx) + 1) continue;
-
-    const proceedsDollars = parseFloat(cols[proceedsIdx].replace(/[$,]/g, ''));
-    const basisDollars = parseFloat(cols[basisIdx].replace(/[$,]/g, ''));
-    if (isNaN(proceedsDollars) || isNaN(basisDollars)) continue;
-
-    const proceeds = Math.round(proceedsDollars * 100);
-    const costBasis = Math.round(basisDollars * 100);
-    const dateAcquired = acquiredIdx >= 0 ? cols[acquiredIdx] : '';
-    const dateSold = soldIdx >= 0 ? cols[soldIdx] : '';
-
-    // Determine if long-term from dates if available
-    let isLongTerm = false;
-    if (dateAcquired && dateSold && dateAcquired !== 'VARIOUS') {
-      const acquired = new Date(dateAcquired);
-      const sold = new Date(dateSold);
-      const diff = sold.getTime() - acquired.getTime();
-      isLongTerm = diff > 365.25 * 24 * 60 * 60 * 1000;
-    }
-
-    rows.push({
-      description: descIdx >= 0 ? cols[descIdx] : `Transaction ${i}`,
-      dateAcquired: dateAcquired || '',
-      dateSold: dateSold || '',
-      proceeds,
-      costBasis,
-      gainLoss: proceeds - costBasis,
-      isLongTerm,
-    });
-  }
-
-  return rows;
-}
-
-function parsedToForm1099B(row: ParsedRow): Form1099B {
-  return {
-    description: row.description,
-    dateAcquired: row.dateAcquired,
-    dateSold: row.dateSold,
-    proceeds: row.proceeds,
-    costBasis: row.costBasis,
-    gainLoss: row.gainLoss,
-    isLongTerm: row.isLongTerm,
-    basisReportedToIRS: true,
-    category: row.isLongTerm ? '8949_D' : '8949_A',
-  };
-}
-
 export function CapitalGainsImport({
   transactions,
   onAdd,
@@ -105,7 +26,7 @@ export function CapitalGainsImport({
   onBulkImport,
 }: CapitalGainsImportProps) {
   const [isDragging, setIsDragging] = useState(false);
-  const [preview, setPreview] = useState<ParsedRow[] | null>(null);
+  const [preview, setPreview] = useState<Form1099B[] | null>(null);
   const [parseError, setParseError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -114,9 +35,9 @@ export function CapitalGainsImport({
     const reader = new FileReader();
     reader.onload = (e) => {
       const text = e.target?.result as string;
-      const parsed = parseCSV(text);
+      const parsed = parseBrokerageCSV(text);
       if (parsed.length === 0) {
-        setParseError('Could not parse any transactions from this CSV. Expected columns: description, dateAcquired, dateSold, proceeds, costBasis.');
+        setParseError('Could not parse any transactions from this CSV. Make sure it has columns for proceeds and cost basis.');
         return;
       }
       setPreview(parsed);
@@ -137,8 +58,7 @@ export function CapitalGainsImport({
 
   const handleConfirmImport = useCallback(() => {
     if (!preview) return;
-    const forms = preview.map(parsedToForm1099B);
-    onBulkImport(forms);
+    onBulkImport(preview);
     setPreview(null);
   }, [preview, onBulkImport]);
 
